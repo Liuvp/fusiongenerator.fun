@@ -1,0 +1,1 @@
+Detected Next.js Version: 16.0.7

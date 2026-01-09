@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- 背景圆形 -->
+  <circle cx="50" cy="50" r="45" fill="#4F46E5" />
+  
+  <!-- 融合符号 - 两个交叉的圆形 -->
+  <circle cx="40" cy="45" r="20" fill="#FF6B6B" opacity="0.8" />
+  <circle cx="60" cy="45" r="20" fill="#FFD166" opacity="0.8" />
+  
+  <!-- 龙珠星星 -->
+  <path d="M50 70 L53 76 L60 77 L55 82 L56 89 L50 86 L44 89 L45 82 L40 77 L47 76 Z" fill="#FFD166" />
+  
+  <!-- 精灵球上半部分 -->
+  <path d="M30 65 A20 20 0 0 1 70 65" stroke="#FFFFFF" stroke-width="3" fill="none" />
+  
+  <!-- 精灵球下半部分 -->
+  <path d="M30 65 A20 20 0 0 0 70 65" stroke="#FFFFFF" stroke-width="3" fill="none" />
+  
+  <!-- 精灵球中间的圆 -->
+  <circle cx="50" cy="65" r="5" fill="#FFFFFF" stroke="#4F46E5" stroke-width="2" />
+</svg>
