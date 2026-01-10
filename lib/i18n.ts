@@ -1,4 +1,4 @@
-export const LOCALES = ["en", "pt-br", "de", "fr", "es", "it"] as const
+export const LOCALES = ["en", "pt-br", "de", "fr", "es", "it", "ja"] as const
 export type Locale = typeof LOCALES[number]
 export const DEFAULT_LOCALE: Locale = "en"
 
@@ -150,6 +150,7 @@ const dict: Record<Locale, Record<string, string>> = {
   fr: enDict,
   es: enDict,
   it: enDict,
+  ja: enDict,
 }
 
 export function getLocale(): Locale {
@@ -182,6 +183,7 @@ export const SERIES_LABEL: Record<Locale, Record<"dragon-ball" | "pokemon", stri
   fr: { "dragon-ball": "Dragon Ball", pokemon: "Pokémon" },
   es: { "dragon-ball": "Dragon Ball", pokemon: "Pokémon" },
   it: { "dragon-ball": "Dragon Ball", pokemon: "Pokémon" },
+  ja: { "dragon-ball": "ドラゴンボール", pokemon: "ポケモン" },
 }
 
 /**
