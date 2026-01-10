@@ -1,0 +1,68 @@
+"use client";
+
+import { motion } from "framer-motion";
+import Link from "next/link";
+import Image from "next/image";
+import { fadeInUp, fadeInScale, staggerContainer } from "./animations";
+
+export function HeroSection() {
+    return (
+        <section className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-700">
+            <div className="container mx-auto max-w-6xl">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+                    <motion.div
+                        className="w-full md:w-1/2 space-y-6"
+                        variants={staggerContainer}
+                        initial={false}
+                        animate="animate"
+                    >
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                            AI Fusion Generator for Dragon Ball and Pokémon Character Fusions
+                        </h1>
+
+                        <p className="text-lg md:text-xl text-purple-100 max-w-xl">
+                            The world's #1 AI tool to merge any two images into Dragon Ball warriors, Pokémon hybrids, or any custom art style.
+                        </p>
+
+                        <motion.div
+                            initial={false}
+                            variants={fadeInUp}
+                            className="relative max-w-lg mt-8"
+                        >
+                            <Link href="/ai" className="group block cursor-pointer">
+                                <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-25 group-hover:opacity-100 transition duration-1000"></div>
+                                <div className="relative flex items-center bg-white rounded-full p-2 shadow-xl border border-purple-200">
+                                    <div className="flex-1 px-4 text-gray-500 font-medium truncate">
+                                        Try: Goku + Iron Man...
+                                    </div>
+                                    <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition transform group-hover:scale-105">
+                                        Generate
+                                    </span>
+                                </div>
+                            </Link>
+                        </motion.div>
+                    </motion.div>
+
+                    <motion.div
+                        variants={fadeInScale}
+                        className="w-full md:w-1/2"
+                    >
+                        <div className="relative">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg blur-lg opacity-75 animate-pulse"></div>
+                            <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
+                                <Image
+                                    src="/hero-fusion-example.webp"
+                                    alt="AI-generated Dragon Ball and Pokemon character fusion example showing fusion generator capabilities"
+                                    width={600}
+                                    height={400}
+                                    className="w-full h-auto object-cover"
+                                    priority
+                                />
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            </div>
+        </section>
+    );
+}

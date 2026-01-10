@@ -5,8 +5,6 @@ export const metadata: Metadata = {
   title: "AI Fusion Generator - Free Online Image Fusion Tool",
   description:
     "Free AI Fusion Generator - Combine any two images with advanced AI technology. Create unique character fusions, merge photos, and generate creative artwork instantly.",
-  keywords:
-    "AI fusion generator, fusion AI image generator, AI image fusion, image fusion AI, fusion generator AI",
   alternates: {
     canonical: "/ai",
     languages: {

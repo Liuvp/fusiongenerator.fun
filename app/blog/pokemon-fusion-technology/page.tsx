@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
     title: "How Pokémon Fusion Generator Works | Technology & AI",
     description: "Learn about the technology behind Pokémon Infinite Fusion and our AI Generator. Understand how sprites and AI models combine to create new monsters.",
-    keywords: "pokemon fusion generator, infinite fusion, ai pokemon generator, sprite fusion, how it works",
 };
 
 export default function PokemonFusionTechPage() {

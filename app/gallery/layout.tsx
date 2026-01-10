@@ -5,8 +5,6 @@ export const metadata: Metadata = {
   title: "Fusion Gallery - Browse Dragon Ball & Pokemon Fusions | FusionGenerator",
   description:
     "Explore thousands of Dragon Ball and Pokemon character fusions created by our community. Get inspired by Goku Vegeta fusions, Pikachu Charizard mashups, and more.",
-  keywords:
-    "fusion gallery, pokemon fusion gallery, dragon ball fusion examples, character fusion showcase, AI fusion art, anime fusion collection",
   alternates: {
     canonical: "/gallery",
     languages: {

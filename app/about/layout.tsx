@@ -5,8 +5,6 @@ export const metadata: Metadata = {
     title: "About Fusion Generator - Create Dragon Ball & Pokemon Fusions with AI",
     description:
         "Learn about Fusion Generator, the leading AI-powered platform for creating Dragon Ball and Pokemon character fusions. Discover our mission to bring fusion creativity to everyone.",
-    keywords:
-        "about fusion generator, fusion generator team, AI fusion technology, character fusion platform, dragon ball fusion creator, pokemon fusion maker",
     alternates: {
         canonical: "/about",
         languages: {

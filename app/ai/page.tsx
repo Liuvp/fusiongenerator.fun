@@ -1,9 +1,40 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, Zap, Wand2, Upload, ChevronDown } from "lucide-react";
 import Script from "next/script";
+
+export const metadata: Metadata = {
+    title: "AI Fusion Generator – Merge Any Characters or Photos Online",
+    description:
+        "Merge any characters, photos, or art with our free AI Fusion Generator. Instantly create unique, high-quality blends – just upload two images and fuse!",
+    alternates: {
+        canonical: "/ai",
+    },
+    openGraph: {
+        title: "AI Fusion Generator – Merge Any Characters or Photos Online",
+        description:
+            "Merge any characters, photos, or art with our free AI Fusion Generator. Instantly create unique, high-quality blends – just upload two images and fuse!",
+        url: "https://fusiongenerator.fun/ai",
+        type: "website",
+        images: [
+            {
+                url: "/gallery/AI-Fusion-Generator-Preview.png", // Assuming a generic preview
+                width: 1200,
+                height: 630,
+                alt: "AI Fusion Generator Preview",
+            },
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "AI Fusion Generator – Merge Any Characters or Photos Online",
+        description:
+            "Merge any characters, photos, or art with our free AI Fusion Generator. Instantly create unique, high-quality blends – just upload two images and fuse!",
+    },
+};
 
 export default function AIFusionPage() {
     const faqSchema = {
@@ -66,7 +97,7 @@ export default function AIFusionPage() {
                             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                                 AI Fusion Generator
                                 <br />
-                                Free Image Fusion Tool
+                                Merge Any Two Images Instantly
                             </h1>
                             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                                 Advanced AI fusion technology to merge any two images. Supports characters, animals, and custom photos with professional results.

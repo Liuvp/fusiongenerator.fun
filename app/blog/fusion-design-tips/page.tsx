@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
     title: "Design Tips: How to Create Perfect Character Fusions | Fusion Generator",
     description: "Master the art of character fusion. Learn design principles, color theory, and tips to make your Dragon Ball and Pokemon fusions look professional.",
-    keywords: "character fusion design, fusion art tips, color theory fusion, character design guide",
 };
 
 export default function FusionDesignTipsPage() {

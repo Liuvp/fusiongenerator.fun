@@ -5,8 +5,6 @@ export const metadata: Metadata = {
     title: "Pricing - Fusion Generator | Free Dragon Ball & Pokemon Fusion Plans",
     description:
         "Choose your Fusion Generator plan: Free forever with 5 daily fusions, Pro Unlimited at $9.99/month, or pay-as-you-go credits. Create unlimited Dragon Ball and Pokemon fusions.",
-    keywords:
-        "fusion generator pricing, pokemon fusion price, dragon ball fusion cost, AI fusion plans, free fusion generator, unlimited fusion subscription",
     alternates: {
         canonical: "/pricing",
         languages: {

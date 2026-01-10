@@ -5,8 +5,6 @@ export const metadata: Metadata = {
     title: "Contact Us - Fusion Generator Support & Feedback",
     description:
         "Get in touch with the Fusion Generator team. We're here to help with questions about Dragon Ball fusions, Pokemon fusions, and AI character creation.",
-    keywords:
-        "contact fusion generator, fusion generator support, customer service, feedback, help, dragon ball fusion help, pokemon fusion support",
     alternates: {
         canonical: "/contact",
     },

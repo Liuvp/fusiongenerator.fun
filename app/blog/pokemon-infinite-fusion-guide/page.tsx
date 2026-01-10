@@ -6,7 +6,6 @@ import Script from "next/script";
 export const metadata: Metadata = {
     title: "Pokemon Infinite Fusion Generator: The Ultimate Guide & How to Use It | FusionGenerator.fun",
     description: "Discover everything about the Pokemon Infinite Fusion Generator. Our complete guide explains what it is, how it works, where to play, and tips for creating amazing Gen 1-9 Pokemon mashups.",
-    keywords: "pokemon infinite fusion generator, pokemon fusion generator, infinite fusion generator, pokemon fusion generation, pokemon infinite fusions, pokemon mashup creator",
     alternates: {
         canonical: "/blog/pokemon-infinite-fusion-guide",
     },
@@ -242,9 +241,6 @@ export default function PokemonInfiniteFusionGuidePage() {
                             {/* Article Footer Navigation */}
                             <div className="not-prose mt-12 pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div className="flex gap-4">
-                                    <Link href="/blog/ai-image-fusion-guide" className="px-4 py-2 rounded-lg border hover:bg-muted/50 transition-colors text-sm">
-                                        ← Previous: AI Fusion Guide
-                                    </Link>
                                     <Link href="/blog" className="px-4 py-2 rounded-lg border hover:bg-muted/50 transition-colors text-sm">
                                         All Blog Posts →
                                     </Link>
@@ -259,10 +255,7 @@ export default function PokemonInfiniteFusionGuidePage() {
                                         <h4 className="font-semibold">Dragon Ball Fusion Generator Guide</h4>
                                         <p className="text-sm text-muted-foreground mt-1">Learn how to fuse Goku, Vegeta, and all your favorite Z-fighters.</p>
                                     </Link>
-                                    <Link href="/blog/ai-image-fusion-guide" className="p-4 border rounded-lg hover:border-primary hover:bg-primary/5 transition-all">
-                                        <h4 className="font-semibold">AI Image Fusion Guide</h4>
-                                        <p className="text-sm text-muted-foreground mt-1">Discover how AI fusion generators work and create amazing mashups.</p>
-                                    </Link>
+
                                 </div>
                             </div>
                         </div>

@@ -32,13 +32,6 @@ export default function BlogPage() {
       readTime: "9 min read"
     },
     {
-      slug: "/blog/ai-image-fusion-guide",
-      title: "How AI Image Fusion Generators Work: The Complete Beginner's Guide",
-      excerpt: "A complete beginner's guide to AI image fusion technology, adapted for Fusion Generator users.",
-      date: "December 1, 2025",
-      readTime: "9 min read"
-    },
-    {
       slug: "/blog/pokemon-fusion-technology",
       title: "How Pokémon Fusion Generator Technology Works",
       excerpt: "Explore the AI technology behind our Pokemon fusion generator and learn how to create unique Pokemon combinations.",

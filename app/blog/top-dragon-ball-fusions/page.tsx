@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
     title: "Top 10 Dragon Ball Fusions You Must Try | Fusion Generator",
     description: "Discover the most powerful and iconic Dragon Ball character fusions. From Gogeta to Vegito, explore the best combinations for our Fusion Generator.",
-    keywords: "dragon ball fusion, dbz fusion generator, goku vegeta fusion, gogeta, vegito, anime fusion",
 };
 
 export default function TopDragonBallFusionsPage() {
