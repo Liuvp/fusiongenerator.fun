@@ -1,0 +1,22 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run at 00:00 UTC daily
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Keep-Alive Endpoint
+        run: |
+          echo "Pinging keep-alive endpoint..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://fusiongenerator.fun/api/system/keep-alive)
+          echo "Response status code: $response"
+          if [ "$response" -eq 200 ]; then
+            echo "Success: Database is active."
+          else
+            echo "Error: Failed to ping database. Status code: $response"
+            exit 1
+          fi

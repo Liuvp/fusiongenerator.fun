@@ -1,4 +1,4 @@
-export const LOCALES = ["en", "pt-br", "de", "fr", "es", "it", "ja"] as const
+export const LOCALES = ["en"] as const
 export type Locale = typeof LOCALES[number]
 export const DEFAULT_LOCALE: Locale = "en"
 
@@ -145,12 +145,6 @@ const enDict = {
 
 const dict: Record<Locale, Record<string, string>> = {
   en: enDict,
-  "pt-br": enDict,
-  de: enDict,
-  fr: enDict,
-  es: enDict,
-  it: enDict,
-  ja: enDict,
 }
 
 export function getLocale(): Locale {
@@ -178,12 +172,6 @@ export function t(locale: Locale, key: string): string {
 
 export const SERIES_LABEL: Record<Locale, Record<"dragon-ball" | "pokemon", string>> = {
   en: { "dragon-ball": "Dragon Ball", pokemon: "Pokémon" },
-  "pt-br": { "dragon-ball": "Dragon Ball", pokemon: "Pokémon" },
-  de: { "dragon-ball": "Dragon Ball", pokemon: "Pokémon" },
-  fr: { "dragon-ball": "Dragon Ball", pokemon: "Pokémon" },
-  es: { "dragon-ball": "Dragon Ball", pokemon: "Pokémon" },
-  it: { "dragon-ball": "Dragon Ball", pokemon: "Pokémon" },
-  ja: { "dragon-ball": "ドラゴンボール", pokemon: "ポケモン" },
 }
 
 /**
@@ -196,12 +184,6 @@ export const SERIES_LABEL: Record<Locale, Record<"dragon-ball" | "pokemon", stri
 export function localizedPath(locale: Locale, path: string): string {
   // Ensure path starts with /
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-
-  // Default locale (en) has no prefix
-  if (locale === DEFAULT_LOCALE) {
-    return cleanPath;
-  }
-
-  // Other locales have prefix
-  return `/${locale}${cleanPath}`;
+  // Always return cleanPath as we only support English (default)
+  return cleanPath;
 }

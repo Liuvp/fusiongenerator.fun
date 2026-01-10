@@ -27,7 +27,6 @@ export const metadata = {
     type: "website",
     url: baseUrl,
     locale: "en_US",
-    alternateLocale: ["pt_BR", "de_DE", "fr_FR", "es_ES", "it_IT"],
   },
   twitter: {
     card: "summary_large_image",
@@ -37,21 +36,6 @@ export const metadata = {
   },
   alternates: {
     canonical: "/",
-    languages: {
-      "en-US": "/",
-      en: "/",
-      "pt-BR": "/pt-br",
-      "pt": "/pt-br",
-      "de-DE": "/de",
-      de: "/de",
-      "fr-FR": "/fr",
-      fr: "/fr",
-      "es-ES": "/es",
-      es: "/es",
-      "it-IT": "/it",
-      it: "/it",
-      "x-default": "/",
-    },
   },
 };
 
