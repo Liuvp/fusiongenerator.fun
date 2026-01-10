@@ -14,8 +14,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.text();
 
-    const headersList = headers();
-    const signature = (await headersList).get("creem-signature") || "";
+    const headersList = await headers();
+    const signature = headersList.get("creem-signature") || "";
 
     // Verify the webhook signature
     if (
