@@ -4,40 +4,33 @@ import { Logo } from "./logo";
 import Link from "next/link";
 import { Github } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { localizedPath, t, Locale } from "@/lib/i18n";
-
-interface FooterProps {
-  locale: Locale;
-}
-
-export function Footer({ locale }: FooterProps) {
+export function Footer() {
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith("/dashboard");
-  const L = (p: string) => localizedPath(locale, p);
 
   const footerLinks = [
     {
-      title: t(locale, "footer.group.fusion"),
+      title: "Fusion Generator",
       links: [
-        { label: t(locale, "nav.ai"), href: "/ai" },
-        { label: t(locale, "nav.dragonBall"), href: "/dragon-ball" },
-        { label: t(locale, "nav.pokemon"), href: "/pokemon" },
-        { label: t(locale, "nav.gallery"), href: "/gallery" },
+        { label: "AI Fusion", href: "/ai" },
+        { label: "Dragon Ball", href: "/dragon-ball" },
+        { label: "Pokemon", href: "/pokemon" },
+        { label: "Gallery", href: "/gallery" },
       ],
     },
     {
-      title: t(locale, "footer.group.content"),
+      title: "Content",
       links: [
-        { label: t(locale, "nav.blog"), href: "/blog" },
-        { label: t(locale, "footer.about"), href: "/about" },
-        { label: t(locale, "footer.contact"), href: "/contact" },
+        { label: "Blog", href: "/blog" },
+        { label: "About Us", href: "/about" },
+        { label: "Contact Us", href: "/contact" },
       ],
     },
     {
-      title: t(locale, "footer.group.legal"),
+      title: "Legal",
       links: [
-        { label: t(locale, "footer.privacy"), href: "/privacy" },
-        { label: t(locale, "footer.terms"), href: "/terms" },
+        { label: "Privacy Policy", href: "/privacy" },
+        { label: "Terms of Use", href: "/terms" },
       ],
     },
   ];
@@ -48,7 +41,7 @@ export function Footer({ locale }: FooterProps) {
         <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row md:py-0">
           <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
             <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-              {t(locale, "footer.builtBy")}{" "}
+              Built by{" "}
               <Link
                 href="https://Raphael.app"
                 className="font-medium underline underline-offset-4"
@@ -69,7 +62,7 @@ export function Footer({ locale }: FooterProps) {
           <div className="col-span-full lg:col-span-2">
             <Logo />
             <p className="mt-4 text-sm text-muted-foreground">
-              {t(locale, "footer.desc")}
+              Dragon Ball and Pokemon character fusion generator. Create unique fusion characters and share your creative works.
             </p>
           </div>
           <div className="col-span-2 grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-4">
@@ -80,7 +73,7 @@ export function Footer({ locale }: FooterProps) {
                   {group.links.map((link) => (
                     <Link
                       key={link.href}
-                      href={L(link.href)}
+                      href={link.href}
                       className="text-sm text-muted-foreground transition-colors hover:text-primary"
                     >
                       {link.label}
@@ -93,7 +86,10 @@ export function Footer({ locale }: FooterProps) {
         </div>
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t pt-8 md:flex-row">
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            {t(locale, "footer.rights")}
+            © 2025 FusionGenerator.fun
+          </p>
+          <p className="text-center text-xs text-muted-foreground/60 md:text-right max-w-xl">
+            This tool is a fan-made AI generator and is not affiliated with or endorsed by Toei Animation, Shueisha, Nintendo, or The Pokémon Company.
           </p>
         </div>
       </div>

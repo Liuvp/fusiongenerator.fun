@@ -1,6 +1,6 @@
 "use client";
 
-import { getLocale } from "@/lib/i18n";
+
 
 type QuickAction = {
   label: string;
@@ -16,12 +16,10 @@ const DEFAULT_ACTIONS: QuickAction[] = [];
 export function QuickActionsCard({
   actions,
 }: QuickActionsCardProps) {
-  const locale = getLocale();
-  const L = (p: string) => `/${locale}${p}`;
   const computedActions: QuickAction[] =
     actions ?? [
-      { label: "View Plans", href: L("/#pricing") },
-      { label: "Get Support", href: L("/#support") },
+      { label: "View Plans", href: "/#pricing" },
+      { label: "Get Support", href: "/#support" },
     ];
   return (
     <div className="rounded-xl border bg-card p-6">

@@ -7,32 +7,31 @@ import { createClient } from "@/utils/supabase/server";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { cookies } from "next/headers";
-import { Locale } from "@/lib/i18n";
+
 
 const baseUrl = process.env.BASE_URL
   ? `https://${process.env.BASE_URL}`
   : "https://fusiongenerator.fun";
 
 export const metadata = {
-  metadataBase: new URL(baseUrl),
-  title: "Fusion Generator - Create Dragon Ball Fusions, Pokemon Fusions & AI Character Fusions",
+  metadataBase: new URL("https://fusiongenerator.fun"),
+  title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
   description:
-    "Free Fusion Generator for Dragon Ball fusions, Pokemon fusions & AI character fusions. Create Goku Vegeta fusion, Pikachu Charizard fusion instantly with our AI.",
-  keywords:
-    "fusion generator, dragon ball fusion, pokemon fusion, character fusion, AI fusion, anime fusion, game character fusion, infinite fusion calculator",
+    "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
+  // keywords removed for SEO best practices
   openGraph: {
-    title: "Fusion Generator - Create Dragon Ball & Pokemon Fusions Free",
+    title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
     description:
-      "Create unique Dragon Ball and Pokemon character fusions with our AI generator. Try Goku + Vegeta or Pikachu + Charizard fusions now.",
+      "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
     type: "website",
-    url: baseUrl,
+    url: "https://fusiongenerator.fun",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fusion Generator | AI Character Fusion Tool",
+    title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
     description:
-      "Create unique Dragon Ball and Pokemon character fusions with our AI generator.",
+      "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
   },
   alternates: {
     canonical: "/",
@@ -54,11 +53,10 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const cookieStore = await cookies();
-  const localeCookie = cookieStore.get("locale")?.value || "en";
+  /* Removed Multi-language Logic */
 
   return (
-    <html lang={localeCookie} className={geistSans.className} suppressHydrationWarning>
+    <html lang="en" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
@@ -67,11 +65,11 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <div className="relative min-h-screen">
-            <Header user={user} locale={localeCookie as Locale} />
+            <Header user={user} />
             {/* Breadcrumbs for existing pages (not shown on homepage) */}
             <Breadcrumbs />
             <main className="flex-1">{children}</main>
-            <Footer locale={localeCookie as Locale} />
+            <Footer />
           </div>
           <Toaster />
         </ThemeProvider>

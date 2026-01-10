@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
-import { LOCALES } from "@/lib/i18n";
+// import { LOCALES } from "@/lib/i18n"; // REMOVED
 
 export async function middleware(request: NextRequest) {
   // Default supabase session handling

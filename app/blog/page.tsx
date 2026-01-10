@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { getLocaleFromPath, localizedPath } from "@/lib/i18n";
 import Script from "next/script";
 import { BookOpen, Sparkles } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -21,8 +20,8 @@ const staggerContainer = {
 
 export default function BlogPage() {
   const pathname = usePathname() || "/";
-  const locale = getLocaleFromPath(pathname) || "en";
-  const L = (p: string) => localizedPath(locale, p);
+  // const locale removed
+  // const L removed
 
   const posts = [
     {
@@ -146,7 +145,7 @@ export default function BlogPage() {
             >
               {posts.map((post) => (
                 <motion.li key={post.slug} variants={fadeInUp}>
-                  <Link href={L(post.slug)} className="block p-6 rounded-xl border hover:bg-muted/30 transition-colors h-full">
+                  <Link href={post.slug} className="block p-6 rounded-xl border hover:bg-muted/30 transition-colors h-full">
                     <h2 className="text-xl font-bold mb-2">{post.title}</h2>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                       <span>{post.date}</span>

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { getLocale } from "@/lib/i18n";
 import { usePathname } from "next/navigation";
 
 const routeNameMap: Record<string, string> = {
@@ -35,8 +34,6 @@ function formatSegment(seg: string): string {
 export function Breadcrumbs() {
   const pathname = usePathname();
   if (!pathname) return null;
-  const locale = getLocale();
-  const L = (p: string) => `/${locale}${p}`;
 
   const segments = pathname.split("/").filter(Boolean);
   // 不在首页显示
@@ -53,7 +50,7 @@ export function Breadcrumbs() {
       <div className="container px-4 md:px-6 py-2">
         <ol className="flex items-center gap-2 text-sm text-muted-foreground">
           <li>
-            <Link href={L("/")} className="hover:text-foreground">Home</Link>
+            <Link href="/" className="hover:text-foreground">Home</Link>
           </li>
           {items.map((item, idx) => (
             <li key={item.href} className="flex items-center gap-2">

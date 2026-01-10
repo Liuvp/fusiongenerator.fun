@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-import { t, getLocaleFromPath, localizedPath } from "@/lib/i18n";
+// Imports cleaned
 
 // 动画配置
 const fadeInUp = {
@@ -28,8 +28,8 @@ const staggerContainer = {
 };
 
 function getEnSeoImageName(series: 'dragon-ball' | 'pokemon', left: string, right: string) {
-  const s = series === 'dragon-ball' ? 'Dragon-Ball' : 'Pokemon'
-  return `${s}-Character-Fusion-${left}-${right}-HD-Preview`
+  const s = series === 'dragon-ball' ? 'Dragon Ball fusion' : 'Pokemon fusion'
+  return `${s} ${left} and ${right} AI generated image`
 }
 
 function getEnSeoImageFile(series: 'dragon-ball' | 'pokemon', left: string, right: string) {
@@ -38,15 +38,15 @@ function getEnSeoImageFile(series: 'dragon-ball' | 'pokemon', left: string, righ
 
 export default function Home() {
   const pathname = usePathname() || "/";
-  const locale = getLocaleFromPath(pathname) || "en";
-  const L = (p: string) => localizedPath(locale, p);
+  // const locale removed
+  // const L removed
   const router = useRouter();
 
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "name": "Fusion Generator",
-    "description": "Free online fusion generator for Dragon Ball and Pokemon characters",
+    "description": "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
     "url": "https://fusiongenerator.fun",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
@@ -71,34 +71,42 @@ export default function Home() {
               "mainEntity": [
                 {
                   "@type": "Question",
-                  "name": "What makes Fusion Generator the best?",
+                  "name": "How does this fusion generator work?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "We provide deep IP customization (Dragon Ball/Pokémon) and universal AI art fusion using state-of-the-art Latent Diffusion models, ensuring high-quality, coherent character designs."
+                    "text": "The tool uses advanced AI image generation techniques to analyze the visual features of two characters (like Goku and Vegeta) and synthesizes a new, coherent fusion character that blends their traits seamlessly."
                   }
                 },
                 {
                   "@type": "Question",
-                  "name": "Is it free to use?",
+                  "name": "Is Dragon Ball and Pokemon fusion free?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Yes, we offer 3 free creations daily. Upgrade to Premium for unlimited generations, Ultra HD downloads, and commercial rights."
+                    "text": "Yes, basic generation is free for all users with daily limits. Pro plans are available for users who need unlimited generations, higher resolution downloads, and faster processing speeds."
                   }
                 },
                 {
                   "@type": "Question",
-                  "name": "Do I need to sign up?",
+                  "name": "Can I use the generated images legally?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "You can start fusing immediately without an account. Sign up is only required to save your creations to your personal Fusion Dex/Portfolio."
+                    "text": "Images are fan-generated content. For personal use (wallpapers, avatars, fan projects), they are generally fine. Commercial use depends on the specific IP laws governing Dragon Ball and Pokemon in your region."
                   }
                 },
                 {
                   "@type": "Question",
-                  "name": "Can I use the images for commercial projects?",
+                  "name": "What AI model is used for fusion?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Free tier images are for personal use only. Pro and Enterprise plans include commercial usage rights for all generated assets."
+                    "text": "We utilize advanced AI image generation models optimized for character consistency to ensure faithful fusions of known characters."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "Is Fusion Generator legal?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Fusion Generator creates fan-made AI art. Users should respect local copyright laws when using generated images."
                   }
                 }
               ]
@@ -117,41 +125,36 @@ export default function Home() {
                 initial={false}
                 animate="animate"
               >
-                <motion.h1
-                  initial={false}
-                  variants={fadeInUp}
+                <h1
                   className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
                 >
-                  {t(locale, "home.hero.title")}
-                </motion.h1>
+                  AI Fusion Generator for Dragon Ball and Pokémon Character Fusions
+                </h1>
 
-                <motion.p
-                  initial={false}
-                  variants={fadeInUp}
+                <p
                   className="text-lg md:text-xl text-purple-100 max-w-xl"
                 >
-                  {t(locale, "home.hero.subtitle")}
-                </motion.p>
+                  The world's #1 AI tool to merge any two images into Dragon Ball warriors, Pokémon hybrids, or any custom art style.
+                </p>
 
                 {/* Simulated Input for CTR Optimization */}
+                {/* Optimized CTA for Conversion */}
                 <motion.div
                   initial={false}
                   variants={fadeInUp}
-                  className="relative max-w-lg mt-8 group cursor-pointer"
-                  onClick={() => {
-                    // Adding a visual cue or smooth scroll to the CTA section if needed, or just directing to the tool
-                    router.push(L("/ai"));
-                  }}
+                  className="relative max-w-lg mt-8"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-25 group-hover:opacity-100 transition duration-1000"></div>
-                  <div className="relative flex items-center bg-white rounded-full p-2 shadow-xl border border-purple-200">
-                    <div className="flex-1 px-4 text-gray-400 font-medium truncate">
-                      Try: Goku + Iron Man...
+                  <Link href="/ai" className="group block cursor-pointer">
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-25 group-hover:opacity-100 transition duration-1000"></div>
+                    <div className="relative flex items-center bg-white rounded-full p-2 shadow-xl border border-purple-200">
+                      <div className="flex-1 px-4 text-gray-500 font-medium truncate">
+                        Try: Goku + Iron Man...
+                      </div>
+                      <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition transform group-hover:scale-105">
+                        Generate
+                      </span>
                     </div>
-                    <button className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition transform group-hover:scale-105">
-                      Generate
-                    </button>
-                  </div>
+                  </Link>
                 </motion.div>
 
 
@@ -218,11 +221,11 @@ export default function Home() {
                   />
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Dragon Ball Fusion Generator</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Dragon Ball Fusion Maker</h3>
                   <p className="text-sm text-gray-500 mb-4">DBZ Fusion Generator - Goku Vegeta Fusion</p>
                   <p className="text-gray-700 mb-6">Create Dragon Ball Z fusions with Goku, Vegeta, Gohan, and more DBZ characters.</p>
                   <Link
-                    href={L("/dragon-ball")}
+                    href="/dragon-ball"
                     className="block w-full py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-red-600 transition-all text-center"
                   >
                     Dragon Ball Fusion Generator
@@ -246,11 +249,11 @@ export default function Home() {
                   />
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Pokemon Fusion Generator</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Pokemon Infinite Fusion Tool</h3>
                   <p className="text-sm text-gray-500 mb-4">Pokémon Infinite Fusion Generator</p>
                   <p className="text-gray-700 mb-6">Pokemon fusion generator for all generations - Pikachu Charizard, Mewtwo Lucario fusions.</p>
                   <Link
-                    href={L("/pokemon")}
+                    href="/pokemon"
                     className="block w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all text-center"
                   >
                     Pokemon Fusion Generator
@@ -274,11 +277,11 @@ export default function Home() {
                   />
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">AI Fusion Generator</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Universal AI Character Mixer</h3>
                   <p className="text-sm text-gray-500 mb-4">Advanced AI Image Fusion Generator</p>
                   <p className="text-gray-700 mb-6">Universal fusion generator for custom character fusions with AI technology.</p>
                   <Link
-                    href={L("/ai")}
+                    href="/ai"
                     className="block w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all text-center"
                   >
                     AI Fusion Generator
@@ -301,8 +304,8 @@ export default function Home() {
               viewport={{ once: true }}
               variants={fadeInUp}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t(locale, "gallery.title")}</h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">{t(locale, "gallery.subtitle")}</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Fusion Gallery - Dragon Ball & Pokemon Character Fusions</h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">Browse our collection of amazing Dragon Ball and Pokemon character fusions. Get inspired by community creations and start your own fusion journey.</p>
             </motion.div>
 
             <motion.div
@@ -389,7 +392,7 @@ export default function Home() {
               variants={fadeInUp}
             >
               <Link
-                href={L("/gallery")}
+                href="/gallery"
                 className="inline-block px-8 py-3 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition-all"
               >
                 View more fusions
@@ -408,8 +411,8 @@ export default function Home() {
               viewport={{ once: true }}
               variants={fadeInUp}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t(locale, "home.steps.title")}</h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">{t(locale, "home.steps.sub")}</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How to Use Our Fusion Generator - 4 Simple Steps</h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">Our AI fusion generator makes creation simple and fun</p>
             </motion.div>
 
             <motion.div
@@ -455,8 +458,8 @@ export default function Home() {
               viewport={{ once: true }}
               variants={fadeInUp}
             >
-              <Link href={L("/ai")} className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all">{t(locale, "home.cta.try")}</Link>
-              <Link href={L("/pricing")} className="px-8 py-3 bg-white border border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-all">{t(locale, "home.cta.pro")}</Link>
+              <Link href="/ai" className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all">Try Now</Link>
+              <Link href="/pricing" className="px-8 py-3 bg-white border border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-all">Upgrade to Pro</Link>
             </motion.div>
           </div>
         </section>
@@ -489,7 +492,7 @@ export default function Home() {
                     <Image src="/testimonials/user1.svg" alt="User avatar" width={48} height={48} className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900">Xiaoming Zhang</h4>
+                    <h4 className="font-bold text-gray-900">Alex M.</h4>
                     <div className="flex text-yellow-400">
                       <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                     </div>
@@ -505,7 +508,7 @@ export default function Home() {
                     <Image src="/testimonials/user2.svg" alt="User avatar" width={48} height={48} className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900">Xiaohua Li</h4>
+                    <h4 className="font-bold text-gray-900">Sarah J.</h4>
                     <div className="flex text-yellow-400">
                       <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                     </div>
@@ -521,7 +524,7 @@ export default function Home() {
                     <Image src="/testimonials/user3.svg" alt="User avatar" width={48} height={48} className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900">Xiaoqiang Wang</h4>
+                    <h4 className="font-bold text-gray-900">DragonBall_Fan99</h4>
                     <div className="flex text-yellow-400">
                       <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                     </div>
@@ -543,8 +546,30 @@ export default function Home() {
           </div>
         </section>
 
+        {/* How It Works (SEO Explanation) */}
+        <section className="py-16 px-4 md:px-6 lg:px-8 bg-gray-50 border-t border-gray-200">
+          <div className="container mx-auto max-w-3xl text-center">
+            <motion.div
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              variants={fadeInUp}
+              className="prose prose-lg mx-auto"
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">How the Fusion Generator Works</h2>
+              <p className="text-gray-700 leading-relaxed mb-6">
+                Fusion Generator uses advanced AI image synthesis to combine visual traits, colors, and proportions from two characters into a single cohesive fusion image.
+                This process analyzes the key features of both input characters—such as Goku's hair or Pikachu's lightning tail—and blends them while preserving the unique style of the original anime or game universe.
+              </p>
+              <p className="text-gray-700 leading-relaxed">
+                The result is a high-quality, fan-made character design that looks like it could belong in an official episode. Whether you are looking for inspiration for your own fan art or just want to see "what if" scenarios, our AI tool provides endless creative possibilities.
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
         {/* FAQ Section */}
-        <section className="py-16 px-4 md:px-6 lg:px-8 bg-white" itemScope itemType="https://schema.org/FAQPage">
+        <section className="py-16 px-4 md:px-6 lg:px-8 bg-white">
           <div className="container mx-auto max-w-4xl">
             <motion.div
               className="text-center mb-12"
@@ -553,7 +578,7 @@ export default function Home() {
               viewport={{ once: true }}
               variants={fadeInUp}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t(locale, "faq.title")}</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
             </motion.div>
 
             <motion.div
@@ -563,21 +588,33 @@ export default function Home() {
               whileInView="animate"
               viewport={{ once: true }}
             >
-              {[1, 2, 3, 4].map((num) => (
-                <motion.div
-                  key={num}
-                  variants={fadeInUp}
-                  className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow"
-                  itemScope
-                  itemProp="mainEntity"
-                  itemType="https://schema.org/Question"
-                >
-                  <h3 className="text-xl font-bold text-gray-900 mb-3" itemProp="name">{t(locale, `faq.q${num}`)}</h3>
-                  <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
-                    <p className="text-gray-700" itemProp="text">{t(locale, `faq.a${num}`)}</p>
-                  </div>
-                </motion.div>
-              ))}
+              <motion.div variants={fadeInUp} className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold text-gray-900 mb-3">What makes Fusion Generator the best?</h3>
+                <div>
+                  <p className="text-gray-700">We provide deep IP customization (Dragon Ball/Pokémon) and universal AI art fusion using state-of-the-art Latent Diffusion models, ensuring high-quality, coherent character designs.</p>
+                </div>
+              </motion.div>
+
+              <motion.div variants={fadeInUp} className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Is it free to use?</h3>
+                <div>
+                  <p className="text-gray-700">Yes, we offer 3 free creations daily. Upgrade to Premium for unlimited generations, Ultra HD downloads, and commercial rights.</p>
+                </div>
+              </motion.div>
+
+              <motion.div variants={fadeInUp} className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Do I need to sign up?</h3>
+                <div>
+                  <p className="text-gray-700">You can start fusing immediately without an account. Sign up is only required to save your creations to your personal Fusion Dex/Portfolio.</p>
+                </div>
+              </motion.div>
+
+              <motion.div variants={fadeInUp} className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Can I use the images for commercial projects?</h3>
+                <div>
+                  <p className="text-gray-700">Free tier images are for personal use only. Pro and Enterprise plans include commercial usage rights for all generated assets. Commercial usage is subject to applicable IP laws.</p>
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         </section>
@@ -611,9 +648,9 @@ export default function Home() {
               viewport={{ once: true }}
               variants={fadeInUp}
             >
-              <Link href={L("/ai")} className="px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full text-lg font-medium hover:from-orange-600 hover:to-pink-600 transition-all shadow-lg">{t(locale, "home.cta.start")}</Link>
+              <Link href="/ai" className="px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full text-lg font-medium hover:from-orange-600 hover:to-pink-600 transition-all shadow-lg">Start for Free</Link>
               <Link
-                href={L("/pricing")}
+                href="/pricing"
                 className="px-8 py-4 bg-transparent border-2 border-white rounded-full text-lg font-medium hover:bg-white/10 transition-all"
               >
                 Upgrade to Pro
@@ -654,17 +691,17 @@ export default function Home() {
               viewport={{ once: true }}
             >
               <motion.li variants={fadeInUp}>
-                <Link href={L("/blog/top-dragon-ball-fusions")} className="block p-4 rounded-lg border hover:bg-gray-50 transition-colors">
+                <Link href="/blog/top-dragon-ball-fusions" className="block p-4 rounded-lg border hover:bg-gray-50 transition-colors">
                   Top 10 Dragon Ball Fusions You Must Try
                 </Link>
               </motion.li>
               <motion.li variants={fadeInUp}>
-                <Link href={L("/blog/pokemon-fusion-technology")} className="block p-4 rounded-lg border hover:bg-gray-50 transition-colors">
+                <Link href="/blog/pokemon-fusion-technology" className="block p-4 rounded-lg border hover:bg-gray-50 transition-colors">
                   How Pokémon Fusion Generator Works
                 </Link>
               </motion.li>
               <motion.li variants={fadeInUp}>
-                <Link href={L("/blog/fusion-design-tips")} className="block p-4 rounded-lg border hover:bg-gray-50 transition-colors">
+                <Link href="/blog/fusion-design-tips" className="block p-4 rounded-lg border hover:bg-gray-50 transition-colors">
                   Design Tips: How to Create Perfect Character Fusions
                 </Link>
               </motion.li>
@@ -678,7 +715,7 @@ export default function Home() {
               variants={fadeInUp}
             >
               <Link
-                href={L("/blog")}
+                href="/blog"
                 className="inline-block px-8 py-3 bg-gray-100 text-gray-800 rounded-lg font-medium hover:bg-gray-200 transition-all"
               >
                 Browse more articles

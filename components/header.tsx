@@ -8,12 +8,6 @@ import { ThemeSwitcher } from "./theme-switcher";
 import { Logo } from "./logo";
 import { usePathname } from "next/navigation";
 import { MobileNav } from "./mobile-nav";
-import { localizedPath, t, Locale } from "@/lib/i18n";
-
-interface HeaderProps {
-  user: any;
-  locale: Locale;
-}
 
 interface NavItem {
   label: string;
@@ -21,20 +15,19 @@ interface NavItem {
   isButton?: boolean;
 }
 
-export default function Header({ user, locale }: HeaderProps) {
+export default function Header({ user }: { user: any }) {
   const pathname = usePathname() || "/";
   const isDashboard = pathname?.startsWith("/dashboard");
-  const L = (p: string) => localizedPath(locale, p);
 
   // Main navigation items for Fusion Generator
   const mainNavItems: NavItem[] = [
-    { label: t(locale, "nav.home"), href: L("/") },
-    { label: t(locale, "nav.dragonBall"), href: L("/dragon-ball") },
-    { label: t(locale, "nav.pokemon"), href: L("/pokemon") },
-    { label: t(locale, "nav.ai"), href: L("/ai") },
-    { label: t(locale, "nav.gallery"), href: L("/gallery") },
-    { label: t(locale, "nav.blog"), href: L("/blog") },
-    { label: t(locale, "nav.pricing"), href: L("/pricing"), isButton: true },
+    { label: "Home", href: "/" },
+    { label: "Dragon Ball", href: "/dragon-ball" },
+    { label: "Pokemon", href: "/pokemon" },
+    { label: "AI Fusion", href: "/ai" },
+    { label: "Gallery", href: "/gallery" },
+    { label: "Blog", href: "/blog" },
+    { label: "Pricing", href: "/pricing", isButton: true },
   ];
 
   // Dashboard items - empty array as we don't want navigation items in dashboard
@@ -78,30 +71,30 @@ export default function Header({ user, locale }: HeaderProps) {
               {!isDashboard && (
                 <>
                   <Button asChild size="sm" variant="default">
-                    <Link href={L("/profile")}>{t(locale, "nav.profile")}</Link>
+                    <Link href="/profile">Profile</Link>
                   </Button>
                   <Button asChild size="sm" variant="outline">
-                    <Link href={L("/dashboard")}>{t(locale, "nav.dashboard")}</Link>
+                    <Link href="/dashboard">Dashboard</Link>
                   </Button>
                 </>
               )}
               <form action={signOutAction}>
                 <Button type="submit" variant="outline" size="sm">
-                  {t(locale, "nav.signout")}
+                  Sign out
                 </Button>
               </form>
             </div>
           ) : (
             <div className="hidden md:flex gap-2">
               <Button asChild size="sm" variant="outline">
-                <Link href={L("/sign-in")}>{t(locale, "nav.signin")}</Link>
+                <Link href="/sign-in">Sign in</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href={L("/sign-up")}>{t(locale, "nav.signup")}</Link>
+                <Link href="/sign-up">Sign up</Link>
               </Button>
             </div>
           )}
-          <MobileNav items={navItems} user={user} isDashboard={isDashboard} locale={locale} />
+          <MobileNav items={navItems} user={user} isDashboard={isDashboard} />
         </div>
       </div>
     </header>

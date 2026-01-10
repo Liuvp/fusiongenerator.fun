@@ -3,7 +3,6 @@
 import Link from "next/link"
 import Image from "next/image"
 import Script from "next/script"
-import { getLocaleFromPath, t, SERIES_LABEL, Locale } from "@/lib/i18n"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -62,22 +61,17 @@ const SERIES_ZH: Record<FusionItem["series"], string> = {
   pokemon: "宝可梦",
 }
 
-function getSeoImageName(item: FusionItem, locale: Locale): string {
-  const series = SERIES_LABEL[locale][item.series]
-  if (locale === "en") {
-    if (item.series === "dragon-ball") {
-      return `Dragon Ball Fusion - ${item.left} and ${item.right} Fusion Character`
-    }
-    return `Pokemon Fusion - ${item.left} and ${item.right} Combined Evolution`
+function getSeoImageName(item: FusionItem): string {
+  if (item.series === "dragon-ball") {
+    return `Dragon Ball Fusion - ${item.left} and ${item.right} Fusion Character`
   }
-  if (locale === "ja") return `${series}-キャラクター融合-${item.left}-${item.right}-HDプレビュー`
-  return `${series}-Character-Fusion-${item.left}-${item.right}-HD-Preview`
+  return `Pokemon Fusion - ${item.left} and ${item.right} Combined Evolution`
 }
 
 export default function GalleryPage() {
   const pathname = usePathname() || "/"
-  const locale: Locale = (getLocaleFromPath(pathname) || "en") as Locale
-  const L = (p: string) => `/${locale}${p}`
+  // const locale removed
+  // const L removed
   const [filter, setFilter] = useState<string>("all")
   const [selected, setSelected] = useState<FusionItem | null>(null)
   const { user } = useUser()
@@ -173,14 +167,14 @@ export default function GalleryPage() {
           transition={{ duration: 0.35 }}
           className="text-center"
         >
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{t(locale, "gallery.title")}</h1>
-          <p className="mt-2 text-muted-foreground">{t(locale, "gallery.subtitle")}</p>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Fusion Gallery - Dragon Ball & Pokemon Character Fusions</h1>
+          <p className="mt-2 text-muted-foreground">Browse our collection of amazing Dragon Ball and Pokemon character fusions. Get inspired by community creations and start your own fusion journey.</p>
           <div className="mt-4 flex items-center justify-center gap-3">
             <Button asChild variant="default">
-              <Link href={L("/ai")}>Try the Generator</Link>
+              <Link href="/ai">Try the Generator</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href={L("/pricing")}>View Pricing</Link>
+              <Link href="/pricing">View Pricing</Link>
             </Button>
           </div>
         </motion.div>
@@ -237,9 +231,9 @@ export default function GalleryPage() {
         <div className="mt-8 flex justify-center">
           <Tabs defaultValue="all" onValueChange={(v) => setFilter(v)}>
             <TabsList>
-              <TabsTrigger value="all">{t(locale, "gallery.tabs.all")}</TabsTrigger>
-              <TabsTrigger value="dragon-ball">{t(locale, "gallery.tabs.db")}</TabsTrigger>
-              <TabsTrigger value="pokemon">{t(locale, "gallery.tabs.pk")}</TabsTrigger>
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="dragon-ball">Dragon Ball</TabsTrigger>
+              <TabsTrigger value="pokemon">Pokémon</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -269,13 +263,13 @@ export default function GalleryPage() {
                   <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
                     <Image
                       src={item.image}
-                      alt={`${getSeoImageName(item, locale)}`}
+                      alt={`${getSeoImageName(item)}`}
                       fill
                       className="object-contain p-6 transition-transform duration-300 group-hover:scale-[1.03]"
                       priority={false}
                     />
                   </div>
-                  <div className="mt-3 text-xs text-muted-foreground">{t(locale, "gallery.imageName")} {getSeoImageName(item, locale)}</div>
+                  <div className="mt-3 text-xs text-muted-foreground">Image name: {getSeoImageName(item)}</div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -301,7 +295,7 @@ export default function GalleryPage() {
           <p className="text-sm text-muted-foreground">Want more? Generate your own unique fusion.</p>
           <div className="mt-3">
             <Button asChild>
-              <Link href={L("/ai")}>Create Your Own Fusion</Link>
+              <Link href="/ai">Create Your Own Fusion</Link>
             </Button>
           </div>
         </div>
@@ -311,14 +305,14 @@ export default function GalleryPage() {
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{selected ? getSeoImageName(selected, locale) : ""}</DialogTitle>
+            <DialogTitle>{selected ? getSeoImageName(selected) : ""}</DialogTitle>
           </DialogHeader>
           {selected && (
             <div className="space-y-4">
               <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
                 <Image
                   src={selected.image}
-                  alt={`${getSeoImageName(selected, locale)}`}
+                  alt={`${getSeoImageName(selected)}`}
                   fill
                   className="object-contain p-6"
                 />
@@ -331,7 +325,7 @@ export default function GalleryPage() {
               </div>
               <div className="pt-2">
                 <Button asChild variant="outline" className="w-full">
-                  <Link href={L("/ai")}>Generate a Similar Fusion</Link>
+                  <Link href="/ai">Generate a Similar Fusion</Link>
                 </Button>
               </div>
             </div>

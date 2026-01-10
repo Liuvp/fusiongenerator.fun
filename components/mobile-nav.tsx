@@ -11,17 +11,13 @@ import {
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { signOutAction } from "@/app/actions";
-import { localizedPath, t, Locale } from "@/lib/i18n";
-
 interface MobileNavProps {
   items: { label: string; href: string; isButton?: boolean }[];
   user: any;
   isDashboard: boolean;
-  locale: Locale;
 }
 
-export function MobileNav({ items, user, isDashboard, locale }: MobileNavProps) {
-  const L = (p: string) => localizedPath(locale, p);
+export function MobileNav({ items, user, isDashboard }: MobileNavProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -67,26 +63,26 @@ export function MobileNav({ items, user, isDashboard, locale }: MobileNavProps) 
               {!isDashboard && (
                 <>
                   <Button asChild variant="default" className="w-full">
-                    <Link href={L("/profile")}>{t(locale, "nav.profile")}</Link>
+                    <Link href="/profile">Profile</Link>
                   </Button>
                   <Button asChild variant="outline" className="w-full">
-                    <Link href={L("/dashboard")}>{t(locale, "nav.dashboard")}</Link>
+                    <Link href="/dashboard">Dashboard</Link>
                   </Button>
                 </>
               )}
               <form action={signOutAction} className="w-full">
                 <Button type="submit" variant="outline" className="w-full">
-                  {t(locale, "nav.signout")}
+                  Sign out
                 </Button>
               </form>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
               <Button asChild variant="outline" className="w-full">
-                <Link href={L("/sign-in")}>{t(locale, "nav.signin")}</Link>
+                <Link href="/sign-in">Sign in</Link>
               </Button>
               <Button asChild variant="default" className="w-full">
-                <Link href={L("/sign-up")}>{t(locale, "nav.signup")}</Link>
+                <Link href="/sign-up">Sign up</Link>
               </Button>
             </div>
           )}
