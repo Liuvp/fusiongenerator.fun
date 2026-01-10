@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 
-const BASE = process.env.BASE_URL ? `https://${process.env.BASE_URL}` : "http://localhost:3000"
+const BASE = process.env.BASE_URL ? `https://${process.env.BASE_URL}` : "https://fusiongenerator.fun"
 
 const paths = [
   "/",
@@ -20,7 +20,7 @@ const paths = [
 ] as const
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date()
+  const now = new Date().toISOString().split("T")[0]
   const entries: MetadataRoute.Sitemap = []
 
   for (const p of paths) {

@@ -11,7 +11,7 @@ import { Locale } from "@/lib/i18n";
 
 const baseUrl = process.env.BASE_URL
   ? `https://${process.env.BASE_URL}`
-  : "http://localhost:3000";
+  : "https://fusiongenerator.fun";
 
 export const metadata = {
   metadataBase: new URL(baseUrl),
