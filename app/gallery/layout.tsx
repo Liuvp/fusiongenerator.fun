@@ -2,30 +2,22 @@ import type { Metadata } from "next"
 import type { ReactNode } from "react"
 
 export const metadata: Metadata = {
-  title: "Fusion Gallery - Browse Dragon Ball & Pokemon Fusions | FusionGenerator",
+  title: "Dragon Ball & Pokemon Fusion Gallery | Create & Browse Characters",
   description:
-    "Explore thousands of Dragon Ball and Pokemon character fusions created by our community. Get inspired by Goku Vegeta fusions, Pikachu Charizard mashups, and more.",
+    "Explore the best Dragon Ball & Pokemon fusions created by AI. Browse thousands of unique character combinations or generate your own fusion today!",
   alternates: {
     canonical: "/gallery",
-    languages: {
-      "en-US": "/gallery",
-      en: "/gallery",
-      "ja-JP": "/ja/gallery",
-      ja: "/ja/gallery",
-      "x-default": "/gallery",
-    },
   },
   openGraph: {
     title: "Fusion Gallery - Dragon Ball & Pokemon Fusions",
     description:
-      "Browse thousands of amazing character fusions. Get inspired and create your own Dragon Ball and Pokemon mashups.",
+      "Explore the best Dragon Ball & Pokemon fusions created by AI. Browse thousands of unique character combinations or generate your own fusion today!",
     url: "https://fusiongenerator.fun/gallery",
     type: "website",
     locale: "en_US",
-    alternateLocale: ["ja_JP"],
     images: [
       {
-        url: "/images/fusion-generator-logo.svg",
+        url: "/images/fusion-generator-logo.svg", // Ideally this should be a featured image, keeping logo for now as I don't have a better asset path yet.
         width: 1200,
         height: 630,
         alt: "Fusion Generator Gallery",
@@ -34,8 +26,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fusion Gallery",
-    description: "Browse amazing Dragon Ball & Pokemon fusions",
+    title: "Fusion Gallery - Dragon Ball & Pokemon Fusions",
+    description: "Explore the best Dragon Ball & Pokemon fusions created by AI.",
   },
 }
 

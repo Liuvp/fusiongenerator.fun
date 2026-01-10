@@ -63,9 +63,9 @@ const SERIES_ZH: Record<FusionItem["series"], string> = {
 
 function getSeoImageName(item: FusionItem): string {
   if (item.series === "dragon-ball") {
-    return `Dragon Ball Fusion - ${item.left} and ${item.right} Fusion Character`
+    return `${item.name} - Fan-made Dragon Ball Fusion of ${item.left} and ${item.right}`
   }
-  return `Pokemon Fusion - ${item.left} and ${item.right} Combined Evolution`
+  return `${item.name} - Pokemon Fusion of ${item.left} and ${item.right}`
 }
 
 export default function GalleryPage() {
@@ -103,20 +103,19 @@ export default function GalleryPage() {
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "CollectionPage",
+    "@type": "ImageGallery",
     name: "Fusion Gallery - Dragon Ball & Pokemon Character Fusions",
     description: "Collection of unique character fusions from Dragon Ball and Pokemon series",
+    url: "https://fusiongenerator.fun/gallery",
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: ITEMS.length,
       itemListElement: ITEMS.map((item, index) => ({
-        "@type": "ListItem",
+        "@type": "ImageObject",
         position: index + 1,
-        item: {
-          "@type": "ImageObject",
-          name: `${item.left} and ${item.right} Fusion`,
-          description: `${item.series === "dragon-ball" ? "Dragon Ball" : "Pokemon"} character fusion of ${item.left} and ${item.right}`,
-        },
+        name: getSeoImageName(item),
+        contentUrl: `https://fusiongenerator.fun${item.image}`,
+        description: `${item.series === "dragon-ball" ? "Dragon Ball" : "Pokemon"} character fusion of ${item.left} and ${item.right}`,
       })),
     },
   }
@@ -230,8 +229,8 @@ export default function GalleryPage() {
         {/* Filters */}
         <div className="mt-8 flex justify-center">
           <Tabs defaultValue="all" onValueChange={(v) => setFilter(v)}>
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
+            <TabsList aria-label="Filter gallery by series">
+              <TabsTrigger value="all">All Characters</TabsTrigger>
               <TabsTrigger value="dragon-ball">Dragon Ball</TabsTrigger>
               <TabsTrigger value="pokemon">Pokémon</TabsTrigger>
             </TabsList>
@@ -248,9 +247,19 @@ export default function GalleryPage() {
           layout
           className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {filtered.map((item) => (
+          {filtered.map((item, idx) => (
             <motion.div key={item.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <Card className="group cursor-pointer overflow-hidden" onClick={() => setSelected(item)}>
+              <Card
+                className="group cursor-pointer overflow-hidden focus-within:ring-2 focus-within:ring-primary"
+                onClick={() => setSelected(item)}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setSelected(item)
+                  }
+                }}
+              >
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center justify-between text-base">
                     <span>{item.name}</span>
@@ -263,13 +272,14 @@ export default function GalleryPage() {
                   <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
                     <Image
                       src={item.image}
-                      alt={`${getSeoImageName(item)}`}
+                      alt={getSeoImageName(item)}
                       fill
                       className="object-contain p-6 transition-transform duration-300 group-hover:scale-[1.03]"
-                      priority={false}
+                      priority={idx < 4}
+                      loading={idx < 4 ? "eager" : "lazy"}
                     />
                   </div>
-                  <div className="mt-3 text-xs text-muted-foreground">Image name: {getSeoImageName(item)}</div>
+                  <div className="mt-3 text-xs text-muted-foreground truncate">{getSeoImageName(item)}</div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -326,6 +336,22 @@ export default function GalleryPage() {
               <div className="pt-2">
                 <Button asChild variant="outline" className="w-full">
                   <Link href="/ai">Generate a Similar Fusion</Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full mt-2"
+                  onClick={() => {
+                    const url = window.location.href;
+                    const title = getSeoImageName(selected);
+                    if (navigator.share) {
+                      navigator.share({ title, url }).catch(console.error);
+                    } else {
+                      navigator.clipboard.writeText(url);
+                      // Ideally show a toast here, but for simplicity we just copy
+                    }
+                  }}
+                >
+                  Share this Fusion
                 </Button>
               </div>
             </div>
