@@ -27,7 +27,7 @@ export function FAQ() {
                     <motion.div variants={fadeInUp} className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow">
                         <h3 className="text-xl font-bold text-gray-900 mb-3">What makes Fusion Generator the best?</h3>
                         <div>
-                            <p className="text-gray-700">We provide deep IP customization (Dragon Ball/Pokémon) and universal AI art fusion using state-of-the-art Latent Diffusion models, ensuring high-quality, coherent character designs.</p>
+                            <p className="text-gray-700">We provide deep IP customization (Dragon Ball/Pokémon) and universal AI art fusion using state-of-the-art Latent Diffusion models. Perfect for creating unique avatars, fan art concepts, or just exploring fun character mashups with high-quality results.</p>
                         </div>
                     </motion.div>
 

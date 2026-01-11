@@ -50,7 +50,7 @@ export function CTA() {
                     viewport={{ once: true }}
                     variants={fadeInUp}
                 >
-                    Pro users enjoy advanced fusion options, unlimited generations, HD downloads, and more
+                    Pro users enjoy precise fusion control, 4K Ultra HD downloads without watermarks, and unlimited priority generations.
                 </motion.p>
             </div>
         </section>

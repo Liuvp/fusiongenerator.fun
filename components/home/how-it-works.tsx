@@ -17,7 +17,9 @@ export function HowItWorks() {
                         variants={fadeInUp}
                     >
                         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How to Use Our Fusion Generator - 4 Simple Steps</h2>
-                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">Our AI fusion generator makes creation simple and fun</p>
+                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                            Our AI fusion generator makes creation simple and fun. Many users use Fusion Generator to design fan art, avatars, wallpapers, or to explore "what-if" character combinations that never appeared in the original series.
+                        </p>
                     </motion.div>
 
                     <motion.div
@@ -63,7 +65,7 @@ export function HowItWorks() {
                         viewport={{ once: true }}
                         variants={fadeInUp}
                     >
-                        <Link href="/ai" className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all">Try Now</Link>
+                        <Link href="/ai" className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all">Try AI Fusion Generator</Link>
                         <Link href="/pricing" className="px-8 py-3 bg-white border border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-all">Upgrade to Pro</Link>
                     </motion.div>
                 </div>

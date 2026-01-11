@@ -112,7 +112,7 @@ export function GalleryPreview() {
                         href="/gallery"
                         className="inline-block px-8 py-3 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition-all"
                     >
-                        View more fusions
+                        View Dragon Ball & Pokémon Fusions
                     </Link>
                 </motion.div>
             </div>

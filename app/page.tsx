@@ -1,12 +1,12 @@
 import Script from "next/script";
 import { HeroSection } from "@/components/home/hero-section";
 import { FeaturesSection } from "@/components/home/features-section";
-import { GalleryPreview } from "@/components/home/gallery-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
-import { Testimonials } from "@/components/home/testimonials";
-import { FAQ } from "@/components/home/faq";
 import { CTA } from "@/components/home/cta";
 import { BlogPreview } from "@/components/home/blog-preview";
+import { GalleryPreview } from "@/components/home/gallery-preview";
+import { Testimonials } from "@/components/home/testimonials";
+import { FAQ } from "@/components/home/faq";
 
 export default function Home() {
   const structuredData = {
@@ -15,6 +15,30 @@ export default function Home() {
     "name": "Fusion Generator",
     "description": "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
     "url": "https://fusiongenerator.fun",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  };
+
+  const breadcrumbData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://fusiongenerator.fun"
+    }]
+  };
+
+  const softwareApplicationData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Fusion Generator",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
     "offers": {
@@ -77,7 +101,7 @@ export default function Home() {
         id="structured-data"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([structuredData, faqData])
+          __html: JSON.stringify([structuredData, breadcrumbData, softwareApplicationData, faqData])
         }}
       />
       <div className="flex flex-col min-h-screen">
