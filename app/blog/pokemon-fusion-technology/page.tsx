@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
     title: "How Pokémon Fusion Generator Works | Technology & AI",
     description: "Learn about the technology behind Pokémon Infinite Fusion and our AI Generator. Understand how sprites and AI models combine to create new monsters.",
+    alternates: {
+        canonical: "/blog/pokemon-fusion-technology",
+    },
 };
 
 export default function PokemonFusionTechPage() {
@@ -25,7 +28,7 @@ export default function PokemonFusionTechPage() {
                     How Pokémon Fusion Generator Works
                 </h1>
                 <div className="mt-4 flex items-center text-muted-foreground">
-                    <span>December 8, 2024</span>
+                    <span>January 11, 2026</span>
                     <span className="mx-2">•</span>
                     <span>4 min read</span>
                 </div>

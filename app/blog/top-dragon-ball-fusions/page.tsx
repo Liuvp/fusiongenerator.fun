@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
     title: "Top 10 Dragon Ball Fusions You Must Try | Fusion Generator",
     description: "Discover the most powerful and iconic Dragon Ball character fusions. From Gogeta to Vegito, explore the best combinations for our Fusion Generator.",
+    alternates: {
+        canonical: "/blog/top-dragon-ball-fusions",
+    },
 };
 
 export default function TopDragonBallFusionsPage() {
@@ -26,7 +29,7 @@ export default function TopDragonBallFusionsPage() {
                     Top 10 Dragon Ball Fusions You Must Try
                 </h1>
                 <div className="mt-4 flex items-center text-muted-foreground">
-                    <span>December 8, 2024</span>
+                    <span>January 10, 2026</span>
                     <span className="mx-2">•</span>
                     <span>5 min read</span>
                 </div>

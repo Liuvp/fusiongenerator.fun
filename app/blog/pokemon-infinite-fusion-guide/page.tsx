@@ -37,8 +37,8 @@ export default function PokemonInfiniteFusionGuidePage() {
         headline: "Pokemon Infinite Fusion Generator: The Ultimate Guide & How to Use It",
         description: "A comprehensive guide to the fan-made phenomenon that lets you fuse any Pokemon from Generations 1 through 9, creating millions of unique combinations.",
         image: "https://fusiongenerator.fun/images/blog/pokemon-infinite-fusion-guide-schema.jpg",
-        datePublished: "2025-12-01",
-        dateModified: "2025-12-01",
+        datePublished: "2026-01-11",
+        dateModified: "2026-01-11",
         author: {
             "@type": "Person",
             name: "The Fusion Generator Team"
@@ -77,7 +77,7 @@ export default function PokemonInfiniteFusionGuidePage() {
                                 Create millions of unique Pokemon mashups from Generations 1 to 9. Here's everything you need to know.
                             </p>
                             <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
-                                <span>Published: December 1, 2025</span>
+                                <span>Published: January 11, 2026</span>
                                 <span>•</span>
                                 <span>Reading time: 9 min</span>
                             </div>
