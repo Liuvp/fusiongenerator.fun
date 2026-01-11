@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-    title: "Design Tips: How to Create Perfect Character Fusions | Fusion Generator",
+    title: "Design Tips: How to Create Perfect Character Fusions | FusionGenerator.fun",
     description: "Master the art of character fusion. Learn design principles, color theory, and tips to make your Dragon Ball and Pokemon fusions look professional.",
     alternates: {
         canonical: "/blog/fusion-design-tips",

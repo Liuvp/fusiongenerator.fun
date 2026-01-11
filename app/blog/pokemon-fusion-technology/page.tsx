@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-    title: "How Pokémon Fusion Generator Works | Technology & AI",
+    title: "How Pokémon Fusion Generator Works | FusionGenerator.fun",
     description: "Learn about the technology behind Pokémon Infinite Fusion and our AI Generator. Understand how sprites and AI models combine to create new monsters.",
     alternates: {
         canonical: "/blog/pokemon-fusion-technology",
