@@ -35,7 +35,7 @@ export const metadata = {
       "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
   },
   alternates: {
-    canonical: "/",
+    canonical: "./",
   },
 };
 
