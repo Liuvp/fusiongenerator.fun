@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Check, Crown, Gift, Sparkles } from "lucide-react";
+import { Check, Crown, Gift, Sparkles, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+
+import { User } from "@supabase/supabase-js";
 
 const fadeInUp = {
     initial: { opacity: 0, y: 20 },
@@ -10,7 +15,49 @@ const fadeInUp = {
     transition: { duration: 0.5 }
 };
 
-export default function PricingPage() {
+export default function PricingPage({ user }: { user: User | null }) {
+    const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter(); // Keep for navigation
+    const { toast } = useToast();
+
+    const handleCheckout = async (plan: string) => {
+        if (!user) {
+            toast({
+                title: "Login Required",
+                description: "Please login to subscribe.",
+            });
+            // Redirect to login page with return URL
+            router.push(`/sign-in?next=/pricing`);
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await fetch("/api/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ plan }),
+            });
+
+            const data = await response.json();
+
+            if (data.checkout_url) {
+                window.location.href = data.checkout_url;
+            } else {
+                throw new Error(data.error || "No checkout URL returned");
+            }
+        } catch (error: any) {
+            console.error("Checkout error:", error);
+            toast({
+                title: "Checkout Failed",
+                description: error.message || "Please try again later.",
+                variant: "destructive",
+            });
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="flex flex-col min-h-screen">
 
@@ -43,37 +90,37 @@ export default function PricingPage() {
                         variants={fadeInUp}
                     >
                         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
-                            Fusion Generator Pricing: Free Dragon Ball & Pokemon Fusion Tools
+                            Fusion Generator Pricing
                         </h1>
                         <p className="mx-auto max-w-2xl text-muted-foreground">
-                            Start free and upgrade anytime. Choose the plan that fits your fusion creation needs.
+                            Create Unlimited Dragon Ball Z, Pokemon & AI Anime Fusions
                         </p>
-                        <h2 className="text-xl font-semibold text-muted-foreground mt-2">
-                            Create Unlimited Dragon Ball Z Fusions, Pokemon Character Fusions & AI Anime Fusions
-                        </h2>
+
+                        {/* Billing Toggle */}
+                        <div className="flex justify-center items-center mt-6 space-x-4">
+                            <span className={`text-sm ${billingInterval === "monthly" ? "font-bold text-foreground" : "text-muted-foreground"}`}>Monthly</span>
+                            <button
+                                onClick={() => setBillingInterval(billingInterval === "monthly" ? "yearly" : "monthly")}
+                                className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                            >
+                                <span
+                                    className={`${billingInterval === "yearly" ? "translate-x-6 bg-primary" : "translate-x-1 bg-muted-foreground"} inline-block h-4 w-4 transform rounded-full transition-transform`}
+                                />
+                            </button>
+                            <span className={`text-sm ${billingInterval === "yearly" ? "font-bold text-foreground" : "text-muted-foreground"}`}>
+                                Yearly <span className="text-green-500 font-bold ml-1">(Save 17%)</span>
+                            </span>
+                        </div>
                     </motion.section>
 
                     {/* Pricing Cards */}
-                    <section className="w-full py-12">
+                    <section className="w-full py-6">
                         <div className="mx-auto max-w-6xl space-y-12">
-                            <motion.div
-                                className="text-center space-y-4"
-                                initial="initial"
-                                animate="animate"
-                                variants={fadeInUp}
-                            >
-                                <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-                                    Choose Your Fusion Plan
-                                </h2>
-                                <p className="mx-auto max-w-2xl text-muted-foreground text-lg">
-                                    Start with a free trial or get unlimited access to all fusion generators.
-                                </p>
-                            </motion.div>
 
-                            <div className="grid gap-8 lg:grid-cols-3 max-w-6xl mx-auto">
+                            <div className="grid gap-8 lg:grid-cols-3 max-w-6xl mx-auto items-start">
                                 {/* Free Plan */}
-                                <motion.div className="relative" initial="initial" animate="animate" variants={fadeInUp}>
-                                    <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border border-border hover:border-primary/20">
+                                <motion.div className="relative h-full" initial="initial" animate="animate" variants={fadeInUp}>
+                                    <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border border-border hover:border-primary/20 flex flex-col">
                                         <div className="flex flex-col space-y-1.5 p-6 text-center pb-4">
                                             <div className="flex items-center justify-center mb-4">
                                                 <div className="p-3 rounded-full bg-muted">
@@ -89,19 +136,25 @@ export default function PricingPage() {
                                                 <p className="text-muted-foreground">Try all fusion generators</p>
                                             </div>
                                         </div>
-                                        <div className="p-6 pt-0 space-y-6">
-                                            <div className="space-y-3">
+                                        <div className="p-6 pt-0 space-y-6 flex-1 flex flex-col">
+                                            <div className="space-y-3 flex-1">
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">5 free fusions daily across all tools</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">5 free fusions daily</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Access to: Dragon Ball, Pokemon & AI Fusion</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">Standard queue (Slow)</span>
+                                                </div>
+                                                <div className="flex items-start gap-3">
+                                                    <div className="mt-0.5 p-1 rounded-full bg-muted">
+                                                        <Check className="h-3 w-3 text-muted-foreground" />
+                                                    </div>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">Watermarked images</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
@@ -113,16 +166,10 @@ export default function PricingPage() {
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Share to Fusion Gallery</span>
-                                                </div>
-                                                <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 p-1 rounded-full bg-muted">
-                                                        <Check className="h-3 w-3 text-muted-foreground" />
-                                                    </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Watermark on generated images</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">Personal use only</span>
                                                 </div>
                                             </div>
-                                            <div className="pt-4">
+                                            <div className="pt-4 mt-auto">
                                                 <Link
                                                     href="/ai"
                                                     className="inline-flex items-center justify-center whitespace-nowrap rounded-md ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-background hover:text-accent-foreground px-4 py-2 w-full h-12 text-lg font-medium transition-all duration-200 border-primary/20 text-primary hover:bg-primary/5"
@@ -134,139 +181,140 @@ export default function PricingPage() {
                                     </div>
                                 </motion.div>
 
-                                {/* Pro Unlimited */}
-                                <motion.div className="relative" initial="initial" animate="animate" variants={fadeInUp}>
-                                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent hover:bg-primary/80 bg-primary text-primary-foreground">
+                                {/* Pro Unlimited - HERO */}
+                                <motion.div className="relative h-full" initial="initial" animate="animate" variants={fadeInUp}>
+                                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-[200px]">
+                                        <div className="flex items-center justify-center rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground shadow-lg">
                                             <Sparkles className="h-3 w-3 mr-1" />
                                             Most Popular
                                         </div>
                                     </div>
-                                    <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+                                    <div className="rounded-lg bg-card text-card-foreground shadow-xl h-full transition-all duration-300 transform hover:scale-105 border-2 border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10 flex flex-col relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-2">
+                                            <div className="h-20 w-20 bg-primary/10 rounded-full blur-3xl absolute -top-10 -right-10"></div>
+                                        </div>
+
                                         <div className="flex flex-col space-y-1.5 p-6 text-center pb-4">
                                             <div className="flex items-center justify-center mb-4">
-                                                <div className="p-3 rounded-full bg-primary/10">
-                                                    <Crown className="h-6 w-6 text-primary" />
+                                                <div className="p-4 rounded-full bg-primary/20 ring-4 ring-primary/10">
+                                                    <Crown className="h-8 w-8 text-primary" />
                                                 </div>
                                             </div>
-                                            <h3 className="tracking-tight text-2xl font-bold text-foreground">Pro Unlimited</h3>
-                                            <div className="space-y-2">
+                                            <h3 className="tracking-tight text-3xl font-bold text-foreground">Pro Unlimited</h3>
+                                            <div className="space-y-2 mt-2">
                                                 <div className="flex items-baseline justify-center gap-1">
-                                                    <span className="text-5xl font-bold text-foreground">$9.99</span>
-                                                    <span className="text-muted-foreground text-lg">/month</span>
+                                                    <span className="text-5xl font-extrabold text-foreground">
+                                                        {billingInterval === "monthly" ? "$9.90" : "$99.00"}
+                                                    </span>
+                                                    <span className="text-muted-foreground text-lg">/{billingInterval === "monthly" ? "mo" : "yr"}</span>
                                                 </div>
-                                                <p className="text-muted-foreground">Full access to all fusion generators</p>
+                                                <p className="text-primary font-medium">Full Commercial License</p>
                                             </div>
                                         </div>
-                                        <div className="p-6 pt-0 space-y-6">
-                                            <div className="space-y-3">
+                                        <div className="p-6 pt-0 space-y-6 flex-1 flex flex-col">
+                                            <div className="space-y-4 flex-1">
                                                 <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 p-1 rounded-full bg-primary/10">
+                                                    <div className="mt-0.5 p-1 rounded-full bg-primary/20">
                                                         <Check className="h-3 w-3 text-primary" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Unlimited fusions across all tools</span>
+                                                    <div className="text-left">
+                                                        <span className="font-semibold text-foreground">Fast GPU Generation</span>
+                                                        <p className="text-xs text-muted-foreground">Jump the queue, generate in seconds</p>
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 p-1 rounded-full bg-primary/10">
+                                                    <div className="mt-0.5 p-1 rounded-full bg-primary/20">
                                                         <Check className="h-3 w-3 text-primary" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">HD quality (1080p)</span>
+                                                    <div className="text-left">
+                                                        <span className="font-semibold text-foreground">Unlimited Relax Mode</span>
+                                                        <p className="text-xs text-muted-foreground">Keep creating even after fast usage</p>
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 p-1 rounded-full bg-primary/10">
+                                                    <div className="mt-0.5 p-1 rounded-full bg-primary/20">
                                                         <Check className="h-3 w-3 text-primary" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">No watermark</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">No Watermark & HD Quality</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 p-1 rounded-full bg-primary/10">
+                                                    <div className="mt-0.5 p-1 rounded-full bg-primary/20">
                                                         <Check className="h-3 w-3 text-primary" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Priority processing</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">Private Mode (Hidden from Gallery)</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 p-1 rounded-full bg-primary/10">
+                                                    <div className="mt-0.5 p-1 rounded-full bg-primary/20">
                                                         <Check className="h-3 w-3 text-primary" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Early access to new generators</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">Priority Support</span>
                                                 </div>
                                             </div>
-                                            <div className="pt-4">
-                                                <Link
-                                                    href="/sign-up"
-                                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2 w-full h-12 text-lg font-medium transition-all duration-200 bg-primary hover:bg-primary/90 text-primary-foreground"
+                                            <div className="pt-6 mt-auto">
+                                                <button
+                                                    onClick={() => handleCheckout(billingInterval)}
+                                                    disabled={isLoading}
+                                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2 w-full h-14 text-lg font-bold transition-all duration-200 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-primary/30"
                                                 >
-                                                    Get Pro Unlimited
-                                                </Link>
-                                            </div>
-                                            <div className="text-center pt-2">
-                                                <p className="text-sm text-muted-foreground">Save 20% with annual billing • $7.99/month</p>
+                                                    {isLoading ? (
+                                                        <>
+                                                            <Loader2 className="nr-2 h-4 w-4 animate-spin" />
+                                                            Redirecting...
+                                                        </>
+                                                    ) : (
+                                                        "Get Pro Unlimited"
+                                                    )}
+                                                </button>
+                                                <p className="text-xs text-center text-muted-foreground mt-3">
+                                                    Secure payment via Creem • Cancel anytime
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </motion.div>
 
-                                {/* Credit Pack */}
-                                <motion.div className="relative" initial="initial" animate="animate" variants={fadeInUp}>
-                                    <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border border-border hover:border-primary/20">
+                                {/* Enterprise / Bulk - Placeholder for balance */}
+                                <motion.div className="relative h-full text-left" initial="initial" animate="animate" variants={fadeInUp}>
+                                    <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border border-border hover:border-primary/20 flex flex-col opacity-90">
                                         <div className="flex flex-col space-y-1.5 p-6 text-center pb-4">
                                             <div className="flex items-center justify-center mb-4">
                                                 <div className="p-3 rounded-full bg-muted">
                                                     <Sparkles className="h-6 w-6 text-muted-foreground" />
                                                 </div>
                                             </div>
-                                            <h3 className="tracking-tight text-2xl font-bold text-foreground">Credit Pack</h3>
+                                            <h3 className="tracking-tight text-2xl font-bold text-foreground">Enterprise</h3>
                                             <div className="space-y-2">
                                                 <div className="flex items-baseline justify-center gap-1">
-                                                    <span className="text-5xl font-bold text-foreground">$14.99</span>
-                                                    <span className="text-muted-foreground text-lg">/500 credits</span>
+                                                    <span className="text-3xl font-bold text-foreground">Custom</span>
                                                 </div>
-                                                <p className="text-muted-foreground">Pay as you go, credits never expire</p>
+                                                <p className="text-muted-foreground">For high-volume needs</p>
                                             </div>
                                         </div>
-                                        <div className="p-6 pt-0 space-y-6">
-                                            <div className="space-y-3">
+                                        <div className="p-6 pt-0 space-y-6 flex-1 flex flex-col">
+                                            <div className="space-y-3 flex-1">
+                                                <p className="text-sm text-muted-foreground">
+                                                    Need API access or bulk image generation? We offer custom solutions for businesses.
+                                                </p>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">1 credit = 1 standard fusion</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">Custom API Integration</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">2 credits = 1 HD fusion</span>
-                                                </div>
-                                                <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 p-1 rounded-full bg-muted">
-                                                        <Check className="h-3 w-3 text-muted-foreground" />
-                                                    </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Works across all generators</span>
-                                                </div>
-                                                <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 p-1 rounded-full bg-muted">
-                                                        <Check className="h-3 w-3 text-muted-foreground" />
-                                                    </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Credits never expire</span>
-                                                </div>
-                                                <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 p-1 rounded-full bg-muted">
-                                                        <Check className="h-3 w-3 text-muted-foreground" />
-                                                    </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Perfect for occasional use</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">Bulk discounts</span>
                                                 </div>
                                             </div>
-                                            <div className="pt-4">
+                                            <div className="pt-4 mt-auto">
                                                 <Link
-                                                    href="/sign-up"
+                                                    href="/contact"
                                                     className="inline-flex items-center justify-center whitespace-nowrap rounded-md ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-background hover:text-accent-foreground px-4 py-2 w-full h-12 text-lg font-medium transition-all duration-200 border-primary/20 text-primary hover:bg-primary/5"
                                                 >
-                                                    Buy Credits
+                                                    Contact Sales
                                                 </Link>
-                                            </div>
-                                            <div className="text-center pt-2">
-                                                <p className="text-sm text-muted-foreground">≈ $0.03 per HD fusion • Great for occasional use</p>
                                             </div>
                                         </div>
                                     </div>
@@ -275,55 +323,28 @@ export default function PricingPage() {
 
                             {/* FAQ Section */}
                             <motion.div
-                                className="text-center space-y-4 pt-8"
+                                className="text-center space-y-4 pt-8 border-t"
                                 initial="initial"
                                 animate="animate"
                                 variants={fadeInUp}
                             >
                                 <h3 className="text-xl font-semibold text-foreground">Common Questions</h3>
-                                <p className="text-muted-foreground">All plans include full access to Dragon Ball Fusion, Pokemon Fusion, and AI Fusion generators. Only quality and quantity differ.</p>
-                                <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                                    <span className="flex items-center gap-1">
-                                        <Check className="h-3 w-3 text-green-500" />
-                                        One price for all fusion tools
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <Check className="h-3 w-3 text-green-500" />
-                                        Cancel anytime
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <Check className="h-3 w-3 text-green-500" />
-                                        30-day money-back guarantee
-                                    </span>
-                                </div>
-                                <div className="mx-auto max-w-3xl text-left space-y-3 pt-4">
+                                <div className="mx-auto max-w-3xl text-left space-y-6 pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <p className="font-semibold">Can I use all fusion generators on the free plan?</p>
-                                        <p className="text-muted-foreground">Yes! Free users get access to all three generators (Dragon Ball, Pokemon, AI) with 5 daily fusions total.</p>
+                                        <p className="font-semibold text-foreground">What is "Fast GPU"?</p>
+                                        <p className="text-sm text-muted-foreground mt-1">Pro users get access to our high-speed GPU cluster. Images generate in seconds, skipping the free queue completely.</p>
                                     </div>
                                     <div>
-                                        <p className="font-semibold">Do credits work for all generator types?</p>
-                                        <p className="text-muted-foreground">Absolutely. 1 credit = 1 standard fusion or 2 credits = 1 HD fusion, regardless of which generator you use.</p>
+                                        <p className="font-semibold text-foreground">Is the "Unlimited" really unlimited?</p>
+                                        <p className="text-sm text-muted-foreground mt-1">Yes! You have a high allowance of Fast Generations. If you exceed it, you can still generate unlimited images in Relax Mode (slightly slower).</p>
                                     </div>
                                     <div>
-                                        <p className="font-semibold">What's the difference between Pro and Credit Pack?</p>
-                                        <p className="text-muted-foreground">Pro is subscription-based with unlimited everything. Credit Pack is pay-as-you-go for occasional creators.</p>
+                                        <p className="font-semibold text-foreground">Can I use images commercially?</p>
+                                        <p className="text-sm text-muted-foreground mt-1">Yes! Pro plan includes a full commercial license. You own the images you create.</p>
                                     </div>
                                     <div>
-                                        <p className="font-semibold">Can I switch between plans?</p>
-                                        <p className="text-muted-foreground">Yes, you can upgrade, downgrade, or switch to credits anytime. Unused credits are always preserved.</p>
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">Does the free plan include Dragon Ball Z fusion generator?</p>
-                                        <p className="text-muted-foreground">Yes! Free users get access to our Dragon Ball fusion generator with 5 daily fusions included.</p>
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">Can I create Pokemon infinite fusions with credits?</p>
-                                        <p className="text-muted-foreground">Absolutely! Credits work across all generators including Pokemon infinite fusion and Dragon Ball fusion generator.</p>
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">Is there an AI fusion generator free option?</p>
-                                        <p className="text-muted-foreground">Yes, the free plan includes access to our AI fusion generator with 5 daily creations.</p>
+                                        <p className="font-semibold text-foreground">Can I cancel anytime?</p>
+                                        <p className="text-sm text-muted-foreground mt-1">Absolutely. You can cancel your subscription from your dashboard at any time. No questions asked.</p>
                                     </div>
                                 </div>
                             </motion.div>

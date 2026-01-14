@@ -3,11 +3,7 @@
 import { Logo } from "./logo";
 import Link from "next/link";
 import { Github } from "lucide-react";
-import { usePathname } from "next/navigation";
 export function Footer() {
-  const pathname = usePathname();
-  const isDashboard = pathname?.startsWith("/dashboard");
-
   const footerLinks = [
     {
       title: "Fusion Generator",
@@ -34,26 +30,6 @@ export function Footer() {
       ],
     },
   ];
-
-  if (isDashboard) {
-    return (
-      <footer className="border-t py-6 md:py-0">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row md:py-0">
-          <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-            <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-              Built by{" "}
-              <Link
-                href="https://Raphael.app"
-                className="font-medium underline underline-offset-4"
-              >
-                Raphael Starter
-              </Link>
-            </p>
-          </div>
-        </div>
-      </footer>
-    );
-  }
 
   return (
     <footer className="border-t">
@@ -89,7 +65,7 @@ export function Footer() {
             © 2025 FusionGenerator.fun
           </p>
           <p className="text-center text-xs text-muted-foreground/60 md:text-right max-w-xl">
-            This tool is a fan-made AI generator and is not affiliated with or endorsed by Toei Animation, Shueisha, Nintendo, or The Pokémon Company.
+            This tool is a fan-made AI generator and is not affiliated with or endorsed by Toei Animation, Shueisha, Nintendo, or The Pokémon Company. Fusion Generator uses third-party AI models to generate images. Users are aware that AI-generated content is powered by external AI services.
           </p>
         </div>
       </div>
