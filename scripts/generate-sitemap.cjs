@@ -78,15 +78,23 @@ function buildSitemapXml({ baseUrl }) {
         .map((entry) => {
             const lastmod = getLastModifiedForFiles(entry.files)
             const loc = `${baseUrl}${entry.route}`
-            return [
+            return { ...entry, lastmod, loc }
+        })
+        .sort((a, b) => {
+            if (a.lastmod !== b.lastmod) return a.lastmod > b.lastmod ? -1 : 1
+            if (a.priority !== b.priority) return b.priority - a.priority
+            return a.loc.localeCompare(b.loc)
+        })
+        .map((entry) =>
+            [
                 "  <url>",
-                `    <loc>${escapeXml(loc)}</loc>`,
-                `    <lastmod>${escapeXml(lastmod)}</lastmod>`,
+                `    <loc>${escapeXml(entry.loc)}</loc>`,
+                `    <lastmod>${escapeXml(entry.lastmod)}</lastmod>`,
                 `    <changefreq>${escapeXml(entry.changefreq)}</changefreq>`,
                 `    <priority>${entry.priority.toFixed(1)}</priority>`,
                 "  </url>",
             ].join("\n")
-        })
+        )
         .join("\n")
 
     return [
