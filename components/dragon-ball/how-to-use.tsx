@@ -15,7 +15,7 @@ export function DBHowToUse() {
 
             <h3 className="text-xl font-semibold">Tips for Best Results</h3>
             <p className="text-muted-foreground text-base leading-relaxed">
-                Use high‑quality source images, avoid extreme angles, and keep backgrounds simple. Name your fighters (e.g., &quot;Goku&quot; and &quot;Vegeta&quot;) to auto‑generate a themed fusion name. After you click Create Dragon Ball Fusion, download the HD image or share on social media. If you love anime pairings beyond Saiyans, try Piccolo + Gohan, Trunks + Goten, or villain fusions like Frieza + Cell. This Dragon Ball Fusion Generator is AI‑assisted, ensuring consistent lighting, aura cohesion, and anime‑style edges for authentic DBZ character fusions every time. Want to explore character fusions beyond Dragon Ball? Check out our main <Link href="/" className="text-primary hover:underline font-medium">fusion generator</Link> for more options.
+                Use high‑quality source images, avoid extreme angles, and keep backgrounds simple. Name your fighters (e.g., &quot;Goku&quot; and &quot;Vegeta&quot;) to auto‑generate a themed fusion name. After you click Create Dragon Ball Fusion, download the HD image or share on social media. If you love anime pairings beyond Saiyans, try Piccolo + Gohan, Trunks + Goten, or villain fusions like Frieza + Cell. This Dragon Ball Fusion Generator is AI‑assisted, ensuring consistent lighting, aura cohesion, and anime‑style edges for authentic DBZ character fusions every time. Want to explore character fusions beyond Dragon Ball? Check out our <Link href="/" className="text-primary hover:underline font-medium">main fusion generator</Link> for more options.
             </p>
         </div>
     );
