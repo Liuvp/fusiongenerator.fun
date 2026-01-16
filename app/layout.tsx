@@ -34,9 +34,6 @@ export const metadata = {
     description:
       "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
   },
-  alternates: {
-    canonical: "https://fusiongenerator.fun/",
-  },
 };
 
 const geistSans = Geist({
