@@ -12,9 +12,9 @@ export function DBHero() {
                     Dragon Ball Fusion Studio
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                    Dragon Ball Fusion Generator
+                    Dragon Ball Z (DBZ) Fusion Generator
                     <br />
-                    Epic Goku & Vegeta Fusions
+                    Create Goku & Vegeta Fusions
                 </h1>
                 <p className="text-lg text-muted-foreground">
                     Use our Dragon Ball Fusion Generator to combine Goku, Vegeta, and all DBZ characters. Create Super Saiyan fusions instantly.
@@ -31,7 +31,7 @@ export function DBHero() {
             <div className="relative w-full h-[260px] md:h-[360px]">
                 <Image
                     src="/images/fusion-generator-logo.svg"
-                    alt="Dragon Ball fusion preview"
+                    alt="Dragon Ball Z fusion generator preview – Goku and Vegeta"
                     fill
                     className="object-contain"
                     priority

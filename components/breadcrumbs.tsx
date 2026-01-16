@@ -15,7 +15,7 @@ const routeNameMap: Record<string, string> = {
   gallery: "Gallery",
   results: "Results",
   ai: "AI Fusion",
-  "dragon-ball": "Dragon Ball Fusion",
+  "dragon-ball": "Dragon Ball Fusion Generator",
   pokemon: "Pokemon Fusion",
   product: "Product",
   "name-detail": "Name Detail",

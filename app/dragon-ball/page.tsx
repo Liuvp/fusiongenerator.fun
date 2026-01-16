@@ -25,7 +25,7 @@ export const metadata: Metadata = {
         url: "/gallery/Dragon-Ball-Character-Fusion-Goku-Vegeta-HD-Preview.png",
         width: 1200,
         height: 630,
-        alt: "Dragon Ball Fusion Generator Preview",
+        alt: "Dragon Ball Fusion Generator preview – Goku and Vegeta fusion",
       },
     ],
   },

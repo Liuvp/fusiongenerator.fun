@@ -29,7 +29,7 @@ export function DBPopularFusions() {
                                 <div className="relative w-20 h-20 bg-muted rounded-full overflow-hidden border">
                                     <Image
                                         src="/images/fusion-generator-logo.svg"
-                                        alt={item.name}
+                                        alt={`Dragon Ball Fusion Generator – ${item.left} and ${item.right} fusion preview`}
                                         fill
                                         className="object-cover p-2"
                                     />

@@ -27,7 +27,7 @@ export function DBFAQ() {
                 name: "Can I mix a real person with an anime character?",
                 acceptedAnswer: {
                     "@type": "Answer",
-                    text: "Yes. Upload a photo of yourself and a character image to see a hybrid Saiyan form.",
+                    text: "Yes. The AI supports anime character fusion, including Dragon Ball, Pokemon, and other popular anime styles. Upload a photo of yourself and a character image to see a hybrid Saiyan form.",
                 },
             },
             {
