@@ -2,7 +2,8 @@ import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = 'https://fusiongenerator.fun'
-    const currentDate = new Date().toISOString()
+    // 格式化日期为 YYYY-MM-DD
+    const currentDate = new Date().toISOString().split('T')[0]
 
     // 静态页面
     const staticPages: MetadataRoute.Sitemap = [
