@@ -1,9 +1,19 @@
+import { Metadata } from "next";
 import { forgotPasswordAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Reset Password - Fusion Generator",
+  description: "Reset your Fusion Generator account password.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function ForgotPassword(props: {
   searchParams: Promise<Message>;

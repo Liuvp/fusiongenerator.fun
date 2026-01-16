@@ -8,16 +8,16 @@ import Script from "next/script";
 import FusionClientPage from "./client-page";
 
 export const metadata: Metadata = {
-    title: "AI Fusion Generator – Merge Any Characters or Photos Online",
+    title: "AI Fusion Generator – Anime & Character Fusions Online",
     description:
-        "Merge any characters, photos, or art with our free AI Fusion Generator. Instantly create unique, high-quality blends – just upload two images and fuse!",
+        "Create unique anime and character fusions with our free AI Fusion Generator. Easily merge photos, cartoons, and manga characters online in seconds.",
     alternates: {
         canonical: "/ai",
     },
     openGraph: {
-        title: "AI Fusion Generator – Merge Any Characters or Photos Online",
+        title: "AI Fusion Generator – Anime & Character Fusions Online",
         description:
-            "Merge any characters, photos, or art with our free AI Fusion Generator. Instantly create unique, high-quality blends – just upload two images and fuse!",
+            "Create unique anime and character fusions with our free AI Fusion Generator. Easily merge photos, cartoons, and manga characters online in seconds.",
         url: "https://fusiongenerator.fun/ai",
         type: "website",
         images: [
@@ -31,9 +31,9 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "AI Fusion Generator – Merge Any Characters or Photos Online",
+        title: "AI Fusion Generator – Anime & Character Fusions Online",
         description:
-            "Merge any characters, photos, or art with our free AI Fusion Generator. Instantly create unique, high-quality blends – just upload two images and fuse!",
+            "Create unique anime and character fusions with our free AI Fusion Generator. Easily merge photos, cartoons, and manga characters online in seconds.",
     },
 };
 
@@ -55,7 +55,7 @@ export default function AIFusionPage() {
                 name: "What types of images work best with AI fusion?",
                 acceptedAnswer: {
                     "@type": "Answer",
-                    text: "Clear, high-contrast images with distinct features work best. The AI handles character fusions, animal combinations, and abstract art equally well.",
+                    text: "The AI works well with anime-style character fusions, Pokémon-inspired hybrids, and realistic photo blends, as long as the images are clear and well-lit.",
                 },
             },
             {
@@ -98,7 +98,7 @@ export default function AIFusionPage() {
                             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                                 AI Fusion Generator
                                 <br />
-                                Merge Any Two Images Instantly
+                                Create Anime & Character Fusions Instantly
                             </h1>
                             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                                 Advanced AI fusion technology to merge any two images. Supports characters, animals, and custom photos with professional results.
@@ -121,7 +121,7 @@ export default function AIFusionPage() {
                         <div className="space-y-6">
                             <h2 className="text-2xl font-bold">About Our AI Fusion Generator</h2>
                             <p className="text-muted-foreground text-base leading-relaxed">
-                                Our <strong>AI fusion generator</strong> uses cutting-edge artificial intelligence to seamlessly blend any two images. Whether you're creating character fusions, <strong>AI image fusion</strong> artwork, or experimenting with <strong>fusion AI image generator</strong> technology, our tool delivers professional results instantly. The advanced <strong>fusion generator AI</strong> analyzes visual features, color palettes, and structural elements to create harmonious combinations that preserve the best aspects of both source images.
+                                Our <strong>AI fusion generator</strong> uses cutting-edge artificial intelligence to seamlessly blend any two images. Whether you're creating character fusions, <strong>AI image fusion</strong> artwork, or experimenting with <strong>fusion AI image generator</strong> technology, our tool delivers professional results instantly. Looking for specialized Dragon Ball or Pokémon character fusions? Try our main <Link href="/" className="text-primary hover:underline font-medium">Fusion Generator</Link> for curated fusion options, or continue here for advanced AI-powered image blending. The advanced <strong>fusion generator AI</strong> analyzes visual features, color palettes, and structural elements to create harmonious combinations that preserve the best aspects of both source images.
                             </p>
                             <p className="text-muted-foreground text-base leading-relaxed">
                                 Perfect for artists, content creators, and enthusiasts, our <strong>image fusion AI</strong> technology supports a wide range of applications including character design, concept art, social media content, and creative experimentation. Upload any two images and watch as our AI creates stunning fusions in seconds.

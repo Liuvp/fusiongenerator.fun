@@ -5,6 +5,10 @@ import ClientPage from "./client-page";
 export const metadata: Metadata = {
   title: "Sign In - Fusion Generator",
   description: "Log in to your Fusion Generator account to create unlimited Dragon Ball and Pokemon fusions, save your gallery, and access premium features.",
+  robots: {
+    index: false,
+    follow: false,
+  },
   alternates: {
     canonical: "/sign-in",
   },
