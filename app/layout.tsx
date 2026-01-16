@@ -12,10 +12,10 @@ import { cookies } from "next/headers";
 
 const baseUrl = process.env.BASE_URL
   ? `https://${process.env.BASE_URL}`
-  : "https://fusiongenerator.fun";
+  : "https://fusiongenerator.fun/";
 
 export const metadata = {
-  metadataBase: new URL("https://fusiongenerator.fun"),
+  metadataBase: new URL("https://fusiongenerator.fun/"),
   title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
   description:
     "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
@@ -25,7 +25,7 @@ export const metadata = {
     description:
       "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
     type: "website",
-    url: "https://fusiongenerator.fun",
+    url: "https://fusiongenerator.fun/",
     locale: "en_US",
   },
   twitter: {
@@ -35,7 +35,7 @@ export const metadata = {
       "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
   },
   alternates: {
-    canonical: "./",
+    canonical: "https://fusiongenerator.fun/",
   },
 };
 

@@ -13,7 +13,7 @@ export const metadata = {
   title: "Fusion Generator – Create Dragon Ball & Pokémon AI Fusions",
   description: "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
   alternates: {
-    canonical: "/",
+    canonical: "https://fusiongenerator.fun/",
   },
 };
 
@@ -23,7 +23,7 @@ export default function Home() {
     "@type": "WebApplication",
     "name": "Fusion Generator",
     "description": "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
-    "url": "https://fusiongenerator.fun",
+    "url": "https://fusiongenerator.fun/",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
     "offers": {
@@ -40,7 +40,7 @@ export default function Home() {
       "@type": "ListItem",
       "position": 1,
       "name": "Home",
-      "item": "https://fusiongenerator.fun"
+      "item": "https://fusiongenerator.fun/"
     }]
   };
 

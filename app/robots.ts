@@ -4,7 +4,7 @@ const getBaseUrl = () => {
   if (process.env.BASE_URL) {
     return `https://${process.env.BASE_URL.replace(/^https?:\/\//, "").replace(/\/$/, "")}`
   }
-  return "https://fusiongenerator.fun"
+  return "https://fusiongenerator.fun/"
 }
 
 export default function robots(): MetadataRoute.Robots {
