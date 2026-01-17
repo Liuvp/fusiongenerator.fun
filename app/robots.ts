@@ -10,10 +10,8 @@ const getBaseUrl = () => {
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = getBaseUrl()
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-    },
+    // 空规则：让 Cloudflare 完全接管 User-agent 规则和 AI 爬虫黑名单
+    rules: [],
     sitemap: [`${baseUrl}/sitemap.xml`],
     host: baseUrl,
   }
