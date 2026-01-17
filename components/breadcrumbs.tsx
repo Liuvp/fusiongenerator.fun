@@ -16,7 +16,7 @@ const routeNameMap: Record<string, string> = {
   results: "Results",
   ai: "AI Fusion",
   "dragon-ball": "Dragon Ball Fusion Generator",
-  pokemon: "Pokemon Fusion",
+  pokemon: "Pokemon Fusion Generator",
   product: "Product",
   "name-detail": "Name Detail",
   // nested
