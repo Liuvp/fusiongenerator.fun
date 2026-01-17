@@ -3,6 +3,10 @@ import Link from "next/link";
 import Image from "next/image";
 import Script from "next/script";
 
+// Force static generation to ensure meta tags are in <head>
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
     title: "Pokemon Infinite Fusion Generator: The Ultimate Guide & How to Use It | FusionGenerator.fun",
     description: "Discover everything about the Pokemon Infinite Fusion Generator. Our complete guide explains what it is, how it works, where to play, and tips for creating amazing Gen 1-9 Pokemon mashups.",

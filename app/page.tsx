@@ -8,6 +8,10 @@ import { GalleryPreview } from "@/components/home/gallery-preview";
 import { Testimonials } from "@/components/home/testimonials";
 import { FAQ } from "@/components/home/faq";
 
+// Force static generation to ensure meta tags are in <head>
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
 export const metadata = {
   title: "Fusion Generator – Create Dragon Ball & Pokémon AI Fusions",
   description: "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",

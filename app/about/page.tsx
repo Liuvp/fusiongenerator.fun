@@ -1,6 +1,10 @@
 import { Metadata } from "next";
 import AboutPage from "./client-page";
 
+// Force static generation to ensure meta tags are in <head>
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "About Fusion Generator - Create Dragon Ball & Pokemon Fusions with AI",
   description: "Learn about Fusion Generator, the leading AI-powered platform for creating Dragon Ball and Pokemon character fusions. Discover our mission to bring fusion creativity to everyone.",

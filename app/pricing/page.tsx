@@ -1,6 +1,10 @@
 import { Metadata } from "next";
 import PricingPage from "./client-page";
 
+// Force static generation to ensure meta tags are in <head>
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Fusion Generator Pricing – Free & Unlimited Dragon Ball & Pokémon AI Fusions",
   description: "View Fusion Generator pricing plans. Create Dragon Ball and Pokémon AI fusions for free, or upgrade for unlimited HD images, faster generation, and priority access.",

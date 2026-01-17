@@ -1,6 +1,10 @@
 import { Metadata } from "next";
 import GalleryPage from "./client-page";
 
+// Force static generation to ensure meta tags are in <head>
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Fusion Gallery – Create Dragon Ball & Pokémon AI Fusions",
   description: "Browse our collection of amazing Dragon Ball and Pokémon character fusions. Get inspired by community creations and start your own fusion journey.",

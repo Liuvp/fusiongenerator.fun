@@ -4,6 +4,10 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Force static generation to ensure meta tags are in <head>
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
     title: "Top 10 Dragon Ball Fusions You Must Try | FusionGenerator.fun",
     description: "Discover the most powerful and iconic Dragon Ball character fusions. From Gogeta to Vegito, explore the best combinations for our Fusion Generator.",

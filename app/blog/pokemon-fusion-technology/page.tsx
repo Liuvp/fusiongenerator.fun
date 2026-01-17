@@ -3,6 +3,10 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Force static generation to ensure meta tags are in <head>
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
     title: "How Pokémon Fusion Generator Works | FusionGenerator.fun",
     description: "Learn about the technology behind Pokémon Infinite Fusion and our AI Generator. Understand how sprites and AI models combine to create new monsters.",
