@@ -7,6 +7,10 @@ import { Sparkles, Zap, Wand2, Upload, ChevronDown } from "lucide-react";
 import Script from "next/script";
 import FusionClientPage from "./client-page";
 
+// Force static generation to ensure meta tags are in <head>
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
+
 export const metadata: Metadata = {
     title: "AI Fusion Generator – Anime & Character Fusions Online",
     description:

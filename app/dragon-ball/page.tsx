@@ -7,6 +7,10 @@ import { DBFeatures } from "@/components/dragon-ball/features";
 import { DBFAQ } from "@/components/dragon-ball/faq";
 import { DBCTA } from "@/components/dragon-ball/cta";
 
+// Force static generation to ensure meta tags are in <head>
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
+
 export const metadata: Metadata = {
   title: "Dragon Ball Fusion Generator – Goku & Vegeta AI Fusions",
   description:

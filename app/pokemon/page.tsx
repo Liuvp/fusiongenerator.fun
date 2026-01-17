@@ -7,6 +7,10 @@ import { PokeFeatures } from "@/components/pokemon/features";
 import { PokeFAQ } from "@/components/pokemon/faq";
 import { PokeCTA } from "@/components/pokemon/cta";
 
+// Force static generation to ensure meta tags are in <head>
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
+
 export const metadata: Metadata = {
   title: "Pokemon Fusion Generator – Pikachu, Charizard & Mewtwo Fusions",
   description:
