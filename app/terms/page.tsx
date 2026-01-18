@@ -7,7 +7,7 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Terms of Service – Fusion Generator",
-  description: "Review the terms governing use of Fusion Generator for Dragon Ball and Pokémon fusions. Updated December 2025.",
+  description: "Review the terms governing use of Fusion Generator for Dragon Ball and Pokémon fusions. Updated January 2026.",
   alternates: {
     canonical: "/terms",
   },

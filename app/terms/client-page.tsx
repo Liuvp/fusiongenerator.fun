@@ -106,10 +106,10 @@ export default function TermsPage() {
                             <div className="space-y-4 text-muted-foreground">
                                 <p>Fusion Generator provides creation tools and preview experiences to craft fan-made character fusions with coherent rules across universes.</p>
                                 <ul className="space-y-2">
-                                    <li>• Dragon Ball Fusion tools and presets</li>
-                                    <li>• Pokémon Fusion tools and presets</li>
-                                    <li>• AI Custom Fusion workflow</li>
-                                    <li>• Community Gallery and sharing</li>
+                                    <li>• <Link href="/dragon-ball" className="text-primary hover:underline">Dragon Ball Fusion</Link> tools and presets</li>
+                                    <li>• <Link href="/pokemon" className="text-primary hover:underline">Pokémon Fusion</Link> tools and presets</li>
+                                    <li>• <Link href="/ai" className="text-primary hover:underline">AI Custom Fusion</Link> workflow</li>
+                                    <li>• <Link href="/gallery" className="text-primary hover:underline">Community Gallery</Link> and sharing</li>
                                     <li>• We are not affiliated with or endorsed by Toei Animation, Shueisha, Nintendo, Game Freak, or The Pokémon Company.</li>
                                 </ul>
                             </div>
@@ -248,13 +248,33 @@ export default function TermsPage() {
                                 </div>
 
                                 <div>
+                                    <h4 className="font-semibold mb-3">Payment Processing</h4>
+                                    <p className="text-muted-foreground mb-3">
+                                        Payments are processed securely by authorized third-party payment providers, including Creem, depending on your selected plan and region. Fusion Generator does not store or process full payment card details.
+                                    </p>
+                                </div>
+
+                                <div>
                                     <h4 className="font-semibold mb-3">Cancellation and Refunds</h4>
                                     <ul className="space-y-2 text-muted-foreground">
                                         <li>• Cancel anytime in account settings</li>
                                         <li>• Refunds follow our refund policy</li>
                                         <li>• No refunds for partially used periods</li>
-                                        <li>• Free trial cancellations take effect immediately</li>
+                                        <li>• If a free trial is offered, it may convert to a paid subscription unless cancelled before the trial ends. Trial availability and duration may vary by plan.</li>
                                     </ul>
+                                </div>
+
+                                <div>
+                                    <h4 className="font-semibold mb-3">Subscription Cancellation</h4>
+                                    <p className="text-muted-foreground text-sm mb-2">
+                                        You can cancel your subscription at any time from your account dashboard.
+                                    </p>
+                                    <p className="text-muted-foreground text-sm mb-2">
+                                        Cancellation will stop future billing, and you will continue to have access to your subscription benefits until the end of the current billing cycle.
+                                    </p>
+                                    <p className="text-muted-foreground text-sm">
+                                        Please note that we do not offer refunds for unused time or usage after the subscription has been activated.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -278,6 +298,27 @@ export default function TermsPage() {
                                     <li>• Significant changes may be notified by email or in-app</li>
                                     <li>• You can always find the current version on this page</li>
                                 </ul>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Governing Law and Operator */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 1.5 }}
+                        className="space-y-8"
+                    >
+                        <div className="bg-muted/30 rounded-2xl p-8">
+                            <h3 className="text-2xl font-bold mb-6">Governing Law and Operator</h3>
+
+                            <div className="space-y-4 text-muted-foreground">
+                                <p>
+                                    Fusion Generator is operated and maintained by <span className="font-semibold text-foreground">Liu Longquan</span>, based in China.
+                                </p>
+                                <p>
+                                    These terms are governed by and construed in accordance with the laws of the People's Republic of China, without regard to conflict of law principles.
+                                </p>
                             </div>
                         </div>
                     </motion.div>

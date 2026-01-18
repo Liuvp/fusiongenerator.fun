@@ -27,7 +27,7 @@ export default function ContactPage() {
                             Need Help with Fusion Generator?
                         </h1>
                         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                            Whether you have questions about Dragon Ball fusions, Pokemon fusions, or need technical support — we're here to help!
+                            Whether you have questions about AI character fusions, need technical support, or want to explore partnership opportunities — we're here to help!
                         </p>
                     </motion.div>
 
@@ -47,10 +47,13 @@ export default function ContactPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-muted-foreground text-sm mb-4">
-                                    Need help with fusion creation, account issues, or technical problems?
+                                    Need help with fusion creation, account issues, or technical problems? Contact us at <a href="mailto:support@fusiongenerator.fun" className="text-primary hover:underline">support@fusiongenerator.fun</a> for support, feedback, or business inquiries.
+                                </p>
+                                <p className="text-xs text-muted-foreground/80 mb-4">
+                                    Operated by <span className="font-semibold">Fusion Generator</span>, Liu Longquan.
                                 </p>
                                 <Button asChild className="w-full">
-                                    <a href="mailto:lhqlvp@gmail.com?subject=Support%20Request">Email Support</a>
+                                    <a href="mailto:support@fusiongenerator.fun?subject=Support%20Request">Email Support</a>
                                 </Button>
                             </CardContent>
                         </Card>
@@ -67,7 +70,7 @@ export default function ContactPage() {
                                     Have suggestions for new features or fusion types? We'd love to hear them!
                                 </p>
                                 <Button asChild variant="outline" className="w-full">
-                                    <a href="mailto:lhqlvp@gmail.com?subject=Product%20Feedback">Send Feedback</a>
+                                    <a href="mailto:support@fusiongenerator.fun?subject=Product%20Feedback">Send Feedback</a>
                                 </Button>
                             </CardContent>
                         </Card>
@@ -84,7 +87,7 @@ export default function ContactPage() {
                                     Interested in API access, bulk licensing, or collaboration opportunities?
                                 </p>
                                 <Button asChild variant="secondary" className="w-full">
-                                    <a href="mailto:lhqlvp@gmail.com?subject=Partnership%20Inquiry">Contact Us</a>
+                                    <a href="mailto:support@fusiongenerator.fun?subject=Partnership%20Inquiry">Contact Us</a>
                                 </Button>
                             </CardContent>
                         </Card>
@@ -149,6 +152,22 @@ export default function ContactPage() {
                             <p className="mt-6 text-sm text-muted-foreground">
                                 📧 We typically respond within 24–48 hours. For urgent issues, please mention "URGENT" in your subject line.
                             </p>
+                        </div>
+                    </motion.div>
+
+                    {/* Operator Information */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.8 }}
+                        className="bg-muted/30 rounded-2xl p-8 border border-border"
+                    >
+                        <h3 className="text-lg font-semibold mb-4 text-foreground">Contact Information</h3>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                            <p><span className="font-semibold text-foreground">Service:</span> Fusion Generator</p>
+                            <p><span className="font-semibold text-foreground">Operated by:</span> Liu Longquan</p>
+                            <p><span className="font-semibold text-foreground">Email:</span> <a href="mailto:support@fusiongenerator.fun" className="text-primary hover:underline">support@fusiongenerator.fun</a></p>
+                            <p><span className="font-semibold text-foreground">Website:</span> <a href="https://fusiongenerator.fun" className="text-primary hover:underline">fusiongenerator.fun</a></p>
                         </div>
                     </motion.div>
                 </div>

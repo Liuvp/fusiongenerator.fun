@@ -65,23 +65,6 @@ export default function PricingPage({ user }: { user: User | null }) {
             <main className="flex-1 min-h-screen bg-gradient-to-b from-background to-muted/30">
                 <div className="container mx-auto px-4 md:px-6 py-10">
 
-                    {/* Banner */}
-                    <motion.section
-                        className="text-center py-8 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-xl mb-10"
-                        initial="initial"
-                        animate="animate"
-                        variants={fadeInUp}
-                    >
-                        <h3 className="text-2xl font-bold mb-2">Try Our Dragon Ball Fusion Generator Free Today!</h3>
-                        <p className="mb-4 text-muted-foreground">5 free fusions daily - No credit card required</p>
-                        <Link
-                            href="/ai"
-                            className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                        >
-                            Start Free Dragon Ball Fusion
-                        </Link>
-                    </motion.section>
-
                     {/* Header */}
                     <motion.section
                         className="text-center space-y-2 mb-10"
@@ -93,7 +76,7 @@ export default function PricingPage({ user }: { user: User | null }) {
                             Fusion Generator Pricing
                         </h1>
                         <p className="mx-auto max-w-2xl text-muted-foreground">
-                            Create Unlimited Dragon Ball Z, Pokemon & AI Anime Fusions
+                            Create High-Quality AI Character Fusions with Advanced AI Technology
                         </p>
 
                         {/* Billing Toggle */}
@@ -208,7 +191,7 @@ export default function PricingPage({ user }: { user: User | null }) {
                                                     </span>
                                                     <span className="text-muted-foreground text-lg">/{billingInterval === "monthly" ? "mo" : "yr"}</span>
                                                 </div>
-                                                <p className="text-primary font-medium">Full Commercial License</p>
+                                                <p className="text-primary font-medium">Commercial Use for Original AI Artwork*</p>
                                             </div>
                                         </div>
                                         <div className="p-6 pt-0 space-y-6 flex-1 flex flex-col">
@@ -266,6 +249,9 @@ export default function PricingPage({ user }: { user: User | null }) {
                                                     )}
                                                 </button>
                                                 <p className="text-xs text-center text-muted-foreground mt-3">
+                                                    Starts a monthly subscription. You will be redirected to secure checkout.
+                                                </p>
+                                                <p className="text-xs text-center text-muted-foreground">
                                                     Secure payment via Creem • Cancel anytime
                                                 </p>
                                             </div>
@@ -321,6 +307,37 @@ export default function PricingPage({ user }: { user: User | null }) {
                                 </motion.div>
                             </div>
 
+                            {/* Billing & Subscription Info */}
+                            <motion.div
+                                className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800"
+                                initial="initial"
+                                animate="animate"
+                                variants={fadeInUp}
+                            >
+                                <h3 className="text-lg font-semibold text-foreground mb-4">Billing & Subscription</h3>
+                                <ul className="space-y-2 text-sm text-muted-foreground">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-primary mt-0.5">•</span>
+                                        <span>Subscriptions renew automatically unless cancelled</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-primary mt-0.5">•</span>
+                                        <span>You can cancel anytime from your account dashboard</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-primary mt-0.5">•</span>
+                                        <span>No long-term commitment required</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-primary mt-0.5">•</span>
+                                        <span>Refunds are handled according to our refund policy</span>
+                                    </li>
+                                </ul>
+                                <p className="text-xs text-muted-foreground/80 mt-4 italic">
+                                    *Unlimited usage is subject to fair use and system capacity limits.
+                                </p>
+                            </motion.div>
+
                             {/* FAQ Section */}
                             <motion.div
                                 className="text-center space-y-4 pt-8 border-t"
@@ -332,20 +349,27 @@ export default function PricingPage({ user }: { user: User | null }) {
                                 <div className="mx-auto max-w-3xl text-left space-y-6 pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <p className="font-semibold text-foreground">What is "Fast GPU"?</p>
-                                        <p className="text-sm text-muted-foreground mt-1">Pro users get access to our high-speed GPU cluster. Images generate in seconds, skipping the free queue completely.</p>
+                                        <p className="text-base text-muted-foreground mt-1">Pro users get access to our high-speed GPU cluster. Images generate in seconds, skipping the free queue completely.</p>
                                     </div>
                                     <div>
                                         <p className="font-semibold text-foreground">Is the "Unlimited" really unlimited?</p>
-                                        <p className="text-sm text-muted-foreground mt-1">Yes! You have a high allowance of Fast Generations. If you exceed it, you can still generate unlimited images in Relax Mode (slightly slower).</p>
+                                        <p className="text-base text-muted-foreground mt-1">Yes! You have a high allowance of Fast Generations. If you exceed it, you can still generate unlimited images in Relax Mode (slightly slower).</p>
                                     </div>
                                     <div>
                                         <p className="font-semibold text-foreground">Can I use images commercially?</p>
-                                        <p className="text-sm text-muted-foreground mt-1">Yes! Pro plan includes a full commercial license. You own the images you create.</p>
+                                        <p className="text-base text-muted-foreground mt-1">Yes! Pro plan includes a full commercial license. You own the images you create, subject to third-party character rights.</p>
                                     </div>
                                     <div>
                                         <p className="font-semibold text-foreground">Can I cancel anytime?</p>
-                                        <p className="text-sm text-muted-foreground mt-1">Absolutely. You can cancel your subscription from your dashboard at any time. No questions asked.</p>
+                                        <p className="text-base text-muted-foreground mt-1">Absolutely. You can cancel your subscription from your dashboard at any time. No questions asked.</p>
                                     </div>
+                                </div>
+
+                                {/* Commercial Use Disclaimer */}
+                                <div className="mt-8 pt-6 border-t border-border">
+                                    <p className="text-sm text-center text-muted-foreground/80 max-w-2xl mx-auto leading-relaxed">
+                                        <span className="font-semibold text-foreground">Commercial Use Notice:</span> Commercial use applies to original AI-generated artwork. Users are responsible for ensuring compliance with third-party character rights.
+                                    </p>
                                 </div>
                             </motion.div>
                         </div>

@@ -65,7 +65,7 @@ export function Footer() {
             © 2025 FusionGenerator.fun
           </p>
           <p className="text-center text-xs text-muted-foreground/60 md:text-right max-w-xl">
-            This tool is a fan-made AI generator and is not affiliated with or endorsed by Toei Animation, Shueisha, Nintendo, or The Pokémon Company. Fusion Generator uses third-party AI models to generate images. Users are aware that AI-generated content is powered by external AI services.
+            This tool is a fan-made AI generator and is not affiliated with or endorsed by Toei Animation, Shueisha, Nintendo, or The Pokémon Company. All character names and references are used for fan art and illustrative purposes only. Fusion Generator uses third-party AI models to generate images. Users are aware that AI-generated content is powered by external AI services.
           </p>
         </div>
       </div>

@@ -6,14 +6,14 @@ export const dynamic = 'force-static';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "About Fusion Generator - Create Dragon Ball & Pokemon Fusions with AI",
-  description: "Learn about Fusion Generator, the leading AI-powered platform for creating Dragon Ball and Pokemon character fusions. Discover our mission to bring fusion creativity to everyone.",
+  title: "About Fusion Generator – AI Character Fusion Platform",
+  description: "Learn about Fusion Generator, the AI-powered platform for creating character fusions. An innovative tool for creative fans worldwide to bring their fusion ideas to life.",
   alternates: {
     canonical: "/about",
   },
   openGraph: {
-    title: "About Fusion Generator - AI-Powered Character Fusion Platform",
-    description: "Discover how Fusion Generator helps creators make amazing Dragon Ball and Pokemon fusions with advanced AI technology.",
+    title: "About Fusion Generator – AI Character Fusion Platform",
+    description: "Discover how Fusion Generator helps creators make amazing character fusions with advanced AI technology.",
     url: "https://fusiongenerator.fun/about",
     locale: "en_US",
     type: "website",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "About Fusion Generator",
-    description: "AI-powered Dragon Ball & Pokemon fusion platform",
+    description: "AI-powered character fusion platform for creative fans worldwide",
   },
 };
 

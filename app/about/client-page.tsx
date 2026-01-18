@@ -21,11 +21,11 @@ export default function AboutPage() {
                             Unleashing Creative Fusion Power
                         </div>
                         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-                            Bringing Character Fusion to<br />
-                            <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Everyone, Everywhere</span>
+                            About Fusion Generator<br />
+                            <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">An AI Character Fusion Tool for Creative Fans Worldwide</span>
                         </h1>
                         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                            Fusion Generator is the ultimate platform for creating amazing Dragon Ball fusions, Pokemon fusions, and AI-powered character mashups. We make fusion creativity accessible, fun, and limitless.
+                            <Link href="/" className="text-foreground font-semibold hover:text-primary transition-colors">Fusion Generator</Link> is the ultimate platform for creating amazing Dragon Ball fusions, Pokemon fusions, and AI-powered character mashups. We make fusion creativity accessible, fun, and limitless.
                         </p>
                     </motion.div>
 
@@ -165,6 +165,63 @@ export default function AboutPage() {
                             </div>
                         </div>
                     </motion.div>
+
+                    {/* Service Information Section */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.8 }}
+                        className="space-y-6"
+                    >
+                        <div className="bg-muted/30 rounded-2xl p-8 md:p-12 border border-border">
+                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                                <Globe className="h-6 w-6 text-primary" />
+                                Service Information
+                            </h2>
+                            <div className="space-y-6 text-muted-foreground">
+                                <p>
+                                    Fusion Generator is an AI-powered image generation web application that allows users to create character fusion images through a simple online interface.
+                                </p>
+                                <p>
+                                    The service operates as an independent project and provides access to image generation features based on user account status and subscription plans.
+                                </p>
+
+                                <div className="grid gap-4 md:grid-cols-2 mt-8 pt-6 border-t border-border">
+                                    <div>
+                                        <h3 className="font-semibold text-foreground mb-2">Founder</h3>
+                                        <p>Liu Longquan</p>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-foreground mb-2">Business Type</h3>
+                                        <p>Independent Developer</p>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-foreground mb-2">Location</h3>
+                                        <p>Asia</p>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-foreground mb-2">Contact Email</h3>
+                                        <p>
+                                            <Link
+                                                href="mailto:support@fusiongenerator.fun"
+                                                className="text-primary hover:underline"
+                                            >
+                                                support@fusiongenerator.fun
+                                            </Link>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 pt-6 border-t border-border">
+                                    <h3 className="font-semibold text-foreground mb-2">AI Usage Disclosure</h3>
+                                    <p>
+                                        Fusion Generator uses third-party AI models to generate images. The platform does not train its own AI models and does not claim ownership of the underlying AI technology.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
 
                     {/* CTA Section */}
                     <div

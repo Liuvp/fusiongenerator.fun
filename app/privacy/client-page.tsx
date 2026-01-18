@@ -109,7 +109,7 @@ export default function PrivacyPage() {
                                         <li>• <strong>Account Information:</strong> Email address and password when you create an account</li>
                                         <li>• <strong>Fusion Creations:</strong> Dragon Ball fusions, Pokemon fusions, and AI fusions you generate</li>
                                         <li>• <strong>Gallery Uploads:</strong> Fusions you choose to share in the public gallery</li>
-                                        <li>• <strong>Payment Information:</strong> Billing details for Pro subscriptions (processed securely by Stripe)</li>
+                                        <li>• <strong>Payment Information:</strong> Billing details for Pro subscriptions, processed securely by our authorized third-party payment providers</li>
                                     </ul>
                                 </div>
                                 <div>
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
                                     <ul className="space-y-2 text-muted-foreground">
                                         <li>• <strong>Usage Data:</strong> How you interact with our service</li>
                                         <li>• <strong>Device Information:</strong> Browser type, operating system, IP address</li>
-                                        <li>• <strong>Cookies:</strong> To improve your experience and remember your preferences</li>
+                                        <li>• <strong>Cookies:</strong> To improve your experience and remember your preferences. You can control or disable cookies through your browser settings.</li>
                                     </ul>
                                 </div>
                             </div>
@@ -191,7 +191,7 @@ export default function PrivacyPage() {
                         className="space-y-8"
                     >
                         <div className="bg-muted/30 rounded-2xl p-8">
-                            <h2 className="text-2xl font-bold mb-6">Your Rights and Choices</h2>
+                            <h2 className="text-2xl font-bold mb-6">Acceptable Use and Prohibited Activities</h2>
                             <div className="grid gap-6 md:grid-cols-2">
                                 <div>
                                     <h4 className="font-semibold mb-3 text-green-700">Acceptable Use</h4>
@@ -248,6 +248,26 @@ export default function PrivacyPage() {
                                         </ul>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Data Controller */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 1.3 }}
+                        className="space-y-8"
+                    >
+                        <div className="bg-muted/30 rounded-2xl p-8">
+                            <h2 className="text-2xl font-bold mb-6">Data Controller</h2>
+                            <div className="space-y-4 text-muted-foreground">
+                                <p>
+                                    Fusion Generator is operated and maintained by <span className="font-semibold text-foreground">Liu Longquan</span>.
+                                </p>
+                                <p>
+                                    If you have any questions about this Privacy Policy or how your data is handled, please contact us at <a href="mailto:support@fusiongenerator.fun" className="text-primary hover:underline">support@fusiongenerator.fun</a>.
+                                </p>
                             </div>
                         </div>
                     </motion.div>
