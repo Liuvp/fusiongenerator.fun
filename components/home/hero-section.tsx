@@ -12,22 +12,22 @@ export function HeroSection() {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-12">
                     <div className="w-full md:w-1/2 space-y-6">
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                            Fusion Generator – Create Dragon Ball & Pokémon AI Fusions
+                            Fusion Generator – The Ultimate AI Character Mixer
                         </h1>
 
                         <p className="text-lg md:text-xl text-purple-100 max-w-xl">
-                            The world's #1 AI tool to merge any two images into Dragon Ball warriors, Pokémon hybrids, or any custom art style.
+                            Create stunning character fusions instantly. From anime legends to monster collections, our AI blends any two images into a new masterpiece.
                         </p>
 
                         <div className="relative max-w-lg mt-8">
-                            <Link href="/ai" className="group block cursor-pointer">
+                            <Link href="/ai" className="group block cursor-pointer" aria-label="Open AI Fusion Generator to create character fusions">
                                 <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-25 group-hover:opacity-100 transition duration-1000"></div>
                                 <div className="relative flex items-center bg-white rounded-full p-2 shadow-xl border border-purple-200">
                                     <div className="flex-1 px-4 text-gray-500 font-medium truncate">
-                                        Try: Goku + Iron Man...
+                                        Mix: Anime + Superheroes
                                     </div>
                                     <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition transform group-hover:scale-105">
-                                        Generate Character Fusion
+                                        Fuse Your Characters!
                                     </span>
                                 </div>
                             </Link>
@@ -43,7 +43,8 @@ export function HeroSection() {
                             <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
                                 <Image
                                     src="/hero-fusion-example.webp"
-                                    alt="AI-generated Dragon Ball and Pokemon character fusion example showing fusion generator capabilities"
+                                    alt="AI-powered fusion generator showcasing character fusion capabilities with anime and game characters"
+                                    role="img"
                                     width={600}
                                     height={400}
                                     className="w-full h-auto object-cover"
