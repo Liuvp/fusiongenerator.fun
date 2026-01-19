@@ -12,6 +12,10 @@ import { CheckCircle2 } from "lucide-react";
 export const metadata: Metadata = {
   title: "Dashboard | Fusion Generator",
   description: "Manage your fusion creations, view generation history, and track your credits for Dragon Ball and Pokemon character fusions.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 interface DashboardPageProps {
