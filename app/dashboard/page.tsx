@@ -5,9 +5,14 @@ import { CreditsBalanceCard } from "@/components/dashboard/credits-balance-card"
 import { QuickActionsCard } from "@/components/dashboard/quick-actions-card";
 import { MyNamesCard } from "@/components/dashboard/my-names-card";
 import { GenerationHistoryCard } from "@/components/dashboard/generation-history-card";
-
+import { Metadata } from "next";
 
 import { CheckCircle2 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Dashboard | Fusion Generator",
+  description: "Manage your fusion creations, view generation history, and track your credits for Dragon Ball and Pokemon character fusions.",
+};
 
 interface DashboardPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -55,13 +60,13 @@ export default async function DashboardPage(props: DashboardPageProps) {
   return (
     <div className="flex-1 w-full flex flex-col gap-6 sm:gap-8 px-4 sm:px-8 container">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border rounded-lg p-6 sm:p-8 mt-6 sm:mt-8">
+      <div className="bg-gradient-to-r from-orange-500/10 via-pink-500/10 to-purple-500/10 border border-primary/20 rounded-lg p-6 sm:p-8 mt-6 sm:mt-8">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">
           Welcome back,{" "}
           <span className="block sm:inline mt-1 sm:mt-0">{user.email}</span>
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Manage your Chinese names, view your generation history, and track your usage.
+          Manage your fusion creations, view your generation history, and track your credits.
         </p>
       </div>
 

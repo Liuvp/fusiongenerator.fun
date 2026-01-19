@@ -60,7 +60,7 @@ export function MyNamesCard() {
       });
 
       if (response.ok) {
-        setSavedNames(names => 
+        setSavedNames(names =>
           names.map(name => ({
             ...name,
             is_selected: name.id === nameId
@@ -110,12 +110,12 @@ export function MyNamesCard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Heart className="h-5 w-5" />
-            My Chinese Names
+            My Favorite Fusions
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <div className="animate-pulse text-muted-foreground">Loading your names...</div>
+            <div className="animate-pulse text-muted-foreground">Loading your fusions...</div>
           </div>
         </CardContent>
       </Card>
@@ -128,14 +128,14 @@ export function MyNamesCard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Heart className="h-5 w-5" />
-            My Chinese Names
+            My Favorite Fusions
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 space-y-4">
-            <div className="text-muted-foreground">No saved names yet</div>
+            <div className="text-muted-foreground">No saved fusions yet</div>
             <Button onClick={() => window.location.href = '/'}>
-              Generate Your First Name
+              Create Your First Fusion
             </Button>
           </div>
         </CardContent>
@@ -148,7 +148,7 @@ export function MyNamesCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Heart className="h-5 w-5" />
-          My Chinese Names ({savedNames.length})
+          My Favorite Fusions ({savedNames.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -159,9 +159,8 @@ export function MyNamesCard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`border rounded-lg p-4 space-y-3 ${
-                name.is_selected ? 'border-primary bg-primary/5' : 'border-border'
-              }`}
+              className={`border rounded-lg p-4 space-y-3 ${name.is_selected ? 'border-primary bg-primary/5' : 'border-border'
+                }`}
             >
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
@@ -209,8 +208,8 @@ export function MyNamesCard() {
                   <div>
                     <span className="font-medium text-foreground">Why it suits you: </span>
                     <span className="text-muted-foreground">
-                      {name.personality_match.length > 100 
-                        ? `${name.personality_match.substring(0, 100)}...` 
+                      {name.personality_match.length > 100
+                        ? `${name.personality_match.substring(0, 100)}...`
                         : name.personality_match
                       }
                     </span>

@@ -97,7 +97,7 @@ export function GenerationHistoryCard() {
             </div>
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <div className="text-2xl font-bold text-primary">{stats.total_names_generated}</div>
-              <div className="text-xs text-muted-foreground">Names</div>
+              <div className="text-xs text-muted-foreground">Fusions</div>
             </div>
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <div className="text-2xl font-bold text-primary">{stats.total_credits_used}</div>
@@ -116,7 +116,7 @@ export function GenerationHistoryCard() {
             <TrendingUp className="h-4 w-4" />
             Recent Activity
           </h3>
-          
+
           {logs.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               No generation history yet
@@ -140,10 +140,10 @@ export function GenerationHistoryCard() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">
-                          Generated for "{log.english_name}"
+                          Fusion of "{log.english_name}"
                         </span>
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className={`text-xs ${getPlanTypeColor(log.plan_type)}`}
                         >
                           {getPlanTypeLabel(log.plan_type)}

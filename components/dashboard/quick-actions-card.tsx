@@ -18,8 +18,10 @@ export function QuickActionsCard({
 }: QuickActionsCardProps) {
   const computedActions: QuickAction[] =
     actions ?? [
-      { label: "View Plans", href: "/#pricing" },
-      { label: "Get Support", href: "/#support" },
+      { label: "Create Pokemon Fusion", href: "/pokemon" },
+      { label: "Create Dragon Ball Fusion", href: "/dragon-ball" },
+      { label: "View Gallery", href: "/gallery" },
+      { label: "Upgrade Plan", href: "/pricing" },
     ];
   return (
     <div className="rounded-xl border bg-card p-6">

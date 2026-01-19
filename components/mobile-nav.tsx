@@ -11,6 +11,8 @@ import {
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { signOutAction } from "@/app/actions";
+import { useState, useEffect } from "react";
+
 interface MobileNavProps {
   items: { label: string; href: string; isButton?: boolean }[];
   user: any;
@@ -18,6 +20,22 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ items, user, isDashboard }: MobileNavProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Render a placeholder button during SSR to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="icon" className="md:hidden" disabled>
+        <Menu className="h-5 w-5" />
+        <span className="sr-only">Toggle menu</span>
+      </Button>
+    );
+  }
+
   return (
     <Sheet>
       <SheetTrigger asChild>

@@ -120,19 +120,18 @@ export function SubscriptionStatusCard({
           <p className="text-sm text-muted-foreground">Subscription Status</p>
           {subscription && (
             <h3
-              className={`text-2xl font-bold capitalize mt-1 ${
-                getStatusConfig(
-                  subscription.status,
-                  subscription.current_period_end
-                ).color
-              }`}
+              className={`text-2xl font-bold capitalize mt-1 ${getStatusConfig(
+                subscription.status,
+                subscription.current_period_end
+              ).color
+                }`}
             >
               {subscription.status}
             </h3>
           )}
           {!subscription && (
             <h3 className="text-2xl font-bold mt-1 text-muted-foreground">
-              No Active Plan
+              Free Plan
             </h3>
           )}
         </div>
@@ -154,8 +153,21 @@ export function SubscriptionStatusCard({
           })()}
         </div>
       )}
+      {!subscription && (
+        <p className="mt-4 text-sm text-muted-foreground">
+          Get unlimited fusions, priority processing, and exclusive features with Pro.
+        </p>
+      )}
       <div className="mt-4">
-        <SubscriptionPortalDialog />
+        {subscription ? (
+          <SubscriptionPortalDialog />
+        ) : (
+          <a href="/pricing" className="block">
+            <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 shadow-lg hover:shadow-xl h-9 px-4 py-2 w-full">
+              Upgrade to Pro
+            </button>
+          </a>
+        )}
       </div>
     </div>
   );
