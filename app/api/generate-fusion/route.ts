@@ -90,8 +90,9 @@ export async function POST(request: NextRequest) {
         console.log('=== Fusion Generation Request ===');
         console.log('User:', user.email);
         console.log('IP:', clientIP);
-        console.log('Quota remaining:', quota.remaining);
-        console.log('User Prompt (Layer 2+3):', prompt);
+        console.log('VIP:', isVIP);
+        console.log('Quota:', `${quota.used}/${isVIP ? 10 : 3}`);
+        console.log('User Prompt:', prompt);
 
         // 三层Prompt拼接
         const fullPrompt = `${SYSTEM_PROMPT}
@@ -104,42 +105,23 @@ ${prompt}`;
         console.log(NEGATIVE_PROMPT);
 
         // ============================================================================
-        // Fal.ai API 调用（优化参数 + 超时控制）
+        // Fal.ai API 调用（最优参数）
         // ============================================================================
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60_000);
+        console.log('Calling Fal.ai...');
+        const result: any = await fal.run("fal-ai/flux/dev", {
+            input: {
+                prompt: fullPrompt,
+                negative_prompt: NEGATIVE_PROMPT,
+                image_size: "square_hd",     // 1024x1024
+                num_inference_steps: 38,     // 最高质量和清晰度
+                guidance_scale: 7.5,         // 强Prompt遵循度
+                num_images: 1,
+                enable_safety_checker: true,
+            },
+        });
 
-        let result: any;
-        try {
-            result = await fal.subscribe("fal-ai/flux/dev", {
-                input: {
-                    prompt: fullPrompt,
-                    negative_prompt: NEGATIVE_PROMPT,
-                    image_size: "square_hd",
-                    num_inference_steps: 32,
-                    guidance_scale: 6.5,
-                    num_images: 1,
-                    enable_safety_checker: true,
-                },
-                logs: true,
-                onQueueUpdate: (update) => {
-                    if (update.status === "IN_PROGRESS") {
-                        console.log('Generation progress:', update.logs?.slice(-1)[0]);
-                    }
-                },
-            });
-
-            clearTimeout(timeoutId);
-        } catch (abortError: any) {
-            clearTimeout(timeoutId);
-            if (abortError.name === 'AbortError') {
-                throw new Error('Generation timeout - please try again');
-            }
-            throw abortError;
-        }
-
-        console.log('\n=== Generation Complete ===');
+        console.log('Generation Complete!');
 
         // 提取图片URL
         let imageUrl: string | undefined;
@@ -151,13 +133,15 @@ ${prompt}`;
             imageUrl = result.data.image_url;
         } else if (result.image_url) {
             imageUrl = result.image_url;
-        } else {
-            console.error('Unexpected result structure:', result);
-            throw new Error('Invalid response structure from AI service');
+        }
+
+        if (!imageUrl) {
+            console.error('No image URL found in result:', result);
+            throw new Error('No image URL in response');
         }
 
         console.log('Image URL:', imageUrl);
-        console.log('Quota used:', quota.used, '/', isVIP ? 30 : 5);
+        console.log('Quota used:', quota.used, '/', isVIP ? 10 : 3);
 
         // 返回结果（包含配额信息）
         return NextResponse.json({
@@ -175,18 +159,10 @@ ${prompt}`;
         console.error('=== Generation Error ===');
         console.error('Error name:', error.name);
         console.error('Error message:', error.message);
-        console.error('Full error object:', JSON.stringify(error, null, 2));
-        console.error('Error stack:', error.stack);
-
-        if (error.body) {
-            console.error('Error body:', error.body);
-        }
-        if (error.response) {
-            console.error('Error response:', error.response);
-        }
+        console.error('Full error:', error);
 
         return NextResponse.json(
-            { error: error.message || error.toString() || 'Failed to generate image' },
+            { error: error.message || 'Generation failed' },
             { status: 500 }
         );
     }

@@ -7,13 +7,12 @@ import crypto from 'crypto';
 
 export const SYSTEM_PROMPT = `masterpiece, best quality, ultra-detailed, official pokemon-style character design, single fused creature, clean silhouette, no text, no watermark, no logo, white or simple background, anime illustration, high consistency`;
 
-export const NEGATIVE_PROMPT = `low quality, blurry, extra limbs, deformed, multiple characters, split body, text, watermark, logo, cropped, duplicate, mutation, unclear face, unclear body`;
+export const NEGATIVE_PROMPT = `low quality, blurry, extra limbs, deformed, multiple characters, split body, text, watermark, logo, cropped, duplicate, mutation, unclear face, unclear body, poorly drawn anatomy, deformed body, extra limbs`;
 
 // ============================================================================
 // Layer 3: 修饰语白名单系统（分类去重版）
 // ============================================================================
 
-// 修饰语分类（每个类别只取第一个匹配，防止风格冲突）
 const MODIFIER_CATEGORIES = {
     style: {
         'cute': 'cute style, adorable, chibi proportions',
@@ -35,78 +34,83 @@ const MODIFIER_CATEGORIES = {
     }
 };
 
-/**
- * 解析用户输入，映射到白名单修饰语（分类去重版）
- * 每个类别只取第一个匹配，防止"cute and dark"这种冲突
- */
+// 高质量增强器
+const QUALITY_ENHANCERS = [
+    "vivid colors",
+    "dynamic pose",
+    "fantasy lighting",
+    "detailed textures",
+    "clean silhouette"
+];
+
 function parseUserModifiers(userInput: string): string {
     if (!userInput.trim()) return '';
 
     const input = userInput.toLowerCase();
     const selectedModifiers: string[] = [];
 
-    // 每个类别只取第一个匹配
     for (const [categoryName, modifiers] of Object.entries(MODIFIER_CATEGORIES)) {
         for (const [key, value] of Object.entries(modifiers)) {
             if (input.includes(key)) {
                 selectedModifiers.push(value);
-                break; // 找到第一个就跳出该类别
+                break;
             }
         }
     }
 
-    // 如果有匹配，返回白名单；否则返回清理后的原始输入
     if (selectedModifiers.length > 0) {
         return selectedModifiers.join(', ');
     }
 
-    // 兜底：清理用户输入，只保留安全字符
     return userInput
-        .replace(/[^\w\s,.-]/g, '')  // 移除特殊字符
-        .slice(0, 100)                // 限制长度
+        .replace(/[^\w\s,.-]/g, '')
+        .slice(0, 100)
         .trim();
 }
 
+/**
+ * 构建用户修饰语（Layer 3）
+ */
+function buildUserModifiers(style?: FusionStyle, customModifiers?: string): string {
+    const styleText = style?.prompt ?? '';
+    const userMods = customModifiers ? parseUserModifiers(customModifiers) : '';
+
+    // 拼接并去重
+    const combined = [styleText, userMods, ...QUALITY_ENHANCERS]
+        .filter(Boolean)
+        .join(', ')
+        .replace(/,\s*,/g, ',')
+        .trim();
+
+    return combined;
+}
+
 // ============================================================================
-// Layer 2: 结构化融合Prompt生成
+// Layer 2: 结构化融合Prompt生成（改进版）
 // ============================================================================
 
 export interface FusionWeights {
-    bodyWeight?: number;    // 默认 0.7
-    traitWeight?: number;   // 默认 0.3
+    bodyWeight?: number;
+    traitWeight?: number;
 }
 
 /**
- * 构建结构化融合Prompt（Layer 2）
- * 添加了 anatomy 约束以提升 FLUX 生成质量
+ * 构建结构化融合Prompt（Layer 2 - 自然描述版）
  */
 function buildStructuredPrompt(
     pokemon1: Pokemon,
-    pokemon2: Pokemon,
-    weights: FusionWeights = {}
+    pokemon2: Pokemon
 ): string {
-    const bodyWeight = weights.bodyWeight || 0.7;
-    const traitWeight = weights.traitWeight || 0.3;
-
-    const bodyPercent = Math.round(bodyWeight * 100);
-    const traitPercent = Math.round(traitWeight * 100);
-
-    return `A pokemon fusion creature combining:
-- primary body structure (${bodyPercent}%) and facial features of ${pokemon1.name}
-- secondary traits (${traitPercent}%), ${pokemon2.types.join('/')} elemental effects, and color palette of ${pokemon2.name}
-
-The fusion should feel natural and balanced, not two characters merged side by side.
-The result should be a single coherent creature with unified anatomy and proportions.`;
+    return `A single, coherent Pokémon fusion creature that naturally combines the key features of ${pokemon1.name} and ${pokemon2.name}.
+The creature should have ${pokemon1.name}'s body and general shape, while incorporating distinct traits, colors, and elemental aspects of ${pokemon2.name}.
+Ensure the anatomy is correct, proportions are harmonious, and the design feels like an official Pokémon character.
+Full body should be visible, clean silhouette, highly detailed, vibrant colors, dynamic pose, official Pokémon style.`;
 }
 
 // ============================================================================
 // 主函数：完整Prompt构建
 // ============================================================================
 
-/**
- * 构建完整的三层Prompt
- * @returns 用于发送给AI的完整prompt（不包括系统层，系统层在API route拼接）
- */
 export function buildFusionPrompt(
     pokemon1?: Pokemon,
     pokemon2?: Pokemon,
@@ -118,46 +122,30 @@ export function buildFusionPrompt(
     // 单个Pokemon的情况（带构图约束）
     if (!pokemon1 || !pokemon2) {
         const p = pokemon1 || pokemon2!;
-        const styleText = style?.prompt || '';
-        const userMods = customModifiers ? parseUserModifiers(customModifiers) : '';
-
-        // 单体也加构图约束（SEO页面更稳定）
-        return `A single pokemon character design of ${p.name}, ${p.description}, full body, centered composition, ${styleText}, ${userMods}`.trim();
+        const userMods = buildUserModifiers(style, customModifiers);
+        return `A single Pokémon character design of ${p.name}, ${p.description}, full body, centered composition, ${userMods}`;
     }
 
-    // Layer 2: 结构化融合描述
+    // 两个Pokemon的融合
     const structuredPrompt = buildStructuredPrompt(pokemon1, pokemon2);
+    const userModifiers = buildUserModifiers(style, customModifiers);
 
-    // Layer 3: 风格 + 用户修饰（去重处理）
-    const styleText = style?.prompt || '';
-    const userModifiers = customModifiers ? parseUserModifiers(customModifiers) : '';
-
-    // 合并并去重（防止"anime style"重复）
-    const combinedModifiers = [styleText, userModifiers]
-        .filter(Boolean)
-        .join(', ')
-        .replace(/,\s*,/g, ',')  // 清理多余逗号
-        .trim();
-
-    // 拼接 Layer 2 + Layer 3
     return `${structuredPrompt}
 
-${combinedModifiers}`.trim();
+${userModifiers}`.trim();
 }
 
 /**
  * 生成Prompt Hash（用于缓存和SEO）
- * 包含weights以支持未来的比例可配置
  */
 export function generatePromptHash(
     pokemon1?: Pokemon,
     pokemon2?: Pokemon,
-    style?: FusionStyle,
-    weights?: FusionWeights
+    style?: FusionStyle
 ): string {
     if (!pokemon1 || !pokemon2) return '';
 
-    const structuredPrompt = buildStructuredPrompt(pokemon1, pokemon2, weights);
+    const structuredPrompt = buildStructuredPrompt(pokemon1, pokemon2);
     const content = SYSTEM_PROMPT + structuredPrompt + (style?.prompt || '');
 
     return crypto

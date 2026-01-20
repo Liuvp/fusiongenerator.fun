@@ -2,9 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { SubscriptionStatusCard } from "@/components/dashboard/subscription-status-card";
 import { CreditsBalanceCard } from "@/components/dashboard/credits-balance-card";
-import { QuickActionsCard } from "@/components/dashboard/quick-actions-card";
-import { MyNamesCard } from "@/components/dashboard/my-names-card";
-import { GenerationHistoryCard } from "@/components/dashboard/generation-history-card";
+import { GenerationQuotaCard } from "@/components/dashboard/generation-quota-card";
 import { Metadata } from "next";
 
 import { CheckCircle2 } from "lucide-react";
@@ -92,14 +90,10 @@ export default async function DashboardPage(props: DashboardPageProps) {
           credits={credits}
           recentHistory={recentCreditsHistory}
         />
-        <QuickActionsCard />
+        <GenerationQuotaCard />
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <MyNamesCard />
-        <GenerationHistoryCard />
-      </div>
+
 
       {/* Account Details Section */}
       <div className="rounded-xl border bg-card p-4 sm:p-6 mb-6">

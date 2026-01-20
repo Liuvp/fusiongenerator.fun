@@ -1,7 +1,13 @@
 import { Redis } from '@upstash/redis';
 
-// 初始化 Redis（用于频率限制和配额）
-const redis = new Redis({
+// 开发环境使用内存缓存（避免Redis连接问题）
+const isDev = process.env.NODE_ENV === 'development';
+
+// 内存缓存（仅开发环境）
+const memoryCache = new Map<string, { value: number; expires: number }>();
+
+// 初始化 Redis（生产环境）
+const redis = isDev ? null : new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL!,
     token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
@@ -12,12 +18,32 @@ const redis = new Redis({
 export async function checkIPRateLimit(ip: string): Promise<{ allowed: boolean; remaining: number }> {
     const key = `ratelimit:ip:${ip}`;
     const limit = 3;
-    const window = 60; // 60秒
+    const window = 60000; // 60秒（毫秒）
 
-    const current = await redis.incr(key);
+    if (isDev) {
+        // 开发环境：使用内存缓存
+        const now = Date.now();
+        const cached = memoryCache.get(key);
+
+        if (!cached || cached.expires < now) {
+            memoryCache.set(key, { value: 1, expires: now + window });
+            return { allowed: true, remaining: limit - 1 };
+        }
+
+        const newValue = cached.value + 1;
+        memoryCache.set(key, { value: newValue, expires: cached.expires });
+
+        return {
+            allowed: newValue <= limit,
+            remaining: Math.max(0, limit - newValue),
+        };
+    }
+
+    // 生产环境：使用Redis
+    const current = await redis!.incr(key);
 
     if (current === 1) {
-        await redis.expire(key, window);
+        await redis!.expire(key, 60);
     }
 
     return {
@@ -30,14 +56,28 @@ export async function checkIPRateLimit(ip: string): Promise<{ allowed: boolean; 
  * 用户每日配额 - 每用户每天3次
  */
 export async function checkUserDailyQuota(userId: string): Promise<{ allowed: boolean; remaining: number; used: number }> {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
     const key = `quota:user:${userId}:${today}`;
     const limit = 3;
 
-    const current = await redis.incr(key);
+    if (isDev) {
+        // 开发环境：使用内存缓存
+        const cached = memoryCache.get(key);
+        const current = cached ? cached.value + 1 : 1;
+        memoryCache.set(key, { value: current, expires: Date.now() + 86400000 });
+
+        return {
+            allowed: current <= limit,
+            remaining: Math.max(0, limit - current),
+            used: current,
+        };
+    }
+
+    // 生产环境：使用Redis
+    const current = await redis!.incr(key);
 
     if (current === 1) {
-        await redis.expire(key, 86400); // 24小时
+        await redis!.expire(key, 86400);
     }
 
     return {
@@ -55,10 +95,24 @@ export async function checkVIPUserDailyQuota(userId: string): Promise<{ allowed:
     const key = `quota:vip:${userId}:${today}`;
     const limit = 10;
 
-    const current = await redis.incr(key);
+    if (isDev) {
+        // 开发环境：使用内存缓存
+        const cached = memoryCache.get(key);
+        const current = cached ? cached.value + 1 : 1;
+        memoryCache.set(key, { value: current, expires: Date.now() + 86400000 });
+
+        return {
+            allowed: current <= limit,
+            remaining: Math.max(0, limit - current),
+            used: current,
+        };
+    }
+
+    // 生产环境：使用Redis
+    const current = await redis!.incr(key);
 
     if (current === 1) {
-        await redis.expire(key, 86400);
+        await redis!.expire(key, 86400);
     }
 
     return {

@@ -37,6 +37,23 @@ export function PokeFusionStudio() {
         isVIP: boolean;
     } | null>(null);
 
+    // 组件加载时获取配额
+    useEffect(() => {
+        const fetchQuota = async () => {
+            try {
+                const response = await fetch('/api/get-quota');
+                if (response.ok) {
+                    const data = await response.json();
+                    setQuota(data.quota);
+                }
+            } catch (error) {
+                console.error('Failed to fetch quota:', error);
+            }
+        };
+
+        fetchQuota();
+    }, []);
+
     // 当用户通过卡片选择时，只在 auto 模式下更新 Prompt
     useEffect(() => {
         if ((pokemon1 || pokemon2) && promptSource === "auto") {
@@ -77,20 +94,26 @@ export function PokeFusionStudio() {
                 body: JSON.stringify({ prompt }),
             });
 
-            const data = await response.json();
-
-            // 处理认证错误
+            // 先检查认证错误（401）- 不尝试解析JSON
             if (response.status === 401) {
                 toast({
                     title: "🔐 Authentication Required",
                     description: "Please sign in to generate Pokemon fusions",
                     variant: "destructive",
                 });
-                setTimeout(() => window.location.href = '/auth/signin', 2000);
+                setTimeout(() => window.location.href = '/sign-in?page=pokemon-fusion&action=generate-btn-click', 2000);
                 return;
             }
 
-            // 处理配额限制
+            // 尝试解析JSON响应
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                throw new Error('Invalid response from server');
+            }
+
+            // 处理配额限制（429）
             if (response.status === 429) {
                 const isQuotaError = data.limit !== undefined;
 
@@ -102,7 +125,7 @@ export function PokeFusionStudio() {
                     });
 
                     if (!quota?.isVIP) {
-                        setTimeout(() => window.location.href = '/pricing', 3000);
+                        setTimeout(() => window.location.href = '/pricing?page=pokemon-fusion&action=quota-exceeded&plan=free', 3000);
                     }
                 } else {
                     toast({
@@ -114,6 +137,7 @@ export function PokeFusionStudio() {
                 return;
             }
 
+            // 其他错误
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to generate');
             }
@@ -133,7 +157,9 @@ export function PokeFusionStudio() {
 
             toast({
                 title: "✨ Fusion Created!",
-                description: `Your Pokemon fusion has been generated successfully.${data.quota ? ` ${data.quota.remaining}/${data.quota.limit} generations remaining today.` : ''}`,
+                description: data.quota
+                    ? `Generation successful! ${data.quota.remaining}/${data.quota.limit} generations remaining today${data.quota.isVIP ? ' (VIP)' : ' (Free)'}.`
+                    : "Your Pokemon fusion has been generated successfully.",
             });
         } catch (error: any) {
             console.error('Generation error:', error);
@@ -233,8 +259,8 @@ export function PokeFusionStudio() {
                                         <Card
                                             key={p.id}
                                             className={`cursor-pointer transition-all hover:scale-105 hover:shadow-md ${pokemon1?.id === p.id
-                                                    ? "ring-2 ring-primary shadow-lg"
-                                                    : "hover:border-primary/50"
+                                                ? "ring-2 ring-primary shadow-lg"
+                                                : "hover:border-primary/50"
                                                 }`}
                                             onClick={() => {
                                                 setPokemon1(p);
@@ -263,8 +289,8 @@ export function PokeFusionStudio() {
                                         <Card
                                             key={p.id}
                                             className={`cursor-pointer transition-all hover:scale-105 hover:shadow-md ${pokemon2?.id === p.id
-                                                    ? "ring-2 ring-primary shadow-lg"
-                                                    : "hover:border-primary/50"
+                                                ? "ring-2 ring-primary shadow-lg"
+                                                : "hover:border-primary/50"
                                                 }`}
                                             onClick={() => {
                                                 setPokemon2(p);
