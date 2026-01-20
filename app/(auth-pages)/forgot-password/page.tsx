@@ -1,10 +1,7 @@
 import { Metadata } from "next";
-import { forgotPasswordAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { Mail, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Reset Password - Fusion Generator",
@@ -15,53 +12,61 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function ForgotPassword(props: {
-  searchParams: Promise<Message>;
-}) {
-  const searchParams = await props.searchParams;
+export default async function ForgotPassword() {
   return (
     <>
       <div className="flex flex-col space-y-2 text-center">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mx-auto mb-2">
+          <Mail className="h-6 w-6 text-primary" />
+        </div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          Reset password
+          Reset Password
         </h1>
         <p className="text-sm text-muted-foreground">
-          Enter your email address and we'll send you a link to reset your
-          password
+          Need to reset your password? We're here to help!
         </p>
       </div>
+
       <div className="grid gap-6">
-        <form className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              placeholder="name@example.com"
-              type="email"
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect="off"
-              required
-            />
+        <div className="rounded-lg border bg-card p-6 space-y-4">
+          <div className="space-y-2">
+            <h3 className="font-medium">Contact Support</h3>
+            <p className="text-sm text-muted-foreground">
+              Please send an email to our support team with your registered email address, and we'll help you reset your password.
+            </p>
           </div>
-          <SubmitButton
-            className="w-full"
-            formAction={forgotPasswordAction}
-            pendingText="Sending reset link..."
-          >
-            Send reset link
-          </SubmitButton>
-          <FormMessage message={searchParams} />
-        </form>
-        <div className="text-sm text-muted-foreground text-center">
-          Remember your password?{" "}
-          <Link
-            href="/sign-in"
-            className="text-primary underline underline-offset-4 hover:text-primary/90"
-          >
-            Sign in
-          </Link>
+
+          <div className="flex items-center gap-2 p-3 rounded-md bg-muted">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            <a
+              href="mailto:support@fusiongenerator.fun?subject=Password Reset Request"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              support@fusiongenerator.fun
+            </a>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              <strong>What to include in your email:</strong>
+            </p>
+            <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+              <li>Your registered email address</li>
+              <li>A brief description of the issue</li>
+            </ul>
+            <p className="text-xs text-muted-foreground mt-2">
+              We typically respond within 24 hours.
+            </p>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <Button variant="ghost" asChild>
+            <Link href="/sign-in" className="inline-flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Sign In
+            </Link>
+          </Button>
         </div>
       </div>
     </>
