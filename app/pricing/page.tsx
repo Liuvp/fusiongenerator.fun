@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import PricingPage from "./client-page";
 
-// Force static generation to ensure meta tags are in <head>
-export const dynamic = 'force-static';
-export const revalidate = 3600;
+// 改为动态渲染以获取实时用户session
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Fusion Generator Pricing – Free & Pro AI Character Fusions",

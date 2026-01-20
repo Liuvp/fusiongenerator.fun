@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { SubscriptionStatusCard } from "@/components/dashboard/subscription-status-card";
 import { CreditsBalanceCard } from "@/components/dashboard/credits-balance-card";
 import { GenerationQuotaCard } from "@/components/dashboard/generation-quota-card";
+import { QuickActionsCard } from "@/components/dashboard/quick-actions-card";
 import { Metadata } from "next";
 
 import { CheckCircle2 } from "lucide-react";
@@ -34,28 +35,21 @@ export default async function DashboardPage(props: DashboardPageProps) {
     return redirect("/sign-in");
   }
 
-  // Get customer data including credits and subscription
+  // 直接查询subscriptions表
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("status, current_period_end, creem_product_id")
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .single();
+
+  // 查询customers表获取credits（如果表存在）
   const { data: customerData } = await supabase
     .from("customers")
-    .select(
-      `
-      *,
-      subscriptions (
-        status,
-        current_period_end,
-        creem_product_id
-      ),
-      credits_history (
-        amount,
-        type,
-        created_at
-      )
-    `
-    )
+    .select("credits, credits_history(amount, type, created_at)")
     .eq("user_id", user.id)
     .single();
 
-  const subscription = customerData?.subscriptions?.[0];
   const credits = customerData?.credits || 0;
   const recentCreditsHistory = customerData?.credits_history?.slice(0, 2) || [];
 
@@ -84,13 +78,14 @@ export default async function DashboardPage(props: DashboardPageProps) {
       )}
 
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
         <SubscriptionStatusCard subscription={subscription} />
         <CreditsBalanceCard
           credits={credits}
           recentHistory={recentCreditsHistory}
         />
         <GenerationQuotaCard />
+        <QuickActionsCard />
       </div>
 
 

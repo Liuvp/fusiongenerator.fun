@@ -46,7 +46,12 @@ export const signInAction = async (formData: FormData) => {
   });
 
   if (error) {
-    return encodedRedirect("error", "/sign-in", error.message);
+    let errorMessage = error.message;
+    if (error.message.includes("Invalid login credentials")) {
+      errorMessage = "❌ Email or password is incorrect. Please check and try again.";
+    }
+    console.error("Sign in error:", error.message);
+    return encodedRedirect("error", "/sign-in", errorMessage);
   }
 
   return redirect("/dashboard");
