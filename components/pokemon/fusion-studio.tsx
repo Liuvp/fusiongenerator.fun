@@ -29,6 +29,14 @@ export function PokeFusionStudio() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [result, setResult] = useState<any>(null);
 
+    // 配额状态
+    const [quota, setQuota] = useState<{
+        used: number;
+        remaining: number;
+        limit: number;
+        isVIP: boolean;
+    } | null>(null);
+
     // 当用户通过卡片选择时，只在 auto 模式下更新 Prompt
     useEffect(() => {
         if ((pokemon1 || pokemon2) && promptSource === "auto") {
@@ -42,7 +50,7 @@ export function PokeFusionStudio() {
 
             // 触发高亮效果
             setPromptUpdated(true);
-            setTimeout(() => setPromptUpdated(false), 600); // 0.6秒后恢复
+            setTimeout(() => setPromptUpdated(false), 600);
         }
     }, [pokemon1, pokemon2, style, customStyle, promptSource]);
 
@@ -61,7 +69,6 @@ export function PokeFusionStudio() {
         setResult(null);
 
         try {
-            // 调用 Fal.ai API
             const response = await fetch('/api/generate-fusion', {
                 method: 'POST',
                 headers: {
@@ -70,12 +77,51 @@ export function PokeFusionStudio() {
                 body: JSON.stringify({ prompt }),
             });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to generate');
+            const data = await response.json();
+
+            // 处理认证错误
+            if (response.status === 401) {
+                toast({
+                    title: "🔐 Authentication Required",
+                    description: "Please sign in to generate Pokemon fusions",
+                    variant: "destructive",
+                });
+                setTimeout(() => window.location.href = '/auth/signin', 2000);
+                return;
             }
 
-            const data = await response.json();
+            // 处理配额限制
+            if (response.status === 429) {
+                const isQuotaError = data.limit !== undefined;
+
+                if (isQuotaError) {
+                    toast({
+                        title: quota?.isVIP ? "💎 VIP Daily Limit Reached" : "📊 Daily Limit Reached",
+                        description: data.error,
+                        variant: "destructive",
+                    });
+
+                    if (!quota?.isVIP) {
+                        setTimeout(() => window.location.href = '/pricing', 3000);
+                    }
+                } else {
+                    toast({
+                        title: "⏱️ Rate Limit",
+                        description: data.error,
+                        variant: "destructive",
+                    });
+                }
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to generate');
+            }
+
+            // 更新配额信息
+            if (data.quota) {
+                setQuota(data.quota);
+            }
 
             setResult({
                 imageUrl: data.imageUrl,
@@ -87,7 +133,7 @@ export function PokeFusionStudio() {
 
             toast({
                 title: "✨ Fusion Created!",
-                description: "Your Pokemon fusion has been generated successfully.",
+                description: `Your Pokemon fusion has been generated successfully.${data.quota ? ` ${data.quota.remaining}/${data.quota.limit} generations remaining today.` : ''}`,
             });
         } catch (error: any) {
             console.error('Generation error:', error);
@@ -143,141 +189,140 @@ export function PokeFusionStudio() {
                             rows={3}
                             className={`resize-none transition-all duration-300 ${promptUpdated ? "ring-2 ring-primary bg-primary/5" : ""
                                 }`}
-                            disabled={isGenerating}
                         />
-
-                        {/* 更新提示 */}
-                        {promptUpdated && (
-                            <p className="text-xs text-primary animate-in fade-in duration-300">
-                                ✨ Prompt updated from your selection
-                            </p>
-                        )}
-
-                        {/* 生成按钮 */}
-                        <Button
-                            onClick={handleGenerate}
-                            disabled={!canGenerate}
-                            className="w-full h-11 text-base font-bold"
-                            size="lg"
-                        >
-                            {isGenerating ? (
-                                <div className="flex flex-col items-center">
-                                    <div className="flex items-center">
-                                        <Sparkles className="mr-2 h-5 w-5 animate-spin" />
-                                        Generating...
-                                    </div>
-                                    <span className="text-xs font-normal opacity-70">
-                                        You can edit prompt for next generation
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center">
-                                    <div className="flex items-center">
-                                        <Sparkles className="mr-2 h-5 w-5" />
-                                        EVOLVE & FUSE!
-                                    </div>
-                                    <span className="text-xs font-normal opacity-70">
-                                        Generate AI Pokemon Fusion
-                                    </span>
-                                </div>
-                            )}
-                        </Button>
-
-                        {/* 统一提示 */}
-                        <p className="text-xs text-center text-muted-foreground">
-                            💡 Edit prompt above or select Pokemon below
-                        </p>
                     </div>
 
-                    {/* Pokemon 选择区 */}
-                    <div className="space-y-4 pt-4 border-t">
+                    {/* 生成按钮 */}
+                    <Button
+                        onClick={handleGenerate}
+                        disabled={!canGenerate}
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-semibold py-6 text-lg"
+                    >
+                        {isGenerating ? (
+                            <>
+                                <Sparkles className="mr-2 h-5 w-5 animate-spin" />
+                                Generating Fusion...
+                            </>
+                        ) : (
+                            <>
+                                <Sparkles className="mr-2 h-5 w-5" />
+                                EVOLVE & FUSE!
+                            </>
+                        )}
+                    </Button>
 
-                        {/* Pokemon 选择器 - 紧凑网格 */}
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div className="space-y-2">
-                                <Label className="text-sm">Pokemon 1</Label>
-                                <div className="border rounded-lg p-2 max-h-[200px] overflow-y-auto bg-muted/20">
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {POKEMON_DATABASE.filter((p: Pokemon) => p.id !== pokemon2?.id).slice(0, 12).map((p: Pokemon) => (
-                                            <Card
-                                                key={p.id}
-                                                className={`cursor-pointer transition-all hover:scale-105 hover:shadow-md ${pokemon1?.id === p.id
+                    {/* 配额显示 */}
+                    {quota && (
+                        <div className="text-center text-sm text-muted-foreground">
+                            {quota.isVIP ? '💎 VIP' : '👤 Free'}: {quota.remaining}/{quota.limit} generations remaining today
+                        </div>
+                    )}
+
+                    {/* 提示文字 */}
+                    <p className="text-center text-xs text-muted-foreground">
+                        💡 Edit prompt above or select Pokemon below
+                    </p>
+
+                    {/* Pokemon 选择器 - 紧凑网格 */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <Label className="text-sm">Pokemon 1</Label>
+                            <div className="border rounded-lg p-2 max-h-[200px] overflow-y-auto bg-muted/20">
+                                <div className="grid grid-cols-3 gap-2">
+                                    {POKEMON_DATABASE.filter((p: Pokemon) => p.id !== pokemon2?.id).slice(0, 12).map((p: Pokemon) => (
+                                        <Card
+                                            key={p.id}
+                                            className={`cursor-pointer transition-all hover:scale-105 hover:shadow-md ${pokemon1?.id === p.id
                                                     ? "ring-2 ring-primary shadow-lg"
                                                     : "hover:border-primary/50"
-                                                    }`}
-                                                onClick={() => {
-                                                    setPokemon1(p);
-                                                    setPromptSource("auto");
-                                                }}
-                                            >
-                                                <CardContent className="p-2">
-                                                    <img
-                                                        src={getPokemonImageUrl(p)}
-                                                        alt={p.name}
-                                                        className="w-full aspect-square object-contain"
-                                                    />
-                                                    <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-sm">Pokemon 2</Label>
-                                <div className="border rounded-lg p-2 max-h-[200px] overflow-y-auto bg-muted/20">
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {POKEMON_DATABASE.filter((p: Pokemon) => p.id !== pokemon1?.id).slice(0, 12).map((p: Pokemon) => (
-                                            <Card
-                                                key={p.id}
-                                                className={`cursor-pointer transition-all hover:scale-105 hover:shadow-md ${pokemon2?.id === p.id
-                                                    ? "ring-2 ring-primary shadow-lg"
-                                                    : "hover:border-primary/50"
-                                                    }`}
-                                                onClick={() => {
-                                                    setPokemon2(p);
-                                                    setPromptSource("auto");
-                                                }}
-                                            >
-                                                <CardContent className="p-2">
-                                                    <img
-                                                        src={getPokemonImageUrl(p)}
-                                                        alt={p.name}
-                                                        className="w-full aspect-square object-contain"
-                                                    />
-                                                    <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
+                                                }`}
+                                            onClick={() => {
+                                                setPokemon1(p);
+                                                setPromptSource("auto");
+                                            }}
+                                        >
+                                            <CardContent className="p-2">
+                                                <img
+                                                    src={getPokemonImageUrl(p)}
+                                                    alt={p.name}
+                                                    className="w-full aspect-square object-contain"
+                                                />
+                                                <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
                                 </div>
                             </div>
                         </div>
 
-                        {/* 风格选择 - 紧凑 */}
                         <div className="space-y-2">
-                            <Label className="text-xs text-muted-foreground">Style</Label>
-                            <RadioGroup
-                                value={style.id}
-                                onValueChange={(value) => setStyle(FUSION_STYLES.find(s => s.id === value)!)}
-                                className="grid grid-cols-5 gap-2"
-                            >
-                                {FUSION_STYLES.map((s) => (
-                                    <Label
-                                        key={s.id}
-                                        htmlFor={s.id}
-                                        className={`flex items-center justify-center border rounded-md p-2 cursor-pointer text-xs ${style.id === s.id ? 'border-primary bg-primary/5' : 'border-input'
-                                            }`}
-                                    >
-                                        <RadioGroupItem value={s.id} id={s.id} className="sr-only" />
+                            <Label className="text-sm">Pokemon 2</Label>
+                            <div className="border rounded-lg p-2 max-h-[200px] overflow-y-auto bg-muted/20">
+                                <div className="grid grid-cols-3 gap-2">
+                                    {POKEMON_DATABASE.filter((p: Pokemon) => p.id !== pokemon1?.id).slice(0, 12).map((p: Pokemon) => (
+                                        <Card
+                                            key={p.id}
+                                            className={`cursor-pointer transition-all hover:scale-105 hover:shadow-md ${pokemon2?.id === p.id
+                                                    ? "ring-2 ring-primary shadow-lg"
+                                                    : "hover:border-primary/50"
+                                                }`}
+                                            onClick={() => {
+                                                setPokemon2(p);
+                                                setPromptSource("auto");
+                                            }}
+                                        >
+                                            <CardContent className="p-2">
+                                                <img
+                                                    src={getPokemonImageUrl(p)}
+                                                    alt={p.name}
+                                                    className="w-full aspect-square object-contain"
+                                                />
+                                                <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 风格选择 */}
+                    <div className="space-y-2">
+                        <Label className="text-sm">Fusion Style</Label>
+                        <RadioGroup
+                            value={style.id}
+                            onValueChange={(value) => {
+                                const selectedStyle = FUSION_STYLES.find(s => s.id === value);
+                                if (selectedStyle) {
+                                    setStyle(selectedStyle);
+                                    if (value !== 'custom') {
+                                        setCustomStyle('');
+                                    }
+                                }
+                            }}
+                            className="grid grid-cols-2 md:grid-cols-3 gap-2"
+                        >
+                            {FUSION_STYLES.map((s) => (
+                                <div
+                                    key={s.id}
+                                    className={`flex items-center space-x-2 border rounded-md p-2 cursor-pointer hover:bg-accent ${style.id === s.id ? "bg-accent border-primary" : ""
+                                        }`}
+                                    onClick={() => {
+                                        setStyle(s);
+                                        if (s.id !== 'custom') {
+                                            setCustomStyle('');
+                                        }
+                                    }}
+                                >
+                                    <RadioGroupItem value={s.id} id={s.id} />
+                                    <Label htmlFor={s.id} className="text-xs cursor-pointer flex-1">
                                         {s.name}
                                     </Label>
-                                ))}
-                            </RadioGroup>
-                        </div>
+                                </div>
+                            ))}
+                        </RadioGroup>
 
-                        {/* 自定义风格输入框 */}
+                        {/* Custom风格输入框 */}
                         {style.id === 'custom' && (
                             <div className="space-y-2">
                                 <Label className="text-xs text-muted-foreground">Custom Style Description</Label>
@@ -292,8 +337,8 @@ export function PokeFusionStudio() {
                                             setTimeout(() => setPromptUpdated(false), 600);
                                         }
                                     }}
-                                    placeholder="e.g., watercolor painting, pixel art, cyberpunk..."
-                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    placeholder="e.g., cute, dark, epic..."
+                                    className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                 />
                                 {customStyle && (
                                     <p className="text-xs text-primary">
@@ -302,62 +347,31 @@ export function PokeFusionStudio() {
                                 )}
                             </div>
                         )}
-
-                        {pokemon1 && pokemon2 && (
-                            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2">
-                                <p className="text-xs text-green-600 dark:text-green-400">
-                                    ✨ Prompt updated! Click EVOLVE & FUSE when ready.
-                                </p>
-                            </div>
-                        )}
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Loading 状态 */}
-            {
-                isGenerating && (
-                    <Card className="border-2 border-primary/20">
-                        <CardContent className="p-6 space-y-4">
-                            <Skeleton className="w-full aspect-square rounded-lg" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </div>
-                            <p className="text-xs text-center text-muted-foreground">
-                                Usually takes 5–10 seconds
-                            </p>
-                        </CardContent>
-                    </Card>
-                )
-            }
-
             {/* 结果展示 */}
-            {
-                result && !isGenerating && (
-                    <ResultDisplay
-                        {...result}
-                        onDownload={() => {
-                            toast({
-                                title: "Download Started",
-                                description: "Your fusion is being downloaded.",
-                            });
-                        }}
-                        onSave={() => {
-                            toast({
-                                title: "Saved!",
-                                description: "Your fusion has been saved to your profile.",
-                            });
-                        }}
-                        onShare={() => {
-                            toast({
-                                title: "Share",
-                                description: "Share functionality coming soon!",
-                            });
-                        }}
-                    />
-                )
-            }
-        </div >
+            {result && (
+                <ResultDisplay
+                    imageUrl={result.imageUrl}
+                    prompt={result.prompt}
+                    pokemon1Name={result.pokemon1Name}
+                    pokemon2Name={result.pokemon2Name}
+                    styleName={result.styleName}
+                />
+            )}
+
+            {/* Loading骨架 */}
+            {isGenerating && (
+                <Card>
+                    <CardContent className="p-6">
+                        <Skeleton className="aspect-square w-full rounded-lg" />
+                        <Skeleton className="h-4 w-3/4 mx-auto mt-4" />
+                        <Skeleton className="h-3 w-1/2 mx-auto mt-2" />
+                    </CardContent>
+                </Card>
+            )}
+        </div>
     );
 }
