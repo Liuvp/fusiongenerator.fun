@@ -5,7 +5,6 @@ import { HowItWorks } from "@/components/home/how-it-works";
 import { CTA } from "@/components/home/cta";
 import { BlogPreview } from "@/components/home/blog-preview";
 import { GalleryPreview } from "@/components/home/gallery-preview";
-import { Testimonials } from "@/components/home/testimonials";
 import { FAQ } from "@/components/home/faq";
 
 // Force static generation to ensure meta tags are in <head>
@@ -119,7 +118,6 @@ export default function Home() {
         <FeaturesSection />
         <GalleryPreview />
         <HowItWorks />
-        <Testimonials />
         <FAQ />
         <CTA />
         <BlogPreview />
