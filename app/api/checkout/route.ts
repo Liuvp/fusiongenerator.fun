@@ -66,7 +66,7 @@ export async function POST(request: Request) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "x-api-key": process.env.CREEM_API_KEY,
+                "x-api-key": process.env.CREEM_API_KEY as string,
             },
             body: JSON.stringify(requestBody),
         });
