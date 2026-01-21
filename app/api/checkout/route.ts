@@ -33,6 +33,8 @@ export async function POST(request: Request) {
 
         // Determine the base URL for redirection
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get("origin") || "http://localhost:3000";
+        // Use configured API URL or fallback to production default (or fail if strict)
+        const creemApiUrl = process.env.CREEM_API_URL || "https://api.creem.io/v1/checkouts";
 
         // Construct request body for Creem
         const requestBody = {
@@ -51,12 +53,12 @@ export async function POST(request: Request) {
         };
 
         console.log("Creating Creem checkout session:", {
-            url: "https://test-api.creem.io/v1/checkouts",
+            url: creemApiUrl,
             productId,
             userId: user.id
         });
 
-        const response = await fetch("https://test-api.creem.io/v1/checkouts", {
+        const response = await fetch(creemApiUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
