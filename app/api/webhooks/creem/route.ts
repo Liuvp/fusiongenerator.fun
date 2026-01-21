@@ -23,16 +23,16 @@ export async function POST(req: Request) {
     // or if Creem's test environment behaves differently, you might temporarily skip it.
     // BUT valid verification code is provided below.
 
-    // const secret = process.env.CREEM_WEBHOOK_SECRET; 
-    // if (secret) {
-    //  const expectedSignature = crypto
-    //    .createHmac("sha256", secret)
-    //    .update(body)
-    //    .digest("hex");
-    //  if (signature !== expectedSignature) {
-    //    return new Response("Invalid signature", { status: 401 });
-    //  }
-    // }
+    const secret = process.env.CREEM_WEBHOOK_SECRET;
+    if (secret) {
+      const expectedSignature = crypto
+        .createHmac("sha256", secret)
+        .update(body)
+        .digest("hex");
+      if (signature !== expectedSignature) {
+        return new Response("Invalid signature", { status: 401 });
+      }
+    }
 
     const event = JSON.parse(body);
     console.log("Received Creem Webhook Event:", event.type, event);

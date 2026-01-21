@@ -35,23 +35,25 @@ export default async function DashboardPage(props: DashboardPageProps) {
     return redirect("/sign-in");
   }
 
-  // 直接查询subscriptions表
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("status, current_period_end, creem_product_id")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .single();
-
-  // 查询customers表获取credits（如果表存在）
+  // Get customer data including credits and subscription
   const { data: customerData } = await supabase
     .from("customers")
-    .select("credits, credits_history(amount, type, created_at)")
+    .select(
+      `
+      *,
+      subscriptions (
+        status,
+        current_period_end,
+        creem_product_id
+      )
+    `
+    )
     .eq("user_id", user.id)
     .single();
 
+  const subscription = customerData?.subscriptions?.[0];
   const credits = customerData?.credits || 0;
-  const recentCreditsHistory = customerData?.credits_history?.slice(0, 2) || [];
+  const recentCreditsHistory: any[] = [];
 
   return (
     <div className="flex-1 w-full flex flex-col gap-6 sm:gap-8 px-4 sm:px-8 container">

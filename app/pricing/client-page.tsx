@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Check, Crown, Gift, Sparkles, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
 import { User } from "@supabase/supabase-js";
+import { useUser } from "@/hooks/use-user";
 
 const fadeInUp = {
     initial: { opacity: 0, y: 20 },
@@ -15,14 +16,18 @@ const fadeInUp = {
     transition: { duration: 0.5 }
 };
 
-export default function PricingPage({ user }: { user: User | null }) {
+export default function PricingPage({ user: serverUser }: { user: User | null }) {
+    const { user: clientUser, loading } = useUser();
     const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter(); // Keep for navigation
     const { toast } = useToast();
 
+    // Use client user if available (solves nav issues), fallback to server user
+    const user = clientUser || serverUser;
+
     const handleCheckout = async (plan: string) => {
-        if (!user) {
+        if (!user && !loading) {
             toast({
                 title: "Login Required",
                 description: "Please login to subscribe.",
