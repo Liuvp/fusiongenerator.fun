@@ -23,10 +23,14 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
         }
 
-        if (!process.env.CREEM_API_KEY || !productId) {
-            console.error("Missing Creem configuration");
+        const missingVars = [];
+        if (!process.env.CREEM_API_KEY) missingVars.push("CREEM_API_KEY");
+        if (!productId) missingVars.push(`Product ID for ${plan} (CREEM_PRODUCT_ID_${plan.toUpperCase()})`);
+
+        if (missingVars.length > 0) {
+            console.error("Missing Creem configuration:", missingVars.join(", "));
             return NextResponse.json(
-                { error: "Server configuration error" },
+                { error: `Server configuration error: Missing ${missingVars.join(", ")}` },
                 { status: 500 }
             );
         }
