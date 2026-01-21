@@ -25,6 +25,14 @@ export async function POST(request: Request) {
 
         const missingVars = [];
         if (!process.env.CREEM_API_KEY) missingVars.push("CREEM_API_KEY");
+        if (!process.env.CREEM_PRODUCT_ID_MONTHLY) missingVars.push("CREEM_PRODUCT_ID_MONTHLY (Raw Check)");
+
+        // Debugging: Log available env keys (don't log values for security)
+        console.log("DEBUG: NODE_ENV =", process.env.NODE_ENV);
+        console.log("DEBUG: Available Env Keys =", Object.keys(process.env).filter(k => k.startsWith("CREEM") || k.startsWith("NEXT")).join(", "));
+        console.log("DEBUG: Plan =", plan);
+        console.log("DEBUG: productId resolved to:", productId);
+
         if (!productId) missingVars.push(`Product ID for ${plan} (CREEM_PRODUCT_ID_${plan.toUpperCase()})`);
 
         if (missingVars.length > 0) {
