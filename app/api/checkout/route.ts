@@ -1,6 +1,9 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
+// Force dynamic to ensure env vars are read at runtime, not build time
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
     try {
         const supabase = await createClient();
@@ -28,10 +31,12 @@ export async function POST(request: Request) {
         if (!process.env.CREEM_PRODUCT_ID_MONTHLY) missingVars.push("CREEM_PRODUCT_ID_MONTHLY (Raw Check)");
 
         // Debugging: Log available env keys (don't log values for security)
-        // V2 Debugging - Triggering rebuild
-        console.log("DEBUG V2: NODE_ENV =", process.env.NODE_ENV);
-        console.log("DEBUG V2: Available Env Keys =", Object.keys(process.env).filter(k => k.startsWith("CREEM") || k.startsWith("NEXT")).join(", "));
-        console.log("DEBUG V2: Plan =", plan);
+        // V3 Debugging - Checking for Systemic Env Var Failure
+        console.log("DEBUG V3: NODE_ENV =", process.env.NODE_ENV);
+        // Check if ANY secret var exists (e.g. Supabase Secret)
+        console.log("DEBUG V3: HAS_SUPABASE_SECRET =", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+        console.log("DEBUG V3: Available Env Keys =", Object.keys(process.env).filter(k => !k.startsWith("npm_") && !k.startsWith("v_")).join(", "));
+        console.log("DEBUG V3: Plan =", plan);
         console.log("DEBUG: productId resolved to:", productId);
 
         if (!productId) missingVars.push(`Product ID for ${plan} (CREEM_PRODUCT_ID_${plan.toUpperCase()})`);
