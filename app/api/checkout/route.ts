@@ -83,9 +83,10 @@ export async function POST(request: Request) {
         const data = await response.json();
 
         if (!response.ok) {
-            console.error("Creem API error:", data);
+            console.error("Creem API error full:", JSON.stringify(data));
+            const errorMessage = data.message || data.error || JSON.stringify(data);
             return NextResponse.json(
-                { error: data.message || "Failed to create checkout session" },
+                { error: `Creem Request Failed: ${errorMessage}` },
                 { status: response.status }
             );
         }
