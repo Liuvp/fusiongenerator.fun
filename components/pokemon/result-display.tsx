@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,10 +133,13 @@ export function ResultDisplay({
 
                 {/* 生成的图片 */}
                 <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-                    <img
+                    <Image
                         src={imageUrl}
                         alt={`${pokemon1Name} and ${pokemon2Name} fusion`}
-                        className="w-full h-full object-contain"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 500px"
+                        priority
+                        className="object-contain"
                     />
                 </div>
 

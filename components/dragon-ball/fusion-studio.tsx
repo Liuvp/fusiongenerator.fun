@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
+import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/utils/supabase/client";
 import {
@@ -235,8 +236,14 @@ export function DBFusionStudio() {
                                                         `}
                                                         onClick={() => !isDisabled && setter(c)}
                                                     >
-                                                        <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 mb-1">
-                                                            <img src={c.imageUrl} alt={c.name} className="w-full h-full object-cover" />
+                                                        <div className="w-12 h-12 relative rounded-full overflow-hidden bg-gray-200 mb-1">
+                                                            <Image
+                                                                src={c.imageUrl}
+                                                                alt={c.name}
+                                                                fill
+                                                                sizes="48px"
+                                                                className="object-cover"
+                                                            />
                                                         </div>
                                                         <span className="text-[10px] font-bold text-center leading-tight">{c.name}</span>
                                                     </div>
@@ -283,10 +290,13 @@ export function DBFusionStudio() {
                         <div className="mt-8 pt-8 border-t animate-in fade-in zoom-in duration-500 scroll-mt-10" id="result-area">
                             <h3 className="text-xl font-bold mb-4 text-center text-orange-700">Fusion Complete!</h3>
                             <div className="relative aspect-square w-full max-w-md mx-auto rounded-xl border-4 border-yellow-400 shadow-2xl overflow-hidden bg-black/5 flex items-center justify-center group">
-                                <img
+                                <Image
                                     src={result.imageUrl}
                                     alt="Result"
-                                    className="object-contain w-full h-full transition-transform duration-700 group-hover:scale-105"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 450px"
+                                    priority
+                                    className="object-contain transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-black/10 rounded-xl" />
                             </div>

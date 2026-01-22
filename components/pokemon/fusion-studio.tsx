@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
+import Image from "next/image";
 import { PokemonSelector } from "./pokemon-selector";
 import { ResultDisplay } from "./result-display";
 import { FUSION_STYLES, POKEMON_DATABASE, getPokemonImageUrl, type Pokemon, type FusionStyle } from "@/lib/pokemon-data";
@@ -268,11 +269,15 @@ export function PokeFusionStudio() {
                                             }}
                                         >
                                             <CardContent className="p-2">
-                                                <img
-                                                    src={getPokemonImageUrl(p)}
-                                                    alt={p.name}
-                                                    className="w-full aspect-square object-contain"
-                                                />
+                                                <div className="relative w-full aspect-square">
+                                                    <Image
+                                                        src={getPokemonImageUrl(p)}
+                                                        alt={p.name}
+                                                        fill
+                                                        sizes="100px"
+                                                        className="object-contain p-1"
+                                                    />
+                                                </div>
                                                 <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>
                                             </CardContent>
                                         </Card>
@@ -298,11 +303,15 @@ export function PokeFusionStudio() {
                                             }}
                                         >
                                             <CardContent className="p-2">
-                                                <img
-                                                    src={getPokemonImageUrl(p)}
-                                                    alt={p.name}
-                                                    className="w-full aspect-square object-contain"
-                                                />
+                                                <div className="relative w-full aspect-square">
+                                                    <Image
+                                                        src={getPokemonImageUrl(p)}
+                                                        alt={p.name}
+                                                        fill
+                                                        sizes="100px"
+                                                        className="object-contain p-1"
+                                                    />
+                                                </div>
                                                 <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>
                                             </CardContent>
                                         </Card>

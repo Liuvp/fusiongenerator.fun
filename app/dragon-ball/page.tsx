@@ -1,11 +1,14 @@
 import { Metadata } from "next";
+import nextDynamic from "next/dynamic";
 import { DBHero } from "@/components/dragon-ball/hero";
 import { DBFusionStudio } from "@/components/dragon-ball/fusion-studio";
-import { DBHowToUse } from "@/components/dragon-ball/how-to-use";
-import { DBPopularFusions } from "@/components/dragon-ball/popular-fusions";
-import { DBFeatures } from "@/components/dragon-ball/features";
-import { DBFAQ } from "@/components/dragon-ball/faq";
-import { DBCTA } from "@/components/dragon-ball/cta";
+
+// Lazy load non-critical components to improve initial page load performance
+const DBHowToUse = nextDynamic(() => import("@/components/dragon-ball/how-to-use").then(mod => mod.DBHowToUse));
+const DBPopularFusions = nextDynamic(() => import("@/components/dragon-ball/popular-fusions").then(mod => mod.DBPopularFusions));
+const DBFeatures = nextDynamic(() => import("@/components/dragon-ball/features").then(mod => mod.DBFeatures));
+const DBFAQ = nextDynamic(() => import("@/components/dragon-ball/faq").then(mod => mod.DBFAQ));
+const DBCTA = nextDynamic(() => import("@/components/dragon-ball/cta").then(mod => mod.DBCTA));
 
 // Force static generation to ensure meta tags are in <head>
 export const dynamic = 'force-static';

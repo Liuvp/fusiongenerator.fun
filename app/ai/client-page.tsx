@@ -49,60 +49,70 @@ function UploadBox({ side, file, onUpload, onRemove }: UploadBoxProps) {
     return (
         <div
             {...getRootProps()}
-            className="relative w-full cursor-pointer group"
+            className="relative w-full cursor-pointer group focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-xl"
+            role="button"
+            aria-label={file ? `Change uploaded image for ${side} side` : `Upload image for ${side} side`}
+            tabIndex={0}
+            onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    open();
+                }
+            }}
         >
             <input {...getInputProps()} />
 
-            {file ? (
-                <div className="relative aspect-square rounded-xl border bg-muted/30 overflow-hidden">
-                    <Image
-                        src={file.preview}
-                        alt=""
-                        fill
-                        className="object-contain p-2"
-                    />
+            {
+                file ? (
+                    <div className="relative aspect-square rounded-xl border bg-muted/30 overflow-hidden">
+                        <Image
+                            src={file.preview}
+                            alt=""
+                            fill
+                            className="object-contain p-2"
+                        />
 
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center gap-2">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                open();
-                            }}
-                            className="px-3 py-1 rounded bg-white text-black text-xs font-medium"
-                        >
-                            Replace
-                        </button>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onRemove();
-                            }}
-                            className="px-3 py-1 rounded bg-red-600 text-white text-xs font-medium flex items-center gap-1"
-                        >
-                            <Trash2 size={12} /> Remove
-                        </button>
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center gap-2">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    open();
+                                }}
+                                aria-label="Replace image"
+                            >
+                                Replace
+                            </button>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRemove();
+                                }}
+                                aria-label="Remove image"
+                            >
+                                <Trash2 size={12} /> Remove
+                            </button>
+                        </div>
+
+                        <span className="absolute top-2 left-2 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded">
+                            {side === "left" ? "Image A" : "Image B"}
+                        </span>
                     </div>
-
-                    <span className="absolute top-2 left-2 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded">
-                        {side === "left" ? "Image A" : "Image B"}
-                    </span>
-                </div>
-            ) : (
-                <div
-                    className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition ${isDragActive ? "border-primary bg-primary/5" : "border-muted"
-                        }`}
-                >
-                    <Upload className="h-6 w-6 mb-2 text-muted-foreground" />
-                    <p className="text-sm font-medium">
-                        {side === "left" ? "Upload A" : "Upload B"}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                        Click or drag
-                    </p>
-                </div>
-            )}
-        </div>
+                ) : (
+                    <div
+                        className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition ${isDragActive ? "border-primary bg-primary/5" : "border-muted"
+                            }`}
+                    >
+                        <Upload className="h-6 w-6 mb-2 text-muted-foreground" />
+                        <p className="text-sm font-medium">
+                            {side === "left" ? "Upload A" : "Upload B"}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                            Click or drag
+                        </p>
+                    </div>
+                )
+            }
+        </div >
     );
 }
 
@@ -270,14 +280,15 @@ export default function AIFusionStudioPage() {
                         onClick={surpriseMe}
                         className="text-xs flex items-center gap-1 text-primary hover:underline"
                     >
-                        <Dice6 size={14} /> Surprise Me
+                        <Dice6 size={14} aria-hidden="true" /> Surprise Me
                     </button>
                 </div>
                 <input
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="e.g. Cyberpunk style fusion"
-                    className="w-full rounded-md border px-3 py-2 text-sm"
+                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+                    aria-label="Enter a prompt for the fusion style"
                 />
             </div>
 
@@ -290,8 +301,9 @@ export default function AIFusionStudioPage() {
                         ? "bg-primary text-white hover:opacity-90"
                         : "bg-muted text-muted-foreground cursor-not-allowed"
                         }`}
+                    aria-busy={isGenerating}
                 >
-                    <Sparkles size={18} />
+                    <Sparkles size={18} aria-hidden="true" />
                     {isGenerating ? "Generating..." : "Generate Fusion"}
                 </button>
 
@@ -315,10 +327,13 @@ export default function AIFusionStudioPage() {
                 <div className="space-y-2 animate-in fade-in duration-500">
                     <h2 className="text-xl font-bold">Fusion Result</h2>
                     <div className="relative aspect-square w-full max-w-md mx-auto rounded-xl border bg-muted/30 overflow-hidden flex items-center justify-center">
-                        <img
+                        <Image
                             src={resultImage}
-                            alt="Fusion Result"
-                            className="object-contain max-h-full w-full"
+                            alt="AI generated fusion result showing the combination of the two uploaded images"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 500px"
+                            className="object-contain"
+                            priority
                         />
                     </div>
                 </div>
