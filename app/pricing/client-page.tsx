@@ -130,7 +130,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">5 free fusions daily</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">1 free fusion daily</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
@@ -178,6 +178,11 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                         </div>
                                     </div>
                                     <div className="rounded-lg bg-card text-card-foreground shadow-xl h-full transition-all duration-300 transform hover:scale-105 border-2 border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10 flex flex-col relative overflow-hidden">
+                                        {billingInterval === "yearly" && (
+                                            <div className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse shadow-sm">
+                                                SAVE 17%
+                                            </div>
+                                        )}
                                         <div className="absolute top-0 right-0 p-2">
                                             <div className="h-20 w-20 bg-primary/10 rounded-full blur-3xl absolute -top-10 -right-10"></div>
                                         </div>
@@ -192,7 +197,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                             <div className="space-y-2 mt-2">
                                                 <div className="flex items-baseline justify-center gap-1">
                                                     <span className="text-5xl font-extrabold text-foreground">
-                                                        {billingInterval === "monthly" ? "$9.90" : "$99.00"}
+                                                        {billingInterval === "monthly" ? "$9.99" : "$79.99"}
                                                     </span>
                                                     <span className="text-muted-foreground text-lg">/{billingInterval === "monthly" ? "mo" : "yr"}</span>
                                                 </div>
@@ -206,7 +211,9 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                                         <Check className="h-3 w-3 text-primary" />
                                                     </div>
                                                     <div className="text-left">
-                                                        <span className="font-semibold text-foreground">Fast GPU Generation</span>
+                                                        <span className="font-semibold text-foreground">
+                                                            {billingInterval === "monthly" ? "300 Fast Fusions / mo" : "3600 Fast Fusions / yr"}
+                                                        </span>
                                                         <p className="text-xs text-muted-foreground">Jump the queue, generate in seconds</p>
                                                     </div>
                                                 </div>
@@ -264,48 +271,56 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                     </div>
                                 </motion.div>
 
-                                {/* Enterprise / Bulk - Placeholder for balance */}
-                                <motion.div className="relative h-full text-left" initial="initial" animate="animate" variants={fadeInUp}>
-                                    <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border border-border hover:border-primary/20 flex flex-col opacity-90">
+                                {/* Extra Credits / Refill Pack */}
+                                <motion.div className="relative h-full" initial="initial" animate="animate" variants={fadeInUp}>
+                                    <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border border-border hover:border-primary/20 flex flex-col">
                                         <div className="flex flex-col space-y-1.5 p-6 text-center pb-4">
                                             <div className="flex items-center justify-center mb-4">
-                                                <div className="p-3 rounded-full bg-muted">
-                                                    <Sparkles className="h-6 w-6 text-muted-foreground" />
+                                                <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/20">
+                                                    <Sparkles className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                                                 </div>
                                             </div>
-                                            <h3 className="tracking-tight text-2xl font-bold text-foreground">Enterprise</h3>
+                                            <h3 className="tracking-tight text-2xl font-bold text-foreground">Extra Credits</h3>
                                             <div className="space-y-2">
                                                 <div className="flex items-baseline justify-center gap-1">
-                                                    <span className="text-3xl font-bold text-foreground">Custom</span>
+                                                    <span className="text-4xl font-bold text-foreground">$4.99</span>
                                                 </div>
-                                                <p className="text-muted-foreground">For high-volume needs</p>
+                                                <p className="text-muted-foreground">One-time purchase</p>
                                             </div>
                                         </div>
                                         <div className="p-6 pt-0 space-y-6 flex-1 flex flex-col">
                                             <div className="space-y-3 flex-1">
-                                                <p className="text-sm text-muted-foreground">
-                                                    Need API access or bulk image generation? We offer custom solutions for businesses.
-                                                </p>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Custom API Integration</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed font-medium text-foreground">+100 Fast Fusions</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Bulk discounts</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">Never expires</span>
+                                                </div>
+                                                <div className="flex items-start gap-3">
+                                                    <div className="mt-0.5 p-1 rounded-full bg-muted">
+                                                        <Check className="h-3 w-3 text-muted-foreground" />
+                                                    </div>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">No subscription required</span>
                                                 </div>
                                             </div>
                                             <div className="pt-4 mt-auto">
-                                                <Link
-                                                    href="/contact"
-                                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-background hover:text-accent-foreground px-4 py-2 w-full h-12 text-lg font-medium transition-all duration-200 border-primary/20 text-primary hover:bg-primary/5"
+                                                <button
+                                                    onClick={() => handleCheckout("refill")}
+                                                    disabled={isLoading}
+                                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-background hover:text-accent-foreground px-4 py-2 w-full h-12 text-lg font-medium transition-all duration-200 border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/50"
                                                 >
-                                                    Contact Sales
-                                                </Link>
+                                                    {isLoading ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        "Buy Refill Pack"
+                                                    )}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

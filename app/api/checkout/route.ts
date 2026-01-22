@@ -22,6 +22,8 @@ export async function POST(request: Request) {
             productId = process.env.CREEM_PRODUCT_ID_MONTHLY;
         } else if (plan === "yearly") {
             productId = process.env.CREEM_PRODUCT_ID_YEARLY;
+        } else if (plan === "refill") {
+            productId = process.env.CREEM_PRODUCT_ID_REFILL;
         } else {
             return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
         }
