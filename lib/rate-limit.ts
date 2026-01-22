@@ -7,10 +7,20 @@ const isDev = process.env.NODE_ENV === 'development';
 const memoryCache = new Map<string, { value: number; expires: number }>();
 
 // 初始化 Redis（生产环境）
-const redis = isDev ? null : new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+// 检查是否配置了 Upstash Redis
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+const hasRedisConfig = !!redisUrl && !!redisToken;
+
+// 仅在非开发环境且配置存在时初始化 Redis
+const redis = (!isDev && hasRedisConfig) ? new Redis({
+    url: redisUrl!,
+    token: redisToken!,
+}) : null;
+
+if (!isDev && !hasRedisConfig) {
+    console.warn('[Rate Limit] Redis configuration missing in production, falling back to memory cache. (UPSTASH_REDIS_REST_URL/TOKEN not set)');
+}
 
 /**
  * IP 频率限制 - 每IP每分钟3次
@@ -20,7 +30,7 @@ export async function checkIPRateLimit(ip: string): Promise<{ allowed: boolean; 
     const limit = 3;
     const window = 60000; // 60秒（毫秒）
 
-    if (isDev) {
+    if (!redis) {
         // 开发环境：使用内存缓存
         const now = Date.now();
         const cached = memoryCache.get(key);
@@ -60,7 +70,7 @@ export async function checkUserDailyQuota(userId: string): Promise<{ allowed: bo
     const key = `quota:user:${userId}:${today}`;
     const limit = 3;
 
-    if (isDev) {
+    if (!redis) {
         // 开发环境：使用内存缓存
         const cached = memoryCache.get(key);
         const current = cached ? cached.value + 1 : 1;
@@ -95,7 +105,7 @@ export async function checkVIPUserDailyQuota(userId: string): Promise<{ allowed:
     const key = `quota:vip:${userId}:${today}`;
     const limit = 10;
 
-    if (isDev) {
+    if (!redis) {
         // 开发环境：使用内存缓存
         const cached = memoryCache.get(key);
         const current = cached ? cached.value + 1 : 1;
