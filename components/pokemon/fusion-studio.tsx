@@ -244,6 +244,7 @@ export function PokeFusionStudio() {
                     <Button
                         onClick={handleGenerate}
                         disabled={!canGenerate}
+                        aria-label="Generate Pokemon fusion"
                         className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-semibold py-6 text-lg"
                     >
                         {isGenerating ? (
@@ -280,22 +281,34 @@ export function PokeFusionStudio() {
                                     {POKEMON_DATABASE.filter((p: Pokemon) => p.id !== pokemon2?.id).slice(0, 12).map((p: Pokemon) => (
                                         <Card
                                             key={p.id}
-                                            className={`cursor-pointer transition-all hover:scale-105 hover:shadow-md ${pokemon1?.id === p.id
+                                            className={`cursor-pointer transition-all ${pokemon1?.id === p.id
                                                 ? "ring-2 ring-primary shadow-lg"
-                                                : "hover:border-primary/50"
+                                                : "hover:border-primary/50 hover:shadow-sm"
                                                 }`}
                                             onClick={() => {
                                                 setPokemon1(p);
                                                 setPromptSource("auto");
                                             }}
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-label={`Select ${p.name} as Pokemon 1`}
+                                            aria-pressed={pokemon1?.id === p.id}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    setPokemon1(p);
+                                                    setPromptSource("auto");
+                                                }
+                                            }}
                                         >
                                             <CardContent className="p-2">
-                                                <div className="relative w-full aspect-square">
+                                                <div className="relative w-full aspect-square bg-gray-100 rounded">
                                                     <Image
                                                         src={getPokemonImageUrl(p)}
-                                                        alt={p.name}
+                                                        alt={`${p.name} - ${p.types.join(', ')} type Pokemon`}
                                                         fill
-                                                        sizes="100px"
+                                                        sizes="(max-width: 640px) 30vw, (max-width: 768px) 25vw, 100px"
+                                                        loading="lazy"
                                                         className="object-contain p-1"
                                                         unoptimized
                                                     />
@@ -315,22 +328,34 @@ export function PokeFusionStudio() {
                                     {POKEMON_DATABASE.filter((p: Pokemon) => p.id !== pokemon1?.id).slice(0, 12).map((p: Pokemon) => (
                                         <Card
                                             key={p.id}
-                                            className={`cursor-pointer transition-all hover:scale-105 hover:shadow-md ${pokemon2?.id === p.id
+                                            className={`cursor-pointer transition-all ${pokemon2?.id === p.id
                                                 ? "ring-2 ring-primary shadow-lg"
-                                                : "hover:border-primary/50"
+                                                : "hover:border-primary/50 hover:shadow-sm"
                                                 }`}
                                             onClick={() => {
                                                 setPokemon2(p);
                                                 setPromptSource("auto");
                                             }}
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-label={`Select ${p.name} as Pokemon 2`}
+                                            aria-pressed={pokemon2?.id === p.id}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    setPokemon2(p);
+                                                    setPromptSource("auto");
+                                                }
+                                            }}
                                         >
                                             <CardContent className="p-2">
-                                                <div className="relative w-full aspect-square">
+                                                <div className="relative w-full aspect-square bg-gray-100 rounded">
                                                     <Image
                                                         src={getPokemonImageUrl(p)}
-                                                        alt={p.name}
+                                                        alt={`${p.name} - ${p.types.join(', ')} type Pokemon`}
                                                         fill
-                                                        sizes="100px"
+                                                        sizes="(max-width: 640px) 30vw, (max-width: 768px) 25vw, 100px"
+                                                        loading="lazy"
                                                         className="object-contain p-1"
                                                         unoptimized
                                                     />

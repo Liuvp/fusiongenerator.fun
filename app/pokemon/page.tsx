@@ -1,7 +1,16 @@
 import { Metadata } from "next";
 import nextDynamic from "next/dynamic";
 import { PokeHero } from "@/components/pokemon/hero";
-import { PokeFusionStudio } from "@/components/pokemon/fusion-studio";
+
+// Critical: Load with SSR to ensure initial content
+const PokeFusionStudio = nextDynamic(() => import("@/components/pokemon/fusion-studio").then(mod => mod.PokeFusionStudio), {
+  ssr: true,
+  loading: () => (
+    <div className="w-full h-96 animate-pulse bg-muted rounded-lg flex items-center justify-center">
+      <p className="text-muted-foreground">Loading Fusion Studio...</p>
+    </div>
+  )
+});
 
 // Lazy load non-critical components to improve initial page load performance
 const PokeHowToUse = nextDynamic(() => import("@/components/pokemon/how-to-use").then(mod => mod.PokeHowToUse));

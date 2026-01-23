@@ -208,6 +208,7 @@ export function DBFusionStudio() {
                     <Button
                         onClick={handleGenerate}
                         disabled={!canGenerate}
+                        aria-label="Generate Dragon Ball fusion"
                         className="w-full bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 font-bold py-6 text-lg shadow-lg transform active:scale-95 transition-all text-white"
                     >
                         {isGenerating ? (
@@ -259,16 +260,28 @@ export function DBFusionStudio() {
                                                             ${isDisabled ? "opacity-40 cursor-not-allowed grayscale" : ""}
                                                         `}
                                                         onClick={() => !isDisabled && setter(c)}
+                                                        role="button"
+                                                        tabIndex={isDisabled ? -1 : 0}
+                                                        aria-label={`Select ${c.name} as ${label}`}
+                                                        aria-pressed={isSelected}
+                                                        aria-disabled={isDisabled}
+                                                        onKeyDown={(e) => {
+                                                            if ((e.key === 'Enter' || e.key === ' ') && !isDisabled) {
+                                                                e.preventDefault();
+                                                                setter(c);
+                                                            }
+                                                        }}
                                                     >
                                                         <CardContent className="p-2 flex flex-col items-center">
-                                                            <div className="relative w-full aspect-square mb-2 overflow-hidden rounded-md">
+                                                            <div className="relative w-full aspect-square mb-2 overflow-hidden rounded-md bg-gray-100">
                                                                 <Image
                                                                     src={c.imageUrl}
-                                                                    alt={c.name}
+                                                                    alt={`${c.name} - ${c.description.substring(0, 50)}`}
                                                                     fill
-                                                                    sizes="(max-width: 768px) 33vw, 20vw"
-                                                                    className="object-contain transition-transform duration-300 hover:scale-110"
-                                                                    unoptimized // Valid external URL from official API
+                                                                    sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, 15vw"
+                                                                    loading="lazy"
+                                                                    className="object-contain transition-transform duration-300"
+                                                                    unoptimized
                                                                 />
                                                             </div>
                                                             <span className="text-[10px] sm:text-xs font-bold text-center leading-tight line-clamp-1 w-full block">
@@ -318,14 +331,13 @@ export function DBFusionStudio() {
                     {result && (
                         <div className="mt-8 pt-8 border-t animate-in fade-in zoom-in duration-500 scroll-mt-10" id="result-area">
                             <h3 className="text-xl font-bold mb-4 text-center text-orange-700">Fusion Complete!</h3>
-                            <div className="relative aspect-square w-full max-w-md mx-auto rounded-xl border-4 border-yellow-400 shadow-2xl overflow-hidden bg-black/5 flex items-center justify-center group">
+                            <div className="relative aspect-square w-full max-w-md mx-auto rounded-xl border-4 border-yellow-400 shadow-2xl overflow-hidden bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center group">
                                 <Image
                                     src={result.imageUrl}
-                                    alt="Result"
+                                    alt={`Dragon Ball fusion result: ${result.prompt.substring(0, 100)}`}
                                     fill
                                     sizes="(max-width: 768px) 100vw, 450px"
                                     quality={95}
-                                    priority
                                     unoptimized
                                     className="object-contain transition-transform duration-700 group-hover:scale-105"
                                 />
@@ -335,7 +347,11 @@ export function DBFusionStudio() {
                                 "{result.prompt.slice(0, 100)}..."
                             </p>
                             <div className="mt-4 flex justify-center gap-4">
-                                <Button variant="outline" onClick={() => window.open(result.imageUrl, '_blank')}>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => window.open(result.imageUrl, '_blank')}
+                                    aria-label="Download fusion image in HD quality"
+                                >
                                     Download HD
                                 </Button>
                             </div>

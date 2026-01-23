@@ -1,7 +1,16 @@
 import { Metadata } from "next";
 import nextDynamic from "next/dynamic";
 import { DBHero } from "@/components/dragon-ball/hero";
-import { DBFusionStudio } from "@/components/dragon-ball/fusion-studio";
+
+// Critical: Load with SSR to ensure initial content
+const DBFusionStudio = nextDynamic(() => import("@/components/dragon-ball/fusion-studio").then(mod => mod.DBFusionStudio), {
+  ssr: true,
+  loading: () => (
+    <div className="w-full h-96 animate-pulse bg-muted rounded-lg flex items-center justify-center">
+      <p className="text-muted-foreground">Loading Fusion Studio...</p>
+    </div>
+  )
+});
 
 // Lazy load non-critical components to improve initial page load performance
 const DBHowToUse = nextDynamic(() => import("@/components/dragon-ball/how-to-use").then(mod => mod.DBHowToUse));

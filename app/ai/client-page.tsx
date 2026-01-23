@@ -302,6 +302,7 @@ export default function AIFusionStudioPage() {
                         : "bg-muted text-muted-foreground cursor-not-allowed"
                         }`}
                     aria-busy={isGenerating}
+                    aria-label="Generate AI fusion from uploaded images"
                 >
                     <Sparkles size={18} aria-hidden="true" />
                     {isGenerating ? "Generating..." : "Generate Fusion"}
@@ -332,8 +333,9 @@ export default function AIFusionStudioPage() {
                             alt="AI generated fusion result showing the combination of the two uploaded images"
                             fill
                             sizes="(max-width: 768px) 100vw, 500px"
+                            quality={95}
+                            unoptimized
                             className="object-contain"
-                            priority
                         />
                     </div>
                 </div>

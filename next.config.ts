@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Performance optimizations
+  compress: true, // Enable gzip compression
+
   images: {
     remotePatterns: [
       {
@@ -44,17 +47,53 @@ const nextConfig: NextConfig = {
         hostname: "upload.wikimedia.org",
       },
     ],
+    // Image optimization settings
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 31536000, // Cache images for 1 year
   },
+
   devIndicators: {
     // appIsrStatus: false, // Removed invalid property
   },
 
-  // Configure webpack to ignore the external folder
-  webpack: (config: any) => {
+  // Configure webpack to ignore the external folder and enable optimizations
+  webpack: (config: any, { dev, isServer }: any) => {
     config.watchOptions = {
       ...config.watchOptions,
       ignored: ['**/Chinesename.club/**', '**/node_modules/**'],
     };
+
+    // Production optimizations
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: 'deterministic',
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            // Vendor chunk
+            vendor: {
+              name: 'vendor',
+              chunks: 'all',
+              test: /node_modules/,
+              priority: 20
+            },
+            // Common chunk
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 10,
+              reuseExistingChunk: true,
+              enforce: true
+            }
+          }
+        }
+      };
+    }
+
     return config;
   },
 
@@ -62,6 +101,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     // 这里可以留空，或者添加对应的 Turbopack 配置
   },
+
+  // Experimental features for performance
+  experimental: {
+    optimizeCss: true, // Enable CSS optimization
+  },
+
   // eslint: {
   //   ignoreDuringBuilds: true,
   // },

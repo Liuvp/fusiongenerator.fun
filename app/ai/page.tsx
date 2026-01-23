@@ -109,10 +109,10 @@ export default function AIFusionPage() {
                             </p>
                             <div className="flex flex-wrap gap-3 justify-center">
                                 <Button asChild className="h-10 px-4 py-2">
-                                    <Link href="#fusion-studio">Start Fusing</Link>
+                                    <Link href="#fusion-studio" aria-label="Start creating AI fusions">Start Fusing</Link>
                                 </Button>
                                 <Button asChild variant="outline" className="h-10 px-4 py-2">
-                                    <Link href="/gallery">View Gallery</Link>
+                                    <Link href="/gallery" aria-label="View gallery of AI fusion examples">View Gallery</Link>
                                 </Button>
                             </div>
                         </div>
@@ -215,8 +215,10 @@ export default function AIFusionPage() {
                                                 <div className="relative w-full aspect-square bg-muted rounded-lg overflow-hidden border">
                                                     <Image
                                                         src="/images/fusion-generator-logo.svg"
-                                                        alt={`${item.left} × ${item.right} Fusion`}
+                                                        alt={`AI Fusion Example: ${item.left} and ${item.right} from ${item.series} - ${item.desc}`}
                                                         fill
+                                                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                                                        loading="lazy"
                                                         className="object-cover p-8 opacity-70"
                                                     />
                                                 </div>
@@ -255,10 +257,10 @@ export default function AIFusionPage() {
                             </div>
                             <div className="flex items-center justify-center gap-3">
                                 <Button asChild className="h-10 px-4 py-2">
-                                    <Link href="/pricing">Get Started</Link>
+                                    <Link href="/pricing" aria-label="View pricing plans and get started">Get Started</Link>
                                 </Button>
                                 <Button asChild variant="outline" className="h-10 px-4 py-2">
-                                    <Link href="/gallery">Explore Gallery</Link>
+                                    <Link href="/gallery" aria-label="Explore more AI fusion examples in the gallery">Explore Gallery</Link>
                                 </Button>
                             </div>
                         </div>
