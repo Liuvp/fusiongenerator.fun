@@ -15,9 +15,11 @@ import { ResultDisplay } from "./result-display";
 import { FUSION_STYLES, POKEMON_DATABASE, getPokemonImageUrl, type Pokemon, type FusionStyle } from "@/lib/pokemon-data";
 import { buildFusionPrompt, validatePokemonSelection } from "@/lib/prompt-builder";
 import { useToast } from "@/hooks/use-toast";
+import { createClient } from "@/utils/supabase/client";
 
 export function PokeFusionStudio() {
     const { toast } = useToast();
+    const supabase = createClient();
 
     // State
     const [prompt, setPrompt] = useState("");
@@ -38,8 +40,16 @@ export function PokeFusionStudio() {
         isVIP: boolean;
     } | null>(null);
 
-    // 组件加载时获取配额
+    // 用户状态
+    const [user, setUser] = useState<any>(null);
+
+    // 获取用户 session 和配额
     useEffect(() => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+
         const fetchQuota = async () => {
             try {
                 const response = await fetch('/api/get-quota');
@@ -52,8 +62,9 @@ export function PokeFusionStudio() {
             }
         };
 
+        checkUser();
         fetchQuota();
-    }, []);
+    }, [supabase]);
 
     // 当用户通过卡片选择时，只在 auto 模式下更新 Prompt
     useEffect(() => {
@@ -74,6 +85,16 @@ export function PokeFusionStudio() {
 
     // 生成融合
     const handleGenerate = async () => {
+        // 1. 客户端认证检查
+        if (!user) {
+            toast({
+                title: "Authentication Required",
+                description: "Redirecting to sign in...",
+            });
+            setTimeout(() => window.location.href = '/sign-in?redirect_to=/pokemon', 1500);
+            return;
+        }
+
         if (!prompt.trim()) {
             toast({
                 title: "Prompt Required",
@@ -276,6 +297,7 @@ export function PokeFusionStudio() {
                                                         fill
                                                         sizes="100px"
                                                         className="object-contain p-1"
+                                                        unoptimized
                                                     />
                                                 </div>
                                                 <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>
@@ -310,6 +332,7 @@ export function PokeFusionStudio() {
                                                         fill
                                                         sizes="100px"
                                                         className="object-contain p-1"
+                                                        unoptimized
                                                     />
                                                 </div>
                                                 <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>

@@ -5,83 +5,152 @@ export interface DBCharacter {
     imageUrl: string;
 }
 
-// 使用简单的 placeholder 服务，直到有真实图片
-// 为了美观，使用 dicebear 或者 ui-avatars
-// Fallback to stable UI Avatars with character-specific colors since Wikimedia is unstable/blocked in some regions
-const getAvatar = (name: string, bg: string, color: string = 'fff') => `https://ui-avatars.com/api/?name=${name}&background=${bg}&color=${color}&size=200&font-size=0.33&length=1&bold=true`;
-
+// 使用 Dragon Ball API 官方图片 (类似于 PokeAPI 的解决方案)
+// 这些图片经过优化且托管在可靠的服务器上
 export const DB_CHARACTERS: DBCharacter[] = [
     {
         id: 'goku',
         name: 'Goku',
         description: 'Saiyan warrior with iconic spiky black hair, wearing orange martial arts gi',
-        imageUrl: getAvatar('Goku', 'F97316') // Orange
+        imageUrl: 'https://dragonball-api.com/characters/goku_normal.webp'
     },
     {
         id: 'vegeta',
         name: 'Vegeta',
         description: 'Saiyan Prince with flame-like upright hair, wearing blue Saiyan battle armor',
-        imageUrl: getAvatar('Vegeta', '2563EB') // Blue
+        imageUrl: 'https://dragonball-api.com/characters/vegeta_normal.webp'
     },
     {
         id: 'piccolo',
         name: 'Piccolo',
         description: 'Namekian warrior with green skin, pointed ears, and weighted white cape',
-        imageUrl: getAvatar('Piccolo', '16A34A') // Green
+        imageUrl: 'https://dragonball-api.com/characters/picolo_normal.webp'
     },
     {
         id: 'frieza',
         name: 'Frieza',
         description: 'Galactic tyrant with white and purple bio-armor, sleek design',
-        imageUrl: getAvatar('Frieza', '9333EA') // Purple
+        imageUrl: 'https://dragonball-api.com/characters/Freezer.webp'
     },
     {
         id: 'cell',
         name: 'Cell',
         description: 'Bio-android with green spotted exoskeleton, insect-like wings',
-        imageUrl: getAvatar('Cell', '4ADE80', '000') // Light Green
+        imageUrl: 'https://dragonball-api.com/characters/celula.webp'
     },
     {
         id: 'majin-buu',
         name: 'Majin Buu',
         description: 'Pink magical creature, round body (or muscular Super Buu form), with head tentacle',
-        imageUrl: getAvatar('Buu', 'F472B6') // Pink
+        imageUrl: 'https://dragonball-api.com/characters/BuuGordo_Universo7.webp'
     },
     {
         id: 'broly',
         name: 'Broly',
         description: 'Legendary Super Saiyan, massive muscular build, green aura, uncontrollable rage',
-        imageUrl: getAvatar('Broly', '84CC16') // Lime
+        imageUrl: 'https://dragonball-api.com/transformaciones/Broly_DBS_Base.webp'
     },
     {
         id: 'trunks',
         name: 'Trunks',
         description: 'Half-Saiyan from future, lavender hair, sword user, capsule corp jacket',
-        imageUrl: getAvatar('Trunks', '818CF8') // Indigo
+        imageUrl: 'https://dragonball-api.com/characters/Trunks_Buu_Artwork.webp'
     },
     {
         id: 'gohan',
         name: 'Gohan',
         description: 'Half-Saiyan scholar warrior, spiky hair, powerful hidden potential',
-        imageUrl: getAvatar('Gohan', '6366F1') // Violet
+        imageUrl: 'https://dragonball-api.com/characters/gohan.webp'
     },
     {
         id: 'beerus',
         name: 'Beerus',
         description: 'God of Destruction, purple cat-like humanoid, Egyptian attire',
-        imageUrl: getAvatar('Beerus', '7E22CE') // Dark Purple
+        imageUrl: 'https://dragonball-api.com/characters/Beerus_DBS_Broly_Artwork.webp'
     },
     {
         id: 'jiren',
         name: 'Jiren',
         description: 'Pride Trooper, grey alien muscular humanoid, massive eyes',
-        imageUrl: getAvatar('Jiren', 'EF4444') // Red
+        imageUrl: 'https://dragonball-api.com/characters/Jiren.webp'
     },
     {
         id: 'android-18',
         name: 'Android 18',
         description: 'Female cyborg with blonde hair, denim clothing, cold expression',
-        imageUrl: getAvatar('18', '38BDF8') // Light Blue
+        imageUrl: 'https://dragonball-api.com/characters/Androide_18_Artwork.webp'
+    },
+    {
+        id: 'krillin',
+        name: 'Krillin',
+        description: 'Earth\'s strongest human warrior, bald monk, uses Destructo Disc',
+        imageUrl: 'https://dragonball-api.com/characters/Krilin_Universo7.webp'
+    },
+    {
+        id: 'master-roshi',
+        name: 'Master Roshi',
+        description: 'Turtle Hermit, elderly martial arts master with sunglasses and white beard',
+        imageUrl: 'https://dragonball-api.com/characters/roshi.webp'
+    },
+    {
+        id: 'android-17',
+        name: 'Android 17',
+        description: 'Cyborg warrior with black lapis hair, orange scarf, endless energy',
+        imageUrl: 'https://dragonball-api.com/characters/17_Artwork.webp'
+    },
+    {
+        id: 'bardock',
+        name: 'Bardock',
+        description: 'Saiyan warrior, Goku\'s father, bears a cross-shaped scar on cheek',
+        imageUrl: 'https://dragonball-api.com/characters/Bardock_Artwork.webp'
+    },
+    {
+        id: 'whis',
+        name: 'Whis',
+        description: 'Angel attendant, blue skin, white hair, holds a magical staff',
+        imageUrl: 'https://dragonball-api.com/characters/Whis_DBS_Broly_Artwork.webp'
+    },
+    {
+        id: 'vegetto',
+        name: 'Vegetto',
+        description: 'Potara fusion of Goku and Vegeta, supreme power, blue gi with orange undershirt',
+        imageUrl: 'https://dragonball-api.com/transformaciones/Vegetto.webp'
+    },
+    {
+        id: 'gogeta',
+        name: 'Gogeta',
+        description: 'Metamoran fusion of Goku and Vegeta, wears black and orange vest',
+        imageUrl: 'https://dragonball-api.com/transformaciones/gogeta.webp'
+    },
+    {
+        id: 'gotenks',
+        name: 'Gotenks',
+        description: 'Fusion of Goten and Trunks, wild dual-colored hair, wears fusion vest',
+        imageUrl: 'https://dragonball-api.com/characters/Gotenks_Artwork.webp'
+    },
+    {
+        id: 'mr-satan',
+        name: 'Mr. Satan',
+        description: 'World Martial Arts Champion, afro hair, mustache, flashy showman outfit',
+        imageUrl: 'https://dragonball-api.com/characters/Mr_Satan_DBSuper.webp'
+    },
+    {
+        id: 'tenshinhan',
+        name: 'Tenshinhan',
+        description: 'Three-eyed martial artist, tall, muscular, serious discipline',
+        imageUrl: 'https://dragonball-api.com/characters/Tenshinhan_Universo7.webp'
+    },
+    {
+        id: 'yamcha',
+        name: 'Yamcha',
+        description: 'Martial artist with scarred face, long hair, uses Wolf Fang Fist',
+        imageUrl: 'https://dragonball-api.com/characters/Final_Yamcha.webp'
+    },
+    {
+        id: 'raditz',
+        name: 'Raditz',
+        description: 'Saiyan invader with incredibly long spiky black hair, Saiyan armor',
+        imageUrl: 'https://dragonball-api.com/characters/Raditz_artwork_Dokkan.webp'
     }
 ];
 

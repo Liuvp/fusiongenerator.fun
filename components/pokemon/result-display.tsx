@@ -138,7 +138,9 @@ export function ResultDisplay({
                         alt={`${pokemon1Name} and ${pokemon2Name} fusion`}
                         fill
                         sizes="(max-width: 768px) 100vw, 500px"
+                        quality={95}
                         priority
+                        unoptimized
                         className="object-contain"
                     />
                 </div>

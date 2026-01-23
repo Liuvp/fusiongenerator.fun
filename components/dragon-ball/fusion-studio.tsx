@@ -35,6 +35,7 @@ export function DBFusionStudio() {
     const [result, setResult] = useState<any>(null);
 
     // 配额状态
+    // 配额状态
     const [quota, setQuota] = useState<{
         used: number;
         remaining: number;
@@ -42,8 +43,16 @@ export function DBFusionStudio() {
         isVIP: boolean;
     } | null>(null);
 
-    // 组件加载时获取配额
+    // 用户状态
+    const [user, setUser] = useState<any>(null);
+
+    // 获取用户 session 和配额
     useEffect(() => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+
         const fetchQuota = async () => {
             try {
                 const response = await fetch('/api/get-quota');
@@ -56,8 +65,9 @@ export function DBFusionStudio() {
             }
         };
 
+        checkUser();
         fetchQuota();
-    }, []);
+    }, [supabase]);
 
     // 自动更新 Prompt
     useEffect(() => {
@@ -71,6 +81,17 @@ export function DBFusionStudio() {
 
     // 生成融合
     const handleGenerate = async () => {
+        // 1. 客户端认证检查
+        if (!user) {
+            toast({
+                title: "Authentication Required",
+                description: "Returning to training camp... (Please sign in)",
+            });
+            const currentPath = window.location.pathname;
+            setTimeout(() => window.location.href = `/sign-in?redirect_to=${currentPath}`, 1500);
+            return;
+        }
+
         if (!prompt.trim()) {
             toast({
                 title: "Prompt Required",
@@ -90,25 +111,25 @@ export function DBFusionStudio() {
                 body: JSON.stringify({ prompt }),
             });
 
-            // Auth Check
+            const data = await response.json();
+
+            // 2. 认证检查 (后端返回 401)
             if (response.status === 401) {
                 toast({
                     title: "🔐 Authentication Required",
-                    description: "Please sign in to create fusions",
+                    description: "Session expired. Please sign in again.",
                     variant: "destructive",
                 });
                 const currentPath = window.location.pathname;
-                setTimeout(() => window.location.href = `/sign-in?redirect_to=${currentPath}`, 2000);
+                setTimeout(() => window.location.href = `/sign-in?redirect_to=${currentPath}`, 1500);
                 return;
             }
 
-            const data = await response.json();
-
-            // Rate Limit Check
+            // 3. 频率限制检查 (后端返回 429)
             if (response.status === 429) {
                 toast({
                     title: "Limit Reached",
-                    description: data.error,
+                    description: data.error || "Daily limit exceeded",
                     variant: "destructive",
                 });
                 return;
@@ -116,7 +137,7 @@ export function DBFusionStudio() {
 
             if (!response.ok) throw new Error(data.error || 'Generation failed');
 
-            // Update Quota
+            // 4. 更新前端状态 (成功)
             if (data.quota) setQuota(data.quota);
 
             setResult({
@@ -126,14 +147,14 @@ export function DBFusionStudio() {
 
             toast({
                 title: "Fusion Successful!",
-                description: `Super Saiyan Power! ${data.quota.remaining} generations left.`,
+                description: `Super Saiyan Power! ${data.quota?.remaining || 0} generations left.`,
             });
 
         } catch (error: any) {
             console.error('Generation error:', error);
             toast({
                 title: "Generation Failed",
-                description: error.message,
+                description: error.message || "Something went wrong",
                 variant: "destructive",
             });
         } finally {
@@ -227,26 +248,34 @@ export function DBFusionStudio() {
                                                 const isDisabled = other?.id === c.id;
 
                                                 return (
-                                                    <div
+                                                    <Card
                                                         key={c.id}
                                                         className={`
-                                                            relative flex flex-col items-center p-2 rounded-md cursor-pointer transition-all border-2
-                                                            ${isSelected ? "border-orange-500 bg-orange-50 shadow-md scale-95" : "border-transparent hover:bg-muted hover:border-muted-foreground/20"}
-                                                            ${isDisabled ? "opacity-30 cursor-not-allowed grayscale" : ""}
+                                                            cursor-pointer transition-all duration-200 
+                                                            ${isSelected
+                                                                ? "ring-2 ring-orange-500 shadow-md scale-95 bg-orange-50/50"
+                                                                : "hover:scale-105 hover:shadow-sm hover:border-orange-200"
+                                                            }
+                                                            ${isDisabled ? "opacity-40 cursor-not-allowed grayscale" : ""}
                                                         `}
                                                         onClick={() => !isDisabled && setter(c)}
                                                     >
-                                                        <div className="w-12 h-12 relative rounded-full overflow-hidden bg-gray-200 mb-1">
-                                                            <Image
-                                                                src={c.imageUrl}
-                                                                alt={c.name}
-                                                                fill
-                                                                sizes="48px"
-                                                                className="object-cover"
-                                                            />
-                                                        </div>
-                                                        <span className="text-[10px] font-bold text-center leading-tight">{c.name}</span>
-                                                    </div>
+                                                        <CardContent className="p-2 flex flex-col items-center">
+                                                            <div className="relative w-full aspect-square mb-2 overflow-hidden rounded-md">
+                                                                <Image
+                                                                    src={c.imageUrl}
+                                                                    alt={c.name}
+                                                                    fill
+                                                                    sizes="(max-width: 768px) 33vw, 20vw"
+                                                                    className="object-contain transition-transform duration-300 hover:scale-110"
+                                                                    unoptimized // Valid external URL from official API
+                                                                />
+                                                            </div>
+                                                            <span className="text-[10px] sm:text-xs font-bold text-center leading-tight line-clamp-1 w-full block">
+                                                                {c.name}
+                                                            </span>
+                                                        </CardContent>
+                                                    </Card>
                                                 );
                                             })}
                                         </div>
@@ -295,7 +324,9 @@ export function DBFusionStudio() {
                                     alt="Result"
                                     fill
                                     sizes="(max-width: 768px) 100vw, 450px"
+                                    quality={95}
                                     priority
+                                    unoptimized
                                     className="object-contain transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-black/10 rounded-xl" />

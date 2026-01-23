@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as fal from "@fal-ai/serverless-client";
-import { SYSTEM_PROMPT, NEGATIVE_PROMPT } from '@/lib/prompt-builder';
+import { SYSTEM_PROMPT, NEGATIVE_PROMPT, DRAGON_BALL_SYSTEM_PROMPT, DRAGON_BALL_NEGATIVE_PROMPT } from '@/lib/prompt-builder';
 import { checkIPRateLimit, checkUserDailyQuota, checkVIPUserDailyQuota, getClientIP } from '@/lib/rate-limit';
 import { createClient } from '@/utils/supabase/server';
 
@@ -12,7 +12,20 @@ fal.config({
 export async function POST(request: NextRequest) {
     try {
         // ============================================================================
-        // 1️⃣ IP 频率限制（每IP每分钟3次）
+        // 1️⃣ 用户认证检查（必须登录）- 优先检查，避免未登录请求消耗IP配额
+        // ============================================================================
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: 'Authentication required. Please sign in to generate fusions.' },
+                { status: 401 }
+            );
+        }
+
+        // ============================================================================
+        // 2️⃣ IP 频率限制（每IP每分钟3次）- 已登录用户的防滥用措施
         // ============================================================================
         const clientIP = getClientIP(request);
         const ipLimit = await checkIPRateLimit(clientIP);
@@ -24,19 +37,6 @@ export async function POST(request: NextRequest) {
                     retryAfter: 60,
                 },
                 { status: 429 }
-            );
-        }
-
-        // ============================================================================
-        // 2️⃣ 用户认证检查（必须登录）
-        // ============================================================================
-        const supabase = await createClient();
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return NextResponse.json(
-                { error: 'Authentication required. Please sign in to generate fusions.' },
-                { status: 401 }
             );
         }
 
@@ -87,22 +87,37 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // ============================================================================
+        // 🔥 关键修复：自动检测内容类型，使用对应的 System Prompt
+        // ============================================================================
+        const isDragonBall = prompt.toLowerCase().includes('dragon ball') ||
+            prompt.includes('Akira Toriyama') ||
+            prompt.includes('Saiyan') ||
+            prompt.includes('Goku') ||
+            prompt.includes('Vegeta') ||
+            prompt.includes('Frieza') ||
+            prompt.includes('Majin Buu');
+
+        const selectedSystemPrompt = isDragonBall ? DRAGON_BALL_SYSTEM_PROMPT : SYSTEM_PROMPT;
+        const selectedNegativePrompt = isDragonBall ? DRAGON_BALL_NEGATIVE_PROMPT : NEGATIVE_PROMPT;
+
         console.log('=== Fusion Generation Request ===');
         console.log('User:', user.email);
         console.log('IP:', clientIP);
         console.log('VIP:', isVIP);
         console.log('Quota:', `${quota.used}/${isVIP ? 10 : 3}`);
+        console.log('Content Type:', isDragonBall ? 'Dragon Ball' : 'Pokemon');
         console.log('User Prompt:', prompt);
 
-        // 三层Prompt拼接
-        const fullPrompt = `${SYSTEM_PROMPT}
+        // 三层Prompt拼接（使用正确的 System Prompt）
+        const fullPrompt = `${selectedSystemPrompt}
 
 ${prompt}`;
 
         console.log('\n=== Full Prompt to Fal.ai ===');
         console.log(fullPrompt);
         console.log('\n=== Negative Prompt ===');
-        console.log(NEGATIVE_PROMPT);
+        console.log(selectedNegativePrompt);
 
         // ============================================================================
         // Fal.ai API 调用（最优参数）
@@ -112,7 +127,7 @@ ${prompt}`;
         const result: any = await fal.run("fal-ai/flux/dev", {
             input: {
                 prompt: fullPrompt,
-                negative_prompt: NEGATIVE_PROMPT,
+                negative_prompt: selectedNegativePrompt,
                 image_size: "square_hd",     // 1024x1024
                 num_inference_steps: 38,     // 最高质量和清晰度
                 guidance_scale: 7.5,         // 强Prompt遵循度

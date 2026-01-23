@@ -5,9 +5,16 @@ import crypto from 'crypto';
 // Layer 1: 系统固定Prompt（写死，不暴露给用户）
 // ============================================================================
 
+// Pokemon 专用 System Prompt
 export const SYSTEM_PROMPT = `masterpiece, best quality, ultra-detailed, official pokemon-style character design, single fused creature, clean silhouette, no text, no watermark, no logo, white or simple background, anime illustration, high consistency`;
 
+// 龙珠专用 System Prompt
+export const DRAGON_BALL_SYSTEM_PROMPT = `masterpiece, best quality, ultra-detailed, official Dragon Ball character design by Akira Toriyama, single character, clean silhouette, no text, no watermark, no logo, white or simple gradient background, anime illustration, high consistency, cel-shaded anime art style`;
+
 export const NEGATIVE_PROMPT = `low quality, blurry, extra limbs, deformed, multiple characters, split body, text, watermark, logo, cropped, duplicate, mutation, unclear face, unclear body, poorly drawn anatomy, deformed body, extra limbs`;
+
+// 龙珠专用 Negative Prompt (更严格，避免 Pokemon 风格混入)
+export const DRAGON_BALL_NEGATIVE_PROMPT = `low quality, blurry, extra limbs, deformed, multiple characters, split body, text, watermark, logo, cropped, duplicate, mutation, unclear face, unclear body, poorly drawn anatomy, deformed body, extra limbs, pokemon style, chibi, cute animals, creature design, monster design`;
 
 // ============================================================================
 // Layer 3: 修饰语白名单系统（分类去重版）
