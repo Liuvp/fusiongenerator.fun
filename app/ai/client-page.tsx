@@ -250,7 +250,7 @@ export default function AIFusionStudioPage() {
         <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
             {/* Header */}
             <div className="text-center space-y-1">
-                <h1 className="text-2xl font-bold">AI Fusion Studio</h1>
+                <h2 className="text-2xl font-bold">AI Fusion Studio</h2>
                 <p className="text-sm text-muted-foreground">
                     Upload two images, describe the fusion, generate instantly.
                 </p>
