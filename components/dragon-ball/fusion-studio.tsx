@@ -244,7 +244,7 @@ export function DBFusionStudio() {
                                     <Label className="text-sm font-semibold text-orange-800">{label}</Label>
                                     <div className="border rounded-lg p-2 max-h-[220px] overflow-y-auto bg-muted/20 custom-scrollbar">
                                         <div className="grid grid-cols-3 gap-2">
-                                            {DB_CHARACTERS.map((c) => {
+                                            {DB_CHARACTERS.map((c, charIndex) => {
                                                 const isSelected = selected?.id === c.id;
                                                 const isDisabled = other?.id === c.id;
 
@@ -278,10 +278,9 @@ export function DBFusionStudio() {
                                                                     src={c.imageUrl}
                                                                     alt={`${c.name} - ${c.description.substring(0, 50)}`}
                                                                     fill
-                                                                    sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, 15vw"
-                                                                    loading="lazy"
+                                                                    sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, 100px"
+                                                                    {...(charIndex < 6 ? { priority: true } : { loading: "lazy" as const })}
                                                                     className="object-contain transition-transform duration-300"
-                                                                    unoptimized
                                                                 />
                                                             </div>
                                                             <span className="text-[10px] sm:text-xs font-bold text-center leading-tight line-clamp-1 w-full block">

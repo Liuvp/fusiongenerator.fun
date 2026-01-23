@@ -1,11 +1,30 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import nextDynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, Zap, Wand2, Upload, ChevronDown } from "lucide-react";
 import Script from "next/script";
-import FusionClientPage from "./client-page";
+
+// Dynamic import for heavy client component
+const FusionClientPage = nextDynamic(() => import("./client-page"), {
+    ssr: true,
+    loading: () => (
+        <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+            <div className="text-center space-y-1">
+                <div className="h-8 bg-muted animate-pulse rounded w-48 mx-auto"></div>
+                <div className="h-4 bg-muted animate-pulse rounded w-64 mx-auto mt-2"></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="aspect-square bg-muted animate-pulse rounded-xl"></div>
+                <div className="aspect-square bg-muted animate-pulse rounded-xl"></div>
+            </div>
+            <div className="h-10 bg-muted animate-pulse rounded-md"></div>
+            <div className="h-12 bg-muted animate-pulse rounded-xl"></div>
+        </div>
+    )
+});
 
 // Force static generation to ensure meta tags are in <head>
 export const dynamic = 'force-static';
