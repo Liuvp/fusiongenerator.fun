@@ -275,20 +275,21 @@ export default function AIFusionStudioPage() {
             {/* Prompt */}
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium">Fusion Prompt (Optional)</label>
+                    <label htmlFor="fusion-prompt" className="text-sm font-medium">Fusion Prompt (Optional)</label>
                     <button
                         onClick={surpriseMe}
                         className="text-xs flex items-center gap-1 text-primary hover:underline"
+                        aria-label="Generate a random prompt"
                     >
                         <Dice6 size={14} aria-hidden="true" /> Surprise Me
                     </button>
                 </div>
                 <input
+                    id="fusion-prompt"
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="e.g. Cyberpunk style fusion"
                     className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
-                    aria-label="Enter a prompt for the fusion style"
                 />
             </div>
 
@@ -309,8 +310,14 @@ export default function AIFusionStudioPage() {
                 </button>
 
                 {isGenerating && (
-                    <div className="space-y-2">
-                        <div className="h-2 rounded bg-muted overflow-hidden">
+                    <div className="space-y-2" role="status" aria-live="polite">
+                        <div
+                            role="progressbar"
+                            aria-valuenow={progress}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            className="h-2 rounded bg-muted overflow-hidden"
+                        >
                             <div
                                 className="h-full bg-primary transition-all duration-300"
                                 style={{ width: `${progress}%` }}
@@ -324,22 +331,24 @@ export default function AIFusionStudioPage() {
             </div>
 
             {/* Result Display */}
-            {resultImage && (
-                <div className="space-y-2 animate-in fade-in duration-500">
-                    <h2 className="text-xl font-bold">Fusion Result</h2>
-                    <div className="relative aspect-square w-full max-w-md mx-auto rounded-xl border bg-muted/30 overflow-hidden flex items-center justify-center">
-                        <Image
-                            src={resultImage}
-                            alt="AI generated fusion result showing the combination of the two uploaded images"
-                            fill
-                            sizes="(max-width: 768px) 100vw, 500px"
-                            quality={95}
-                            unoptimized
-                            className="object-contain"
-                        />
+            <div aria-live="polite" className="space-y-2">
+                {resultImage && (
+                    <div className="space-y-2 animate-in fade-in duration-500">
+                        <h2 className="text-xl font-bold">Fusion Result</h2>
+                        <div className="relative aspect-square w-full max-w-md mx-auto rounded-xl border bg-muted/30 overflow-hidden flex items-center justify-center">
+                            <Image
+                                src={resultImage}
+                                alt="AI generated fusion result showing the combination of the two uploaded images"
+                                fill
+                                sizes="(max-width: 768px) 100vw, 500px"
+                                quality={95}
+                                unoptimized
+                                className="object-contain"
+                            />
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }
