@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized. Please login." }, { status: 401 });
+            return NextResponse.json({ error: "[Auth Error] Unauthorized. Please login again." }, { status: 401 });
         }
 
 
@@ -104,9 +104,12 @@ export async function POST(req: NextRequest) {
         // 4. Generate Fusion (Vision + Flux)
         console.log("Analyzing Image 2 for fusion traits...");
         let image2Description = "";
+
+        /* 
+        // [DIAGNOSTIC] Temporarily disable Vision to check permissions
         try {
-            // Vision Logic ...
-            const descriptionResult: any = await subscribe("fal-ai/llava-next", {
+             // Vision Logic ...
+             const descriptionResult: any = await subscribe("fal-ai/llava-next", {
                 input: {
                     image_url: url2,
                     prompt: "Describe character features concisely."
@@ -114,40 +117,43 @@ export async function POST(req: NextRequest) {
             });
             image2Description = descriptionResult.output;
         } catch (e) { image2Description = "distinct character"; }
+        */
 
-        const finalPrompt = `(Masterpiece). Fusion of character in image AND character looking like: ${image2Description}. ${prompt}. Detailed.`;
+        const finalPrompt = `(Masterpiece). Fusion of character in image AND character looking like: ${image2Description || "the second uploaded image"}. ${prompt}. Detailed.`;
 
         // Generate
-        const result: any = await subscribe("fal-ai/flux/dev", {
-            input: { prompt: finalPrompt, image_url: url1, strength: 0.85 },
-            logs: true
-        });
-
-
-        // 5. Deduct Credit (Cost: 1) using USER CLIENT
-        const COST = 1;
         try {
-            const { error: updateError } = await supabase
-                .from("customers")
-                .update({ credits: activeCustomer.credits - COST })
-                .eq("id", activeCustomer.id);
+            const result: any = await subscribe("fal-ai/flux/dev", {
+                input: { prompt: finalPrompt, image_url: url1, strength: 0.85 },
+                logs: true
+            });
 
-            if (updateError) {
-                console.error("Failed to deduct credit:", updateError);
-                // In production, we might want to refund the generation or retry.
-            }
-        } catch (e) {
-            console.error("Deduction Logic Error:", e);
+            // 5. Deduct Credit (Cost: 1) using USER CLIENT (Best Effort)
+            const COST = 1;
+            try {
+                const { error: updateError } = await supabase
+                    .from("customers")
+                    .update({ credits: activeCustomer.credits - COST })
+                    .eq("id", activeCustomer.id);
+
+                if (updateError) console.error("Failed to deduct credit:", updateError);
+            } catch (e) { console.error("Deduction Error:", e); }
+
+            return NextResponse.json({
+                success: true,
+                imageUrl: result.images[0].url,
+                remainingCredits: activeCustomer.credits - COST,
+                logs: result.logs
+            });
+
+        } catch (falError: any) {
+            console.error("Fal Error:", falError);
+            throw new Error(`[Fal Error] ${falError.message || "Generation failed"}`);
         }
 
-        return NextResponse.json({
-            success: true,
-            imageUrl: result.images[0].url,
-            remainingCredits: activeCustomer.credits - COST,
-            logs: result.logs
-        });
-
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("API Error:", error);
+        return NextResponse.json({ error: `[API Error] ${error.message}` }, { status: 500 });
     }
 }
+```
