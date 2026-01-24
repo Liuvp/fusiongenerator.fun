@@ -105,19 +105,22 @@ export async function POST(req: NextRequest) {
         console.log("Analyzing Image 2 for fusion traits...");
         let image2Description = "";
 
-        /* 
-        // [DIAGNOSTIC] Temporarily disable Vision to check permissions
+        // Step 4.1: Analyze Image 2 using LLaVA (Vision Model)
         try {
-             // Vision Logic ...
-             const descriptionResult: any = await subscribe("fal-ai/llava-next", {
+            console.log("Starting visual analysis of Image 2...");
+            const descriptionResult: any = await subscribe("fal-ai/llava-next", {
                 input: {
                     image_url: url2,
-                    prompt: "Describe character features concisely."
-                }
+                    prompt: "Describe this character's physical appearance, clothing, and distinct features in detail. Be concise but specific."
+                },
+                logs: true,
             });
             image2Description = descriptionResult.output;
-        } catch (e) { image2Description = "distinct character"; }
-        */
+            console.log("Vision Analysis Result:", image2Description);
+        } catch (e) {
+            console.warn("Vision analysis failed, falling back to default prompt:", e);
+            image2Description = "a distinct character";
+        }
 
         const finalPrompt = `(Masterpiece). Fusion of character in image AND character looking like: ${image2Description || "the second uploaded image"}. ${prompt}. Detailed.`;
 
