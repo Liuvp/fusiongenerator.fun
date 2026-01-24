@@ -19,8 +19,12 @@ interface MobileNavProps {
   isDashboard: boolean;
 }
 
+import { usePathname } from "next/navigation";
+const AUTH_PATHS = ["/sign-in", "/sign-up", "/forgot-password", "/auth/callback"];
+
 export function MobileNav({ items, user, isDashboard }: MobileNavProps) {
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname() || "/";
 
   useEffect(() => {
     setMounted(true);
@@ -97,10 +101,10 @@ export function MobileNav({ items, user, isDashboard }: MobileNavProps) {
           ) : (
             <div className="flex flex-col gap-2">
               <Button asChild variant="outline" className="w-full">
-                <Link href="/sign-in">Sign in</Link>
+                <Link href={AUTH_PATHS.includes(pathname) ? "/sign-in" : `/sign-in?redirect_to=${encodeURIComponent(pathname)}`}>Sign in</Link>
               </Button>
               <Button asChild variant="default" className="w-full">
-                <Link href="/sign-up">Sign up</Link>
+                <Link href={AUTH_PATHS.includes(pathname) ? "/sign-up" : `/sign-up?redirect_to=${encodeURIComponent(pathname)}`}>Sign up</Link>
               </Button>
             </div>
           )}

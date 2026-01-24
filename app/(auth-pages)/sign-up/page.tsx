@@ -15,8 +15,9 @@ export const metadata: Metadata = {
 };
 
 export default async function SignUp(props: {
-  searchParams: Promise<Message>;
+  searchParams: Promise<Message & { redirect_to?: string }>;
 }) {
   const searchParams = await props.searchParams;
-  return <ClientPage searchParams={searchParams} />;
+  const redirectTo = searchParams.redirect_to;
+  return <ClientPage searchParams={searchParams} redirectTo={redirectTo} />;
 }

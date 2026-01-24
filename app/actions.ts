@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
+  const redirectTo = formData.get("redirect_to")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
@@ -19,11 +20,16 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
+  let emailRedirectTo = `${origin}/auth/callback`;
+  if (redirectTo) {
+    emailRedirectTo += `?redirect_to=${encodeURIComponent(redirectTo)}`;
+  }
+
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo,
     },
   });
 
@@ -31,13 +37,14 @@ export const signUpAction = async (formData: FormData) => {
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
   } else {
-    return encodedRedirect("success", "/dashboard", "Thanks for signing up!");
+    return encodedRedirect("success", "/dashboard", "Thanks for signing up! Please check your email for a verification link.");
   }
 };
 
 export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const redirectTo = formData.get("redirect_to")?.toString();
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -52,6 +59,10 @@ export const signInAction = async (formData: FormData) => {
     }
     console.error("Sign in error:", error.message);
     return encodedRedirect("error", "/sign-in", errorMessage);
+  }
+
+  if (redirectTo) {
+    return redirect(redirectTo);
   }
 
   return redirect("/dashboard");
@@ -134,14 +145,20 @@ export const signOutAction = async () => {
   return redirect("/sign-in");
 };
 
-export const signInWithGoogleAction = async () => {
+export const signInWithGoogleAction = async (formData: FormData) => {
+  const redirectTo = formData?.get("redirect_to")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
+
+  let callbackUrl = `${origin}/auth/callback`;
+  if (redirectTo) {
+    callbackUrl += `?redirect_to=${encodeURIComponent(redirectTo)}`;
+  }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: callbackUrl,
       queryParams: {
         access_type: "offline",
         prompt: "consent",
@@ -158,14 +175,20 @@ export const signInWithGoogleAction = async () => {
   }
 };
 
-export const signUpWithGoogleAction = async () => {
+export const signUpWithGoogleAction = async (formData: FormData) => {
+  const redirectTo = formData?.get("redirect_to")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
+
+  let callbackUrl = `${origin}/auth/callback`;
+  if (redirectTo) {
+    callbackUrl += `?redirect_to=${encodeURIComponent(redirectTo)}`;
+  }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: callbackUrl,
       queryParams: {
         access_type: "offline",
         prompt: "consent",

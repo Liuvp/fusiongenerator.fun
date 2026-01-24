@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Sparkles, Zap } from "lucide-react";
 
-export default function ClientPage({ searchParams }: { searchParams: Message }) {
+export default function ClientPage({ searchParams, redirectTo }: { searchParams: Message, redirectTo?: string }) {
     return (
         <>
             <div className="flex flex-col space-y-2 text-center">
@@ -42,6 +42,9 @@ export default function ClientPage({ searchParams }: { searchParams: Message }) 
 
             <div className="grid gap-6">
                 <form className="grid gap-4">
+                    {/* Redirect URL */}
+                    <input type="hidden" name="redirect_to" value={redirectTo || ""} />
+
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>
                         <Input
@@ -95,6 +98,7 @@ export default function ClientPage({ searchParams }: { searchParams: Message }) 
                     </div>
                 </div>
                 <form action={signInWithGoogleAction}>
+                    <input type="hidden" name="redirect_to" value={redirectTo || ""} />
                     <Button
                         type="submit"
                         variant="outline"
@@ -124,7 +128,7 @@ export default function ClientPage({ searchParams }: { searchParams: Message }) 
                 <div className="text-sm text-muted-foreground text-center">
                     Don't have an account?{" "}
                     <Link
-                        href="/sign-up"
+                        href={redirectTo ? `/sign-up?redirect_to=${encodeURIComponent(redirectTo)}` : "/sign-up"}
                         className="text-primary underline underline-offset-4 hover:text-primary/90 font-semibold"
                     >
                         Sign up for free

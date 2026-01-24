@@ -1,8 +1,12 @@
+export const runtime = "nodejs";
 
 import { createClient } from "@supabase/supabase-js";
-import { headers } from "next/headers";
 import crypto from "crypto";
 
+/**
+ * Supabase service-role client
+ * ⚠️ 仅可用于服务端（Webhook 场景是正确的）
+ */
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -10,74 +14,99 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   try {
+    /** 1️⃣ 读取原始 body（必须是 text，否则签名会失效） */
     const body = await req.text();
     const signature = req.headers.get("creem-signature");
 
     if (!signature) {
-      return new Response("Missing signature", { status: 400 });
+      return new Response("Missing creem-signature", { status: 400 });
     }
 
-    // Verify signature
-    // Note: In a real production environment, you MUST verify the signature.
-    // However, for this specific test case, if you don't have the webhook secret set up 
-    // or if Creem's test environment behaves differently, you might temporarily skip it.
-    // BUT valid verification code is provided below.
-
+    /** 2️⃣ 校验 webhook 签名 */
     const secret = process.env.CREEM_WEBHOOK_SECRET;
     if (secret) {
       const expectedSignature = crypto
         .createHmac("sha256", secret)
-        .update(body)
+        .update(body, "utf8")
         .digest("hex");
-      if (signature !== expectedSignature) {
+
+      // 安全对比（防 timing attack）
+      const isValid =
+        signature.length === expectedSignature.length &&
+        crypto.timingSafeEqual(
+          Buffer.from(signature),
+          Buffer.from(expectedSignature)
+        );
+
+      if (!isValid) {
+        console.error("❌ Invalid Creem webhook signature");
         return new Response("Invalid signature", { status: 401 });
       }
     }
 
+    /** 3️⃣ 解析事件 */
     const event = JSON.parse(body);
-    console.log("Received Creem Webhook Event:", event.type, event);
+    console.log("✅ Creem Webhook:", event.type);
 
+    /** 4️⃣ 处理订阅类事件 */
     switch (event.type) {
-      case "subscription.created":
+      case "subscription.active":
+      case "subscription.trialing":
       case "subscription.updated":
-        // Extract relevant data
-        // Note: Check the actual payload structure from Creem logs to be sure
+      case "subscription.canceled": {
         const subscription = event.data;
-        const userId = subscription.metadata?.user_id;
-        const status = subscription.status;
-        const currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
-        const productId = subscription.product_id;
 
-        if (userId) {
-          console.log(`Updating subscription for user ${userId} to ${status}`);
+        const userId = subscription?.metadata?.user_id;
+        if (!userId) {
+          console.warn("⚠️ Missing user_id in metadata");
+          break;
+        }
 
-          // Upsert into subscriptions table
-          const { error } = await supabase
-            .from("subscriptions")
-            .upsert({
+        const currentPeriodEnd = subscription.current_period_end
+          ? new Date(subscription.current_period_end * 1000).toISOString()
+          : null;
+
+        const { error } = await supabase
+          .from("subscriptions")
+          .upsert(
+            {
               user_id: userId,
-              status: status,
+              status: subscription.status,
               current_period_end: currentPeriodEnd,
               creem_subscription_id: subscription.id,
-              creem_product_id: productId,
-              cancel_at_period_end: subscription.cancel_at_period_end || false,
+              creem_product_id: subscription.product_id,
+              cancel_at_period_end:
+                subscription.cancel_at_period_end ?? false,
               updated_at: new Date().toISOString(),
-            }, { onConflict: 'user_id' }); // Assuming user_id is unique or primary key for 1:1 mapping
+            },
+            {
+              // ⚠️ 确保 user_id 在表中是 UNIQUE
+              onConflict: "user_id",
+            }
+          );
 
-          if (error) {
-            console.error("Error updating Supabase:", error);
-            return new Response("Database error", { status: 500 });
-          }
+        if (error) {
+          console.error("❌ Supabase upsert error:", error);
+          return new Response("Database error", { status: 500 });
         }
-        break;
 
+        console.log(`✅ Subscription synced for user ${userId}`);
+        break;
+      }
+
+      /** 5️⃣ 其他事件暂不处理 */
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        console.log("ℹ️ Unhandled event type:", event.type);
     }
 
-    return new Response(JSON.stringify({ received: true }), { status: 200 });
-  } catch (error: any) {
-    console.error("Webhook error:", error);
-    return new Response(`Webhook Error: ${error.message}`, { status: 400 });
+    return new Response(
+      JSON.stringify({ received: true }),
+      { status: 200 }
+    );
+  } catch (err: any) {
+    console.error("❌ Webhook handler error:", err);
+    return new Response(`Webhook error: ${err.message}`, {
+      status: 400,
+    });
   }
 }

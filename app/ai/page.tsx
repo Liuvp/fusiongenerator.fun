@@ -11,18 +11,43 @@ import Script from "next/script";
 const FusionClientPage = nextDynamic(() => import("./client-page"), {
     ssr: true,
     loading: () => (
-        <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-            <div className="text-center space-y-1">
-                <div className="h-8 bg-muted animate-pulse rounded w-48 mx-auto"></div>
-                <div className="h-4 bg-muted animate-pulse rounded w-64 mx-auto mt-2"></div>
+        <section className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-8">
+            {/* Header Skeleton */}
+            <div className="text-center space-y-2">
+                <div className="h-8 sm:h-10 bg-muted animate-pulse rounded-lg w-56 mx-auto"></div>
+                <div className="h-4 bg-muted animate-pulse rounded w-72 mx-auto mt-2"></div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="aspect-square bg-muted animate-pulse rounded-xl"></div>
-                <div className="aspect-square bg-muted animate-pulse rounded-xl"></div>
+
+            {/* Step 1 Label */}
+            <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-muted animate-pulse"></div>
+                <div className="h-4 bg-muted animate-pulse rounded w-32"></div>
             </div>
-            <div className="h-10 bg-muted animate-pulse rounded-md"></div>
-            <div className="h-12 bg-muted animate-pulse rounded-xl"></div>
-        </div>
+
+            {/* Upload Boxes - Mobile: Stack, Tablet+: Side by side */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div className="aspect-square bg-muted animate-pulse rounded-2xl"></div>
+                <div className="aspect-square bg-muted animate-pulse rounded-2xl"></div>
+            </div>
+
+            {/* Step 2 & Prompt */}
+            <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-muted animate-pulse"></div>
+                    <div className="h-4 bg-muted animate-pulse rounded w-36"></div>
+                </div>
+                <div className="h-12 bg-muted animate-pulse rounded-xl"></div>
+            </div>
+
+            {/* Step 3 & Generate Button */}
+            <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-muted animate-pulse"></div>
+                    <div className="h-4 bg-muted animate-pulse rounded w-28"></div>
+                </div>
+                <div className="h-14 bg-muted animate-pulse rounded-2xl"></div>
+            </div>
+        </section>
     )
 });
 
@@ -109,28 +134,29 @@ export default function AIFusionPage() {
             />
 
             <div className="min-h-screen bg-background">
-                <div className="container px-4 md:px-6 py-10 md:py-12">
-                    <div className="max-w-5xl mx-auto space-y-12 md:space-y-16">
+                <div className="container px-4 sm:px-6 py-8 sm:py-12">
+                    <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12 md:space-y-16">
 
-                        {/* Hero Section */}
-                        <div className="text-center space-y-6">
-                            <div className="inline-flex items-center rounded-full px-3 py-1 text-sm bg-primary/10 text-primary">
-                                <Sparkles className="mr-2 h-4 w-4" />
+                        {/* Hero Section - Mobile First */}
+                        <div className="text-center space-y-4 sm:space-y-6">
+                            <div className="inline-flex items-center rounded-full px-3 py-1.5 text-xs sm:text-sm bg-primary/10 text-primary font-medium">
+                                <Sparkles className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                 AI-Powered Fusion Studio
                             </div>
-                            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight">
                                 AI Fusion Generator
-                                <br />
-                                Create Anime & Character Fusions Instantly
+                                <span className="block text-2xl sm:text-3xl md:text-4xl mt-2 text-muted-foreground font-semibold">
+                                    Create Anime & Character Fusions
+                                </span>
                             </h1>
-                            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                            <p className="text-base sm:text-lg text-muted-foreground max-w-xl sm:max-w-2xl mx-auto leading-relaxed px-2">
                                 Advanced AI fusion technology to merge any two images. Supports characters, animals, and custom photos with professional results.
                             </p>
-                            <div className="flex flex-wrap gap-3 justify-center">
-                                <Button asChild className="h-10 px-4 py-2">
+                            <div className="flex flex-col sm:flex-row gap-3 justify-center px-4 sm:px-0">
+                                <Button asChild className="h-12 sm:h-11 px-6 text-base sm:text-sm rounded-xl">
                                     <Link href="#fusion-studio" aria-label="Start creating AI fusions">Start Fusing</Link>
                                 </Button>
-                                <Button asChild variant="outline" className="h-10 px-4 py-2">
+                                <Button asChild variant="outline" className="h-12 sm:h-11 px-6 text-base sm:text-sm rounded-xl">
                                     <Link href="/gallery" aria-label="View gallery of AI fusion examples">View Gallery</Link>
                                 </Button>
                             </div>
@@ -151,57 +177,68 @@ export default function AIFusionPage() {
                             </p>
                         </div>
 
-                        {/* Features Grid */}
-                        <div className="grid gap-6 md:grid-cols-3">
-                            <Card className="border-2 shadow-sm">
-                                <CardHeader>
-                                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                                        <Wand2 className="h-6 w-6 text-primary" />
-                                    </div>
-                                    <CardTitle className="text-lg">AI-Powered Blending</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground text-sm">
-                                        Deep learning algorithms analyze and merge images intelligently.
-                                    </p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-2 shadow-sm">
-                                <CardHeader>
-                                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                                        <Zap className="h-6 w-6 text-primary" />
-                                    </div>
-                                    <CardTitle className="text-lg">Instant Results</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground text-sm">
-                                        Generate professional-quality fusions in seconds, not hours.
-                                    </p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-2 shadow-sm">
-                                <CardHeader>
-                                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                                        <Sparkles className="h-6 w-6 text-primary" />
-                                    </div>
-                                    <CardTitle className="text-lg">Multiple Styles</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground text-sm">
-                                        Choose from balanced, artistic, or realistic fusion styles.
-                                    </p>
-                                </CardContent>
-                            </Card>
+                        {/* Features Grid - Mobile: Horizontal scroll, Tablet+: Grid */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg sm:text-xl font-semibold text-center sm:text-left">Why Choose Our AI Fusion</h3>
+
+                            {/* Mobile: Horizontal scrollable cards */}
+                            <div className="flex sm:grid sm:grid-cols-3 gap-4 overflow-x-auto snap-x snap-mandatory pb-4 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+                                <Card className="border-2 shadow-sm flex-shrink-0 w-[280px] sm:w-auto snap-start">
+                                    <CardHeader className="pb-2">
+                                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3">
+                                            <Wand2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                                        </div>
+                                        <CardTitle className="text-base sm:text-lg">AI-Powered Blending</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="pt-0">
+                                        <p className="text-muted-foreground text-sm leading-relaxed">
+                                            Deep learning algorithms analyze and merge images intelligently.
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                <Card className="border-2 shadow-sm flex-shrink-0 w-[280px] sm:w-auto snap-start">
+                                    <CardHeader className="pb-2">
+                                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-secondary/20 to-secondary/5 flex items-center justify-center mb-3">
+                                            <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-secondary" />
+                                        </div>
+                                        <CardTitle className="text-base sm:text-lg">Instant Results</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="pt-0">
+                                        <p className="text-muted-foreground text-sm leading-relaxed">
+                                            Generate professional-quality fusions in seconds, not hours.
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                <Card className="border-2 shadow-sm flex-shrink-0 w-[280px] sm:w-auto snap-start">
+                                    <CardHeader className="pb-2">
+                                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-3">
+                                            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
+                                        </div>
+                                        <CardTitle className="text-base sm:text-lg">Multiple Styles</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="pt-0">
+                                        <p className="text-muted-foreground text-sm leading-relaxed">
+                                            Choose from balanced, artistic, or realistic fusion styles.
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* Mobile scroll indicator */}
+                            <p className="text-xs text-muted-foreground text-center sm:hidden">
+                                ← Swipe to see more →
+                            </p>
                         </div>
 
                         {/* Example Fusions Section */}
                         <div className="space-y-6">
-                            <h3 className="text-2xl font-bold">Example AI Fusions</h3>
-                            <p className="text-muted-foreground text-base leading-relaxed">
-                                Explore stunning examples created with our AI fusion generator. From Dragon Ball character combinations to Pokemon hybrids, see what's possible with advanced AI image fusion technology.
+                            <h3 className="text-xl sm:text-2xl font-bold">Example AI Fusions</h3>
+                            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                                Explore stunning examples created with our AI fusion generator. From Dragon Ball character combinations to Pokemon hybrids, see what's possible.
                             </p>
 
-                            <div className="grid gap-6 sm:grid-cols-2">
+                            {/* Mobile: Horizontal scroll, Tablet+: 2-column grid */}
+                            <div className="flex sm:grid sm:grid-cols-2 gap-4 overflow-x-auto snap-x snap-mandatory pb-4 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
                                 {[
                                     {
                                         left: "Goku",
@@ -228,57 +265,62 @@ export default function AIFusionPage() {
                                         desc: "Tech-enhanced web-slinger hybrid"
                                     },
                                 ].map((item, i) => (
-                                    <Card key={i} className="border-2 shadow-sm">
-                                        <CardContent className="p-6">
+                                    <Card key={i} className="border-2 shadow-sm flex-shrink-0 w-[260px] sm:w-auto snap-start">
+                                        <CardContent className="p-4 sm:p-6">
                                             <div className="space-y-3">
-                                                <div className="relative w-full aspect-square bg-muted rounded-lg overflow-hidden border">
+                                                <div className="relative w-full aspect-square bg-muted rounded-xl overflow-hidden border">
                                                     <Image
                                                         src="/images/fusion-generator-logo.svg"
                                                         alt={`AI Fusion Example: ${item.left} and ${item.right} from ${item.series} - ${item.desc}`}
                                                         fill
-                                                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                                                        sizes="(max-width: 640px) 260px, (max-width: 768px) 50vw, 33vw"
                                                         loading="lazy"
-                                                        className="object-cover p-8 opacity-70"
+                                                        className="object-cover p-6 sm:p-8 opacity-70"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm text-muted-foreground">{item.left} × {item.right}</p>
-                                                    <p className="font-semibold text-lg">{item.series} Fusion</p>
-                                                    <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
+                                                    <p className="text-xs sm:text-sm text-muted-foreground">{item.left} × {item.right}</p>
+                                                    <p className="font-semibold text-base sm:text-lg">{item.series} Fusion</p>
+                                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.desc}</p>
                                                 </div>
                                             </div>
                                         </CardContent>
                                     </Card>
                                 ))}
                             </div>
+
+                            {/* Mobile scroll indicator */}
+                            <p className="text-xs text-muted-foreground text-center sm:hidden">
+                                ← Swipe to see more examples →
+                            </p>
                         </div>
 
-                        {/* FAQ Section */}
-                        <div className="space-y-6">
-                            <h3 className="text-2xl font-bold">Frequently Asked Questions</h3>
+                        {/* FAQ Section - Mobile optimized */}
+                        <div className="space-y-4 sm:space-y-6">
+                            <h3 className="text-xl sm:text-2xl font-bold">Frequently Asked Questions</h3>
                             <Card className="border-2 shadow-sm">
-                                <CardContent className="p-6 space-y-6">
+                                <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                                     {faqSchema.mainEntity.map((item, index) => (
-                                        <div key={index} className="space-y-2">
-                                            <div className="font-semibold">{item.name}</div>
-                                            <div className="text-sm text-muted-foreground">{item.acceptedAnswer.text}</div>
+                                        <div key={index} className="space-y-1.5 sm:space-y-2">
+                                            <div className="font-semibold text-sm sm:text-base">{item.name}</div>
+                                            <div className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{item.acceptedAnswer.text}</div>
                                         </div>
                                     ))}
                                 </CardContent>
                             </Card>
                         </div>
 
-                        {/* Bottom CTA */}
-                        <div className="text-center">
-                            <div className="inline-flex items-center rounded-full px-3 py-1 text-sm bg-primary/10 text-primary mb-4">
-                                <Sparkles className="mr-2 h-4 w-4" />
+                        {/* Bottom CTA - Mobile optimized */}
+                        <div className="text-center space-y-4 px-4 sm:px-0">
+                            <div className="inline-flex items-center rounded-full px-3 py-1.5 text-xs sm:text-sm bg-primary/10 text-primary font-medium">
+                                <Sparkles className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                 Ready to create amazing AI fusions?
                             </div>
-                            <div className="flex items-center justify-center gap-3">
-                                <Button asChild className="h-10 px-4 py-2">
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                                <Button asChild className="w-full sm:w-auto h-12 sm:h-11 px-6 text-base sm:text-sm rounded-xl">
                                     <Link href="/pricing" aria-label="View pricing plans and get started">Get Started</Link>
                                 </Button>
-                                <Button asChild variant="outline" className="h-10 px-4 py-2">
+                                <Button asChild variant="outline" className="w-full sm:w-auto h-12 sm:h-11 px-6 text-base sm:text-sm rounded-xl">
                                     <Link href="/gallery" aria-label="Explore more AI fusion examples in the gallery">Explore Gallery</Link>
                                 </Button>
                             </div>

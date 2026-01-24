@@ -69,10 +69,7 @@ export async function POST(request: Request) {
             product_id: productId,
             success_url: `${appUrl}/dashboard?payment=success`,
             customer: {
-                email: user.email,
-                metadata: {
-                    user_id: user.id
-                }
+                email: user.email
             },
             metadata: {
                 user_id: user.id,

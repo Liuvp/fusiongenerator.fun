@@ -8,6 +8,8 @@ import { ThemeSwitcher } from "./theme-switcher";
 import { Logo } from "./logo";
 import { usePathname } from "next/navigation";
 import { MobileNav } from "./mobile-nav";
+import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 interface NavItem {
   label: string;
@@ -15,9 +17,36 @@ interface NavItem {
   isButton?: boolean;
 }
 
-export default function Header({ user }: { user: any }) {
+const AUTH_PATHS = ["/sign-in", "/sign-up", "/forgot-password", "/auth/callback"];
+
+export default function Header({ user: initialUser }: { user: any }) {
+  const [user, setUser] = useState(initialUser);
   const pathname = usePathname() || "/";
   const isDashboard = pathname?.startsWith("/dashboard");
+  const supabase = createClient();
+
+  // Sync auth state on client side
+  useEffect(() => {
+    // Correct local state if server prop was stale
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user && !user) {
+        setUser(session.user);
+      } else if (!session?.user && user) {
+        setUser(null);
+      }
+    };
+
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase, user]);
 
   // Main navigation items for Fusion Generator
   const mainNavItems: NavItem[] = [
@@ -62,7 +91,7 @@ export default function Header({ user }: { user: any }) {
         <div className="flex items-center gap-2">
           <ThemeSwitcher />
           {user ? (
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2 animate-in fade-in duration-300">
               {isDashboard && (
                 <span className="hidden sm:inline text-sm text-muted-foreground">
                   {user.email}
@@ -85,12 +114,12 @@ export default function Header({ user }: { user: any }) {
               </form>
             </div>
           ) : (
-            <div className="hidden md:flex gap-2">
+            <div className="hidden md:flex gap-2 animate-in fade-in duration-300">
               <Button asChild size="sm" variant="outline">
-                <Link href="/sign-in">Sign in</Link>
+                <Link href={AUTH_PATHS.includes(pathname) ? "/sign-in" : `/sign-in?redirect_to=${encodeURIComponent(pathname)}`}>Sign in</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/sign-up">Sign up</Link>
+                <Link href={AUTH_PATHS.includes(pathname) ? "/sign-up" : `/sign-up?redirect_to=${encodeURIComponent(pathname)}`}>Sign up</Link>
               </Button>
             </div>
           )}

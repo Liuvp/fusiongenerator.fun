@@ -44,35 +44,91 @@ export async function POST(request: NextRequest) {
         // 3️⃣ 用户每日配额检查
         // ============================================================================
 
-        // 检查用户是否是VIP（订阅用户）
+        // 检查用户是否是 VIP（订阅用户）
+        // VIP = status is 'active' or 'trialing'
         const { data: subscription } = await supabase
             .from('subscriptions')
-            .select('*')
+            .select('status')
             .eq('user_id', user.id)
-            .eq('status', 'active')
-            .single();
+            .in('status', ['active', 'trialing'])
+            .maybeSingle();
 
         const isVIP = !!subscription;
 
-        // 根据VIP状态检查不同配额
-        const quota = isVIP
-            ? await checkVIPUserDailyQuota(user.id)
-            : await checkUserDailyQuota(user.id);
+        // 变量用于存储配额信息，供返回使用
+        let remainingQuota = 0;
+        let limitQuota = 0;
+        let usedQuota = 0;
 
-        if (!quota.allowed) {
-            const limitMessage = isVIP
-                ? 'Daily limit reached (10/day for VIP users).'
-                : 'Daily limit reached (3/day for free users). Upgrade to VIP for 10 generations per day!';
+        // 逻辑分支：
+        // 1. VIP 用户 -> 检查每日限额 (10次) -> 不扣积分
+        // 2. 免费用户 -> 检查积分 (>0) -> 扣除积分 (1分)
 
-            return NextResponse.json(
-                {
-                    error: limitMessage,
-                    used: quota.used,
-                    limit: isVIP ? 10 : 3,
-                    upgradeUrl: '/pricing',
-                },
-                { status: 429 }
-            );
+        let customerProfile: any = null;
+
+        if (isVIP) {
+            // === VIP 逻辑 (Redis 限额) ===
+            const quota = await checkVIPUserDailyQuota(user.id);
+            if (!quota.allowed) {
+                return NextResponse.json(
+                    {
+                        error: 'Daily limit reached for VIP plan (10 generations/day).',
+                        used: quota.used,
+                        limit: 10,
+                        upgradeUrl: '/pricing',
+                    },
+                    { status: 429 }
+                );
+            }
+            usedQuota = quota.used;
+            remainingQuota = quota.remaining;
+            limitQuota = 10;
+        } else {
+            // === 免费用户逻辑 (DB 积分) ===
+
+            // 1. 获取积分配置
+            const COST_PER_GEN = 1;
+
+            // 2. 查询用户积分
+            // (如果没有 profile 则自动创建，初始送 3 分 - 与 AI Studio 逻辑保持一致)
+            const { data: customer, error: custError } = await supabase
+                .from("customers")
+                .select("credits, id")
+                .eq("user_id", user.id)
+                .single();
+
+            if (customer) {
+                customerProfile = customer;
+            } else {
+                // Auto-create profile for new users
+                const { data: newCustomer, error: createError } = await supabase
+                    .from("customers")
+                    .insert([{ user_id: user.id, credits: 3 }])
+                    .select("credits, id")
+                    .single();
+
+                if (!createError && newCustomer) {
+                    customerProfile = newCustomer;
+                }
+            }
+
+            // 3. 检查积分是否足够
+            const currentCredits = customerProfile?.credits || 0;
+
+            if (currentCredits < COST_PER_GEN) {
+                return NextResponse.json(
+                    {
+                        error: 'Insufficient credits. Please upgrade or top up.',
+                        upgradeUrl: '/pricing',
+                    },
+                    { status: 402 }
+                );
+            }
+
+            // 设置显示变量 (预扣除)
+            usedQuota = 0; // 免费用户不展示“已用次数”，只展示积分
+            remainingQuota = currentCredits; // 这里暂存当前积分，生成成功后再减
+            limitQuota = 0; // 无限制
         }
 
         // ============================================================================
@@ -105,7 +161,7 @@ export async function POST(request: NextRequest) {
         console.log('User:', user.email);
         console.log('IP:', clientIP);
         console.log('VIP:', isVIP);
-        console.log('Quota:', `${quota.used}/${isVIP ? 10 : 3}`);
+        console.log('Quota:', isVIP ? `${usedQuota}/10 (VIP)` : `${remainingQuota} Credits (Free)`);
         console.log('Content Type:', isDragonBall ? 'Dragon Ball' : 'Pokemon');
         console.log('User Prompt:', prompt);
 
@@ -156,17 +212,38 @@ ${prompt}`;
         }
 
         console.log('Image URL:', imageUrl);
-        console.log('Quota used:', quota.used, '/', isVIP ? 10 : 3);
+        console.log('Image URL:', imageUrl);
+
+        // ============================================================================
+        // 5️⃣ 扣费逻辑 (仅限免费用户)
+        // ============================================================================
+        if (!isVIP && customerProfile) {
+            const COST_PER_GEN = 1;
+            const { error: updateError } = await supabase
+                .from("customers")
+                .update({ credits: customerProfile.credits - COST_PER_GEN })
+                .eq("id", customerProfile.id);
+
+            if (updateError) {
+                console.error("Failed to deduct credits:", updateError);
+            } else {
+                remainingQuota = customerProfile.credits - COST_PER_GEN;
+                console.log(`Deducted ${COST_PER_GEN} credit. Remaining: ${remainingQuota}`);
+            }
+        }
+
+        console.log('Quota/Credits info:', isVIP ? `VIP Used: ${usedQuota}` : `Credits Left: ${remainingQuota}`);
 
         // 返回结果（包含配额信息）
         return NextResponse.json({
             imageUrl: imageUrl,
             prompt: prompt,
             quota: {
-                used: quota.used,
-                remaining: quota.remaining,
-                limit: isVIP ? 10 : 3,
+                used: usedQuota,
+                remaining: remainingQuota, // VIP: daily remaining; Free: credits remaining
+                limit: limitQuota,
                 isVIP: isVIP,
+                type: isVIP ? 'daily_limit' : 'credits'
             }
         });
 

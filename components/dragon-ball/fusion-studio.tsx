@@ -45,12 +45,36 @@ export function DBFusionStudio() {
 
     // 用户状态
     const [user, setUser] = useState<any>(null);
+    const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
-    // 获取用户 session 和配额
+    // 获取用户 session 和配额 - 改进的认证检测
     useEffect(() => {
         const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
+            try {
+                console.log('[DBFusion] 开始检查用户认证状态...');
+
+                // 1. 首先尝试获取 Session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                console.log('[DBFusion] Session 检查:', {
+                    hasSession: !!session,
+                    sessionError: sessionError?.message
+                });
+
+                // 2. 然后获取用户信息
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                console.log('[DBFusion] 用户信息:', {
+                    hasUser: !!user,
+                    userId: user?.id,
+                    email: user?.email,
+                    userError: userError?.message
+                });
+
+                setUser(user);
+                setIsLoadingAuth(false);
+            } catch (error) {
+                console.error('[DBFusion] 认证检查失败:', error);
+                setIsLoadingAuth(false);
+            }
         };
 
         const fetchQuota = async () => {
@@ -59,14 +83,36 @@ export function DBFusionStudio() {
                 if (response.ok) {
                     const data = await response.json();
                     setQuota(data.quota);
+                    console.log('[DBFusion] 配额信息:', data.quota);
                 }
             } catch (error) {
-                console.error('Failed to fetch quota:', error);
+                console.error('[DBFusion] 获取配额失败:', error);
             }
         };
 
         checkUser();
         fetchQuota();
+
+        // 3. 监听认证状态变化（关键！）
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (event, session) => {
+                console.log('[DBFusion] 认证状态变化:', { event, hasSession: !!session, userId: session?.user?.id });
+
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                    setUser(session?.user ?? null);
+                    // 重新获取配额
+                    fetchQuota();
+                } else if (event === 'SIGNED_OUT') {
+                    setUser(null);
+                    setQuota(null);
+                }
+            }
+        );
+
+        // 清理订阅
+        return () => {
+            subscription.unsubscribe();
+        };
     }, [supabase]);
 
     // 自动更新 Prompt
@@ -132,6 +178,19 @@ export function DBFusionStudio() {
                     description: data.error || "Daily limit exceeded",
                     variant: "destructive",
                 });
+                return;
+            }
+
+            // 4. 积分不足检查 (后端返回 402) 🔥 新增
+            if (response.status === 402) {
+                toast({
+                    title: "🪙 Insufficient Credits",
+                    description: data.error || "Please upgrade or top up to continue generating.",
+                    variant: "destructive",
+                });
+
+                // 延迟跳转到定价页面
+                setTimeout(() => window.location.href = data.upgradeUrl || '/pricing?source=dragon_ball&reason=insufficient_credits', 2000);
                 return;
             }
 
