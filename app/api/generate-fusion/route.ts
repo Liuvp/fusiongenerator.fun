@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
         if (authError || !user) {
             return NextResponse.json(
-                { error: 'Authentication required. Please sign in to generate fusions.' },
+                { error: '[Auth Error] Authentication required. Please sign in to generate fusions.' },
                 { status: 401 }
             );
         }
@@ -180,17 +180,23 @@ ${prompt}`;
         // ============================================================================
 
         console.log('Calling Fal.ai...');
-        const result: any = await fal.run("fal-ai/flux/dev", {
-            input: {
-                prompt: fullPrompt,
-                negative_prompt: selectedNegativePrompt,
-                image_size: "square_hd",     // 1024x1024
-                num_inference_steps: 38,     // 最高质量和清晰度
-                guidance_scale: 7.5,         // 强Prompt遵循度
-                num_images: 1,
-                enable_safety_checker: true,
-            },
-        });
+        let result: any;
+        try {
+            result = await fal.run("fal-ai/flux/dev", {
+                input: {
+                    prompt: fullPrompt,
+                    negative_prompt: selectedNegativePrompt,
+                    image_size: "square_hd",     // 1024x1024
+                    num_inference_steps: 38,     // 最高质量和清晰度
+                    guidance_scale: 7.5,         // 强Prompt遵循度
+                    num_images: 1,
+                    enable_safety_checker: true,
+                },
+            });
+        } catch (falErr: any) {
+            console.error("Fal Execution Error:", falErr);
+            throw new Error(`[Fal Error] ${falErr.message || "Fal API failed"}`);
+        }
 
         console.log('Generation Complete!');
 
@@ -254,7 +260,7 @@ ${prompt}`;
         console.error('Full error:', error);
 
         return NextResponse.json(
-            { error: error.message || 'Generation failed' },
+            { error: `[API Error] ${error.message || 'Generation failed'}` },
             { status: 500 }
         );
     }
