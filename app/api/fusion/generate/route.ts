@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { createClient as createJsClient } from "@supabase/supabase-js";
-import { storage, subscribe } from "@fal-ai/serverless-client";
+import { storage, subscribe, config } from "@fal-ai/serverless-client";
 
-// Set FAL_KEY (handled by environment variables automatically for @fal-ai/serverless-client if set)
-// But we need to ensure it's available server-side.
+// Set FAL_KEY explicitly to ensure server-side access
+config({
+    credentials: process.env.FAL_KEY,
+});
 
 export const maxDuration = 60; // Allow 60s for execution
 
