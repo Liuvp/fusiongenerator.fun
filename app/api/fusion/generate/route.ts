@@ -8,18 +8,32 @@ import { storage, subscribe } from "@fal-ai/serverless-client";
 
 export const maxDuration = 60; // Allow 60s for execution
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
 export async function POST(req: NextRequest) {
     try {
-        const supabase = await createClient(); // User client for Auth
-        const supabaseAdmin = createJsClient(supabaseUrl, supabaseServiceKey); // Admin client for DB ops
+        let supabase = await createClient(); // User client for Auth
 
         // [DEBUG] Log HEADERS
         console.log("[API DEBUG] Headers:", JSON.stringify(Object.fromEntries(req.headers.entries())));
 
-        // ... Authentication logic using 'supabase' (User Client) remains same ...
+        // 0. Check for Authorization Header (Bearer Token) override
+        const authHeader = req.headers.get('Authorization');
+        if (authHeader) {
+            console.log("[API DEBUG] Found Authorization Header");
+            try {
+                const tokenClient = createJsClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+                    { global: { headers: { Authorization: authHeader } } }
+                );
+                const { data: { user: headerUser }, error: headerError } = await tokenClient.auth.getUser();
+                if (headerUser && !headerError) {
+                    supabase = tokenClient as any;
+                }
+            } catch (e) {
+                console.warn("[API DEBUG] Token Client Error:", e);
+            }
+        }
+
         // Try getUser() first (most secure)
         let { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -34,10 +48,10 @@ export async function POST(req: NextRequest) {
         }
 
 
-        // 1. Check Credits / Subscription using ADMIN CLIENT (Bypass RLS)
+        // 1. Check Credits / Subscription (User Client)
         let activeCustomer: any = null;
         try {
-            const { data: customer, error: custError } = await supabaseAdmin
+            const { data: customer, error: custError } = await supabase
                 .from("customers")
                 .select("credits, id")
                 .eq("user_id", user.id)
@@ -48,8 +62,8 @@ export async function POST(req: NextRequest) {
             } else if (custError && custError.code !== 'PGRST116') {
                 throw custError;
             } else {
-                // Auto-create using Admin
-                const { data: newCustomer, error: createError } = await supabaseAdmin
+                // Auto-create
+                const { data: newCustomer, error: createError } = await supabase
                     .from("customers")
                     .insert([{ user_id: user.id, credits: 3 }])
                     .select("credits, id")
@@ -110,16 +124,16 @@ export async function POST(req: NextRequest) {
         });
 
 
-        // 5. Deduct Credit (Cost: 1) using ADMIN CLIENT
+        // 5. Deduct Credit (Cost: 1) using USER CLIENT
         const COST = 1;
         try {
-            const { error: updateError } = await supabaseAdmin
+            const { error: updateError } = await supabase
                 .from("customers")
                 .update({ credits: activeCustomer.credits - COST })
                 .eq("id", activeCustomer.id);
 
             if (updateError) {
-                console.error("CRITICAL: Failed to deduct credit:", updateError);
+                console.error("Failed to deduct credit:", updateError);
                 // In production, we might want to refund the generation or retry.
             }
         } catch (e) {
