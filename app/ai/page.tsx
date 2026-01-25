@@ -7,49 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, Zap, Wand2, Upload, ChevronDown } from "lucide-react";
 import Script from "next/script";
 
-// Dynamic import for heavy client component
-const FusionClientPage = nextDynamic(() => import("./client-page"), {
-    ssr: true,
-    loading: () => (
-        <section className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-8">
-            {/* Header Skeleton */}
-            <div className="text-center space-y-2">
-                <div className="h-8 sm:h-10 bg-muted animate-pulse rounded-lg w-56 mx-auto"></div>
-                <div className="h-4 bg-muted animate-pulse rounded w-72 mx-auto mt-2"></div>
-            </div>
-
-            {/* Step 1 Label */}
-            <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-muted animate-pulse"></div>
-                <div className="h-4 bg-muted animate-pulse rounded w-32"></div>
-            </div>
-
-            {/* Upload Boxes - Mobile: Stack, Tablet+: Side by side */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div className="aspect-square bg-muted animate-pulse rounded-2xl"></div>
-                <div className="aspect-square bg-muted animate-pulse rounded-2xl"></div>
-            </div>
-
-            {/* Step 2 & Prompt */}
-            <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-muted animate-pulse"></div>
-                    <div className="h-4 bg-muted animate-pulse rounded w-36"></div>
-                </div>
-                <div className="h-12 bg-muted animate-pulse rounded-xl"></div>
-            </div>
-
-            {/* Step 3 & Generate Button */}
-            <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-muted animate-pulse"></div>
-                    <div className="h-4 bg-muted animate-pulse rounded w-28"></div>
-                </div>
-                <div className="h-14 bg-muted animate-pulse rounded-2xl"></div>
-            </div>
-        </section>
-    )
-});
+import FusionClientPage from "./client-page";
 
 // Force static generation to ensure meta tags are in <head>
 export const dynamic = 'force-static';

@@ -1,9 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { fadeInUp, staggerContainer } from "./animations";
 
 function getEnSeoImageName(series: 'dragon-ball' | 'pokemon', left: string, right: string) {
     const s = series === 'dragon-ball' ? 'Dragon Ball fusion' : 'Pokemon fusion'
@@ -14,29 +10,14 @@ export function GalleryPreview() {
     return (
         <section className="py-16 px-4 md:px-6 lg:px-8 bg-gray-50">
             <div className="container mx-auto max-w-6xl">
-                <motion.div
-                    className="text-center mb-12"
-                    initial="initial"
-                    whileInView="animate"
-                    viewport={{ once: true }}
-                    variants={fadeInUp}
-                >
+                <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Fusion Gallery - Dragon Ball & Pokemon Character Fusions</h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">Browse our collection of amazing Dragon Ball and Pokemon character fusions. Get inspired by community creations and start your own fusion journey.</p>
-                </motion.div>
+                </div>
 
-                <motion.div
-                    className="grid grid-cols-2 md:grid-cols-4 gap-4"
-                    variants={staggerContainer}
-                    initial="initial"
-                    whileInView="animate"
-                    viewport={{ once: true }}
-                >
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {/* 融合作品1 */}
-                    <motion.div
-                        variants={fadeInUp}
-                        className="relative group overflow-hidden rounded-lg shadow-md"
-                    >
+                    <div className="relative group overflow-hidden rounded-lg shadow-md">
                         <Image
                             src="/gallery/Dragon-Ball-Character-Fusion-Goku-Vegeta-HD-Preview.webp"
                             alt={getEnSeoImageName('dragon-ball', 'Goku', 'Vegeta')}
@@ -47,13 +28,10 @@ export function GalleryPreview() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                             <p className="text-white p-4 text-sm">Dragon Ball Fusion: Goku + Vegeta</p>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* 融合作品2 */}
-                    <motion.div
-                        variants={fadeInUp}
-                        className="relative group overflow-hidden rounded-lg shadow-md"
-                    >
+                    <div className="relative group overflow-hidden rounded-lg shadow-md">
                         <Image
                             src="/gallery/Pokemon-Character-Fusion-Pikachu-Charizard-HD-Preview.webp"
                             alt={getEnSeoImageName('pokemon', 'Pikachu', 'Charizard')}
@@ -64,13 +42,10 @@ export function GalleryPreview() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                             <p className="text-white p-4 text-sm">Pokemon Fusion: Pikachu + Charizard</p>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* 融合作品3 */}
-                    <motion.div
-                        variants={fadeInUp}
-                        className="relative group overflow-hidden rounded-lg shadow-md"
-                    >
+                    <div className="relative group overflow-hidden rounded-lg shadow-md">
                         <Image
                             src="/gallery/Dragon-Ball-Character-Fusion-Gohan-Piccolo-HD-Preview.webp"
                             alt={getEnSeoImageName('dragon-ball', 'Gohan', 'Piccolo')}
@@ -81,13 +56,10 @@ export function GalleryPreview() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                             <p className="text-white p-4 text-sm">Dragon Ball Fusion: Gohan + Piccolo</p>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* 融合作品4 */}
-                    <motion.div
-                        variants={fadeInUp}
-                        className="relative group overflow-hidden rounded-lg shadow-md"
-                    >
+                    <div className="relative group overflow-hidden rounded-lg shadow-md">
                         <Image
                             src="/gallery/Pokemon-Character-Fusion-Mewtwo-Lucario-HD-Preview.webp"
                             alt={getEnSeoImageName('pokemon', 'Mewtwo', 'Lucario')}
@@ -98,23 +70,17 @@ export function GalleryPreview() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                             <p className="text-white p-4 text-sm">Pokemon Fusion: Mewtwo + Lucario</p>
                         </div>
-                    </motion.div>
-                </motion.div>
+                    </div>
+                </div>
 
-                <motion.div
-                    className="text-center mt-10"
-                    initial="initial"
-                    whileInView="animate"
-                    viewport={{ once: true }}
-                    variants={fadeInUp}
-                >
+                <div className="text-center mt-10">
                     <Link
                         href="/gallery"
                         className="inline-block px-8 py-3 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition-all"
                     >
                         View Dragon Ball & Pokémon Fusions
                     </Link>
-                </motion.div>
+                </div>
             </div>
         </section>
     );

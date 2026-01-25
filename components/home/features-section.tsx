@@ -9,27 +9,14 @@ export function FeaturesSection() {
     return (
         <section className="py-16 px-4 md:px-6 lg:px-8 bg-white">
             <div className="container mx-auto max-w-6xl">
-                <motion.div
-                    className="text-center mb-12"
-                    initial="initial"
-                    whileInView="animate"
-                    viewport={{ once: true }}
-                    variants={fadeInUp}
-                >
+                <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Explore Our Fusion Tools</h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">Select a specialized generator to start creating your unique characters.</p>
-                </motion.div>
+                </div>
 
-                <motion.div
-                    className="grid grid-cols-1 md:grid-cols-3 gap-8"
-                    variants={staggerContainer}
-                    initial="initial"
-                    whileInView="animate"
-                    viewport={{ once: true }}
-                >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Dragon Ball Fusion */}
                     <motion.div
-                        variants={fadeInUp}
                         whileHover={{ y: -8, transition: { duration: 0.2 } }}
                         className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
                     >
@@ -59,7 +46,6 @@ export function FeaturesSection() {
 
                     {/* Pokemon Fusion */}
                     <motion.div
-                        variants={fadeInUp}
                         whileHover={{ y: -8, transition: { duration: 0.2 } }}
                         className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
                     >
@@ -89,7 +75,6 @@ export function FeaturesSection() {
 
                     {/* AI Fusion */}
                     <motion.div
-                        variants={fadeInUp}
                         whileHover={{ y: -8, transition: { duration: 0.2 } }}
                         className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
                     >
@@ -116,7 +101,7 @@ export function FeaturesSection() {
                             </Link>
                         </div>
                     </motion.div>
-                </motion.div>
+                </div>
             </div>
         </section>
     );
