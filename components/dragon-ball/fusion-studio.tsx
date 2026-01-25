@@ -338,7 +338,7 @@ export function DBFusionStudio() {
                                                                     alt={`${c.name} - ${c.description.substring(0, 50)}`}
                                                                     fill
                                                                     sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, 100px"
-                                                                    {...(charIndex < 6 ? { priority: true } : { loading: "lazy" as const })}
+                                                                    loading="lazy"
                                                                     className="object-contain transition-transform duration-300"
                                                                 />
                                                             </div>

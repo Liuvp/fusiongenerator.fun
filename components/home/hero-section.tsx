@@ -1,9 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { fadeInUp, fadeInScale, staggerContainer } from "./animations";
 
 export function HeroSection() {
     return (
@@ -34,10 +30,7 @@ export function HeroSection() {
                         </div>
                     </div>
 
-                    <motion.div
-                        variants={fadeInScale}
-                        className="w-full md:w-1/2"
-                    >
+                    <div className="w-full md:w-1/2">
                         <div className="relative">
                             <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg blur-lg opacity-75 animate-pulse"></div>
                             <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
@@ -52,7 +45,7 @@ export function HeroSection() {
                                 />
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </section>

@@ -370,7 +370,6 @@ export function PokeFusionStudio() {
                                                         sizes="(max-width: 640px) 30vw, (max-width: 768px) 25vw, 100px"
                                                         loading="lazy"
                                                         className="object-contain p-1"
-                                                        unoptimized
                                                     />
                                                 </div>
                                                 <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>
@@ -417,7 +416,6 @@ export function PokeFusionStudio() {
                                                         sizes="(max-width: 640px) 30vw, (max-width: 768px) 25vw, 100px"
                                                         loading="lazy"
                                                         className="object-contain p-1"
-                                                        unoptimized
                                                     />
                                                 </div>
                                                 <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>

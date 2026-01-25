@@ -14,8 +14,20 @@ export function DBPopularFusions() {
 
             <div className="grid gap-6 sm:grid-cols-2">
                 {[
-                    { left: "Goku", right: "Vegeta", name: "Gogeta Variant" },
-                    { left: "Piccolo", right: "Gohan", name: "Mentor’s Resolve" },
+                    {
+                        left: "Goku",
+                        right: "Vegeta",
+                        name: "Gogeta Variant",
+                        image: "/images/goku-vegeta-gogeta-fusion-avatar.webp",
+                        alt: "Gogeta fusion avatar combining Goku and Vegeta Dragon Ball Z characters"
+                    },
+                    {
+                        left: "Vegeta",
+                        right: "Piccolo",
+                        name: "Tactical Powerhouse",
+                        image: "/images/vegeta-piccolo-potara-fusion.webp",
+                        alt: "Vegeta and Piccolo Potara fusion with Supreme Kai earrings and combined powers"
+                    },
                     { left: "Trunks", right: "Goten", name: "Future Spark" },
                     { left: "Frieza", right: "Cell", name: "Perfect Emperor" },
                 ].map((item, i) => (
@@ -28,10 +40,10 @@ export function DBPopularFusions() {
                                 </div>
                                 <div className="relative w-20 h-20 bg-muted rounded-full overflow-hidden border">
                                     <Image
-                                        src="/images/fusion-generator-logo.svg"
-                                        alt={`Dragon Ball Fusion Generator – ${item.left} and ${item.right} fusion preview`}
+                                        src={(item as any).image || "/images/fusion-generator-logo.svg"}
+                                        alt={(item as any).alt || `Dragon Ball Fusion Generator – ${item.left} and ${item.right} fusion preview`}
                                         fill
-                                        className="object-cover p-2"
+                                        className={(item as any).image ? "object-cover" : "object-cover p-2"}
                                     />
                                 </div>
                             </div>

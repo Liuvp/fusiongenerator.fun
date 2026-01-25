@@ -30,8 +30,8 @@ export function DBHero() {
             </div>
             <div className="relative w-full h-[260px] md:h-[360px]">
                 <Image
-                    src="/images/fusion-generator-logo.svg"
-                    alt="Dragon Ball Z fusion generator preview – Goku and Vegeta"
+                    src="/images/dragon-ball-fusion-preview-goku-vegeta.webp"
+                    alt="Dragon Ball Z fusion example showing combined Goku and Vegeta characters"
                     fill
                     className="object-contain"
                     priority
