@@ -42,5 +42,18 @@
                 }
             ]
         }
+    ],
+    "redirects": [
+        {
+            "source": "/:path*",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "www.fusiongenerator.fun"
+                }
+            ],
+            "destination": "https://fusiongenerator.fun/:path*",
+            "permanent": true
+        }
     ]
 }
