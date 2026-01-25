@@ -14,7 +14,7 @@ const baseUrl = process.env.BASE_URL
   ? `https://${process.env.BASE_URL}`
   : "https://fusiongenerator.fun/";
 
-export const dynamic = 'force-dynamic';
+
 
 export const metadata = {
   metadataBase: new URL("https://fusiongenerator.fun/"),
