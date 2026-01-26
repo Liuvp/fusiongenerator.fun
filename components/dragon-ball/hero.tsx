@@ -34,7 +34,9 @@ export function DBHero() {
                     alt="Dragon Ball Z fusion example showing combined Goku and Vegeta characters"
                     fill
                     className="object-contain"
-                    priority
+                    priority={true}
+                    loading="eager"
+                    fetchPriority="high"
                 />
             </div>
         </div>

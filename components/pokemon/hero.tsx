@@ -35,7 +35,9 @@ export function PokeHero() {
                     alt="AI-generated Pokémon character fusion preview showing combined creature designs"
                     fill
                     className="object-contain"
-                    priority
+                    priority={true}
+                    loading="eager"
+                    fetchPriority="high"
                 />
             </div>
         </div>
