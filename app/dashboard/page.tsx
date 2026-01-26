@@ -2,7 +2,6 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { SubscriptionStatusCard } from "@/components/dashboard/subscription-status-card";
 import { CreditsBalanceCard } from "@/components/dashboard/credits-balance-card";
-import { GenerationQuotaCard } from "@/components/dashboard/generation-quota-card";
 import { QuickActionsCard } from "@/components/dashboard/quick-actions-card";
 import { Metadata } from "next";
 
@@ -82,13 +81,12 @@ export default async function DashboardPage(props: DashboardPageProps) {
       )}
 
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
         <SubscriptionStatusCard subscription={subscription} />
         <CreditsBalanceCard
           credits={credits}
           recentHistory={recentCreditsHistory}
         />
-        <GenerationQuotaCard />
         <QuickActionsCard />
       </div>
 

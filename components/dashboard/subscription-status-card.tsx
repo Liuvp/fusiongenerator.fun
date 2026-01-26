@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import {
   CreditCard,
   Package2,
@@ -160,7 +162,14 @@ export function SubscriptionStatusCard({
       )}
       <div className="mt-4">
         {subscription ? (
-          <SubscriptionPortalDialog />
+          <div className="flex flex-col gap-2">
+            <SubscriptionPortalDialog />
+            <Button variant="secondary" className="w-full text-xs h-8" asChild>
+              <a href="/pricing">
+                View Plans / Buy Add-ons
+              </a>
+            </Button>
+          </div>
         ) : (
           <a href="/pricing" className="block">
             <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 shadow-lg hover:shadow-xl h-9 px-4 py-2 w-full">
