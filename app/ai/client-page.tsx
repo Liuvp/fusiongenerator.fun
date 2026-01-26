@@ -62,23 +62,12 @@ function UploadBox({ side, file, onUpload, onRemove, disabled }: UploadBoxProps)
 
     return (
         <div className="relative w-full">
-            <div
-                {...getRootProps()}
-                className={`relative w-full cursor-pointer group focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-2xl transition-all duration-300 ${disabled ? 'opacity-50 pointer-events-none' : ''
-                    }`}
-                role="button"
-                aria-label={file ? `Uploaded ${side === "left" ? "Image A" : "Image B"}, click to manage` : `Upload ${side === "left" ? "Image A" : "Image B"}`}
-                tabIndex={0}
-                onClick={handleTap}
-                onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        handleTap();
-                    }
-                }}
-            >
-                <input {...getInputProps()} />
-
-                {file ? (
+            {file ? (
+                // File Present State - No role="button" on container to avoid nested interactive elements
+                <div
+                    className="relative w-full rounded-2xl transition-all duration-300"
+                    onClick={handleTap}
+                >
                     <div className="relative aspect-square rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-background to-muted/30 overflow-hidden shadow-lg">
                         <Image
                             src={file.preview}
@@ -123,7 +112,24 @@ function UploadBox({ side, file, onUpload, onRemove, disabled }: UploadBoxProps)
                             </button>
                         </div>
                     </div>
-                ) : (
+                </div>
+            ) : (
+                // Upload State - Single interactive element
+                <div
+                    {...getRootProps()}
+                    className={`relative w-full cursor-pointer group focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-2xl transition-all duration-300 ${disabled ? 'opacity-50 pointer-events-none' : ''
+                        }`}
+                    role="button"
+                    aria-label={`Upload ${side === "left" ? "Image A" : "Image B"}`}
+                    tabIndex={0}
+                    onClick={handleTap}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            handleTap();
+                        }
+                    }}
+                >
+                    <input {...getInputProps()} />
                     <div
                         className={`aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all duration-300 ${isDragActive
                             ? "border-primary bg-primary/10 scale-[1.02]"
@@ -143,8 +149,8 @@ function UploadBox({ side, file, onUpload, onRemove, disabled }: UploadBoxProps)
                             JPG, PNG, WebP (Max 5MB)
                         </p>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Mobile Close Actions Hint */}
             {file && showActions && (
