@@ -292,7 +292,12 @@ export default function AIFusionPage() {
                             </p>
 
                             {/* Mobile: Horizontal scroll, Tablet+: 2-column grid */}
-                            <div className="flex sm:grid sm:grid-cols-2 gap-4 overflow-x-auto snap-x snap-mandatory pb-4 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+                            <div
+                                className="flex sm:grid sm:grid-cols-2 gap-4 overflow-x-auto snap-x snap-mandatory pb-4 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-xl"
+                                role="region"
+                                aria-label="Example fusions gallery"
+                                tabIndex={0}
+                            >
                                 {[
                                     {
                                         left: "Goku",
@@ -331,7 +336,7 @@ export default function AIFusionPage() {
                                                         src={item.image}
                                                         alt={`AI Fusion Example: ${item.left} and ${item.right} from ${item.series} - ${item.desc}`}
                                                         fill
-                                                        sizes="(max-width: 640px) 260px, (max-width: 768px) 50vw, 33vw"
+                                                        sizes="(max-width: 640px) 260px, (max-width: 1024px) 50vw, 400px"
                                                         loading="lazy"
                                                         className="object-cover hover:scale-110 transition-transform duration-700"
                                                     />
