@@ -376,8 +376,8 @@ export function DBFusionStudio() {
                                     `}
                                     onClick={() => setStyle(s)}
                                 >
-                                    <RadioGroupItem value={s.id} id={s.id} className="text-orange-600 border-orange-600" />
-                                    <Label htmlFor={s.id} className="text-xs cursor-pointer flex-1 font-medium">
+                                    <RadioGroupItem value={s.id} id={`style-${s.id}`} className="text-orange-600 border-orange-600" />
+                                    <Label htmlFor={`style-${s.id}`} className="text-xs cursor-pointer flex-1 font-medium">
                                         {s.name}
                                     </Label>
                                 </div>
