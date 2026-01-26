@@ -200,7 +200,8 @@ export async function POST(req: NextRequest) {
             });
 
             // 5. Deduct Credit Only for Logged In Users
-            let remainingCredits = 0;
+            let remainingCredits = activeCustomer ? activeCustomer.credits : 0;
+
             if (user && activeCustomer) {
                 try {
                     const { error: updateError } = await supabase
@@ -211,9 +212,6 @@ export async function POST(req: NextRequest) {
                     if (!updateError) remainingCredits = activeCustomer.credits - COST;
                     else console.error("Failed to deduct credit:", updateError);
                 } catch (e) { console.error("Deduction Error:", e); }
-            } else {
-                // For anonymous, remaining is 0 (since they only had 1)
-                remainingCredits = 0;
             }
 
             return NextResponse.json({

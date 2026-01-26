@@ -46,15 +46,19 @@ export async function POST(req: Request) {
 
     /** 3️⃣ 解析事件 */
     const event = JSON.parse(body);
-    console.log("✅ Creem Webhook:", event.type);
+    console.log("🔍 [DEBUG] Creem Webhook Payload:", JSON.stringify(event, null, 2));
+
+    // Fix: Creem uses 'eventType', not 'type'
+    const eventType = event.eventType;
+    console.log("✅ Creem Webhook Type:", eventType);
 
     /** 4️⃣ 处理订阅类事件 */
-    switch (event.type) {
+    switch (eventType) {
       case "subscription.active":
       case "subscription.trialing":
       case "subscription.updated":
       case "subscription.canceled": {
-        const subscription = event.data;
+        const subscription = event.object;
 
         const userId = subscription?.metadata?.user_id;
         if (!userId) {
@@ -62,9 +66,19 @@ export async function POST(req: Request) {
           break;
         }
 
-        const currentPeriodEnd = subscription.current_period_end
-          ? new Date(subscription.current_period_end * 1000).toISOString()
-          : null;
+        // Creem sends ISO string in 'current_period_end_date'
+        const rawEndDate = subscription.current_period_end_date || subscription.current_period_end;
+        let currentPeriodEnd = null;
+
+        if (rawEndDate) {
+          // If number, it's a timestamp (seconds)
+          if (typeof rawEndDate === 'number') {
+            currentPeriodEnd = new Date(rawEndDate * 1000).toISOString();
+          } else {
+            // If string, assume ISO format from Creem
+            currentPeriodEnd = new Date(rawEndDate).toISOString();
+          }
+        }
 
         const { error } = await supabase
           .from("subscriptions")
@@ -74,9 +88,8 @@ export async function POST(req: Request) {
               status: subscription.status,
               current_period_end: currentPeriodEnd,
               creem_subscription_id: subscription.id,
-              creem_product_id: subscription.product_id,
-              cancel_at_period_end:
-                subscription.cancel_at_period_end ?? false,
+              creem_product_id: subscription.product?.id || subscription.product_id,
+              // cancel_at_period_end column missing in DB schema, removing.
               updated_at: new Date().toISOString(),
             },
             {
@@ -90,13 +103,107 @@ export async function POST(req: Request) {
           return new Response("Database error", { status: 500 });
         }
 
+        // Grant credits for new active subscriptions
+        if (eventType === 'subscription.active' && subscription.status === 'active') {
+          try {
+            const { data: customer } = await supabase
+              .from('customers')
+              .select('credits')
+              .eq('user_id', userId)
+              .single();
+
+            const currentCredits = customer?.credits || 0;
+
+            // Determine grant amount based on Product ID (Monthly vs Yearly)
+            let grantAmount = 300; // Default Monthly
+            const pid = subscription.product?.id || subscription.product_id;
+            const monthlyId = process.env.CREEM_PRODUCT_ID_MONTHLY;
+            const yearlyId = process.env.CREEM_PRODUCT_ID_YEARLY;
+
+            if (yearlyId && pid === yearlyId) {
+              grantAmount = 3600;
+              console.log("📅 Yearly subscription detected. Plan: 3600 credits.");
+            } else {
+              // Assume Monthly or fallback
+              grantAmount = 300;
+              console.log(`📅 Monthly subscription detected (PID: ${pid}). Plan: 300 credits.`);
+            }
+
+            if (customer) {
+              const { error: creditError } = await supabase
+                .from('customers')
+                .update({
+                  credits: currentCredits + grantAmount,
+                  creem_customer_id: subscription.customer?.id || subscription.customer
+                })
+                .eq('user_id', userId);
+              if (creditError) console.error("Failed to update credits:", creditError);
+              else console.log(`✅ Updated credits to ${currentCredits + grantAmount} for user ${userId}`);
+            } else {
+              const { error: creditError } = await supabase
+                .from('customers')
+                .insert({
+                  user_id: userId,
+                  credits: grantAmount,
+                  creem_customer_id: subscription.customer?.id || subscription.customer
+                });
+              if (creditError) console.error("Failed to insert credits:", creditError);
+              else console.log(`✅ Inserted ${grantAmount} credits for new customer ${userId}`);
+            }
+          } catch (e) {
+            console.error("Credit grant error processing:", e);
+          }
+        }
+
         console.log(`✅ Subscription synced for user ${userId}`);
+        break;
+      }
+
+      case "checkout.captured":
+      case "checkout.completed": // Based on log "eventType": "checkout.completed"
+      case "invoice.paid": {
+        const payload = event.object;
+        // Check if it is the Refill Product
+        const refillId = process.env.CREEM_PRODUCT_ID_REFILL || "prod_2u5vQK9gqpiGF8mjKsZksb";
+
+        const currentProductId = payload.product?.id || payload.product_id;
+
+        // Log for debugging
+        console.log(`💰 Payment Event: ${eventType}, Product: ${currentProductId}`);
+
+        if (currentProductId === refillId) {
+          const userId = payload.metadata?.user_id || payload.customer?.metadata?.user_id;
+          if (userId) {
+            const { data: customer } = await supabase.from('customers').select('credits').eq('user_id', userId).single();
+            const current = customer?.credits || 0;
+
+            // Grant +100
+            const creemCustId = payload.customer?.id || payload.customer;
+
+            if (customer) {
+              await supabase.from('customers').update({
+                credits: current + 100,
+                creem_customer_id: creemCustId
+              }).eq('user_id', userId);
+              console.log(`✅ Updated Refill Credits (+100) and Customer ID for ${userId}`);
+            } else {
+              await supabase.from('customers').insert({
+                user_id: userId,
+                credits: 100,
+                creem_customer_id: creemCustId
+              });
+              console.log(`✅ Inserted Refill Credits (100) for ${userId}`);
+            }
+          } else {
+            console.warn("⚠️ Refill payment received but no user_id found in metadata");
+          }
+        }
         break;
       }
 
       /** 5️⃣ 其他事件暂不处理 */
       default:
-        console.log("ℹ️ Unhandled event type:", event.type);
+        console.log("ℹ️ Unhandled event type:", eventType);
     }
 
     return new Response(
