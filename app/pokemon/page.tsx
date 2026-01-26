@@ -1,14 +1,15 @@
 import Script from "next/script";
 import { Metadata } from "next";
+import dynamicImport from "next/dynamic";
 import { PokeHero } from "@/components/pokemon/hero";
 
-// Text-heavy components - Static import for SEO and LCP
-import { PokeHowToUse } from "@/components/pokemon/how-to-use";
-import { PokePopularFusions } from "@/components/pokemon/popular-fusions";
-import { PokeFeatures } from "@/components/pokemon/features";
-import { PokeFAQ } from "@/components/pokemon/faq";
-import { PokeCTA } from "@/components/pokemon/cta";
-import { PokeFusionStudio } from "@/components/pokemon/fusion-studio";
+// Dynamic imports to reduce initial bundle size (Unused JS)
+const PokeFusionStudio = dynamicImport(() => import("@/components/pokemon/fusion-studio").then(mod => mod.PokeFusionStudio));
+const PokeHowToUse = dynamicImport(() => import("@/components/pokemon/how-to-use").then(mod => mod.PokeHowToUse));
+const PokePopularFusions = dynamicImport(() => import("@/components/pokemon/popular-fusions").then(mod => mod.PokePopularFusions));
+const PokeFeatures = dynamicImport(() => import("@/components/pokemon/features").then(mod => mod.PokeFeatures));
+const PokeFAQ = dynamicImport(() => import("@/components/pokemon/faq").then(mod => mod.PokeFAQ));
+const PokeCTA = dynamicImport(() => import("@/components/pokemon/cta").then(mod => mod.PokeCTA));
 
 // Force static generation to ensure meta tags are in <head>
 export const dynamic = 'force-static';
