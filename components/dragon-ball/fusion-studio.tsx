@@ -81,7 +81,7 @@ export function DBFusionStudio() {
             try {
                 const response = await fetch('/api/get-quota');
                 if (response.ok) {
-                    const data = await response.json();
+                    const data: any = await response.json();
                     setQuota(data.quota);
                     console.log('[DBFusion] 配额信息:', data.quota);
                 }
@@ -127,16 +127,7 @@ export function DBFusionStudio() {
 
     // 生成融合
     const handleGenerate = async () => {
-        // 1. 客户端认证检查
-        if (!user) {
-            toast({
-                title: "Authentication Required",
-                description: "Returning to training camp... (Please sign in)",
-            });
-            const currentPath = window.location.pathname;
-            setTimeout(() => window.location.href = `/sign-in?redirect_to=${currentPath}`, 1500);
-            return;
-        }
+        // 允许匿名用户尝试生成，移除前端拦截
 
         if (!prompt.trim()) {
             toast({
@@ -157,31 +148,33 @@ export function DBFusionStudio() {
                 body: JSON.stringify({ prompt }),
             });
 
-            const data = await response.json();
-
-            // 2. 认证检查 (后端返回 401)
-            if (response.status === 401) {
-                toast({
-                    title: "🔐 Authentication Required",
-                    description: "Session expired. Please sign in again.",
-                    variant: "destructive",
-                });
-                const currentPath = window.location.pathname;
-                setTimeout(() => window.location.href = `/sign-in?redirect_to=${currentPath}`, 1500);
-                return;
+            // 尝试解析JSON响应
+            let data: any;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                // 如果是 401/403 等可能返回非 JSON
+                if (!response.ok) throw new Error(response.statusText);
             }
 
-            // 3. 频率限制检查 (后端返回 429)
+            // 1. 频率限制检查 (后端返回 429)
             if (response.status === 429) {
+                const isLimitReached = data.isLimitReached; // 匿名用户限制标识
+
                 toast({
-                    title: "Limit Reached",
-                    description: data.error || "Daily limit exceeded",
+                    title: isLimitReached ? "Free Trial Ended" : "Daily Limit Reached",
+                    description: data.error || "Please wait a moment.",
                     variant: "destructive",
                 });
+
+                if (isLimitReached) {
+                    // 匿名用户 -> 引导注册
+                    setTimeout(() => window.location.href = `/sign-in?redirect_to=${window.location.pathname}&reason=trial_ended`, 1500);
+                }
                 return;
             }
 
-            // 4. 积分不足检查 (后端返回 402) 🔥 新增
+            // 2. 积分不足检查 (后端返回 402)
             if (response.status === 402) {
                 toast({
                     title: "🪙 Insufficient Credits",
@@ -194,9 +187,9 @@ export function DBFusionStudio() {
                 return;
             }
 
-            if (!response.ok) throw new Error(data.error || 'Generation failed');
+            if (!response.ok) throw new Error(data?.error || 'Generation failed');
 
-            // 4. 更新前端状态 (成功)
+            // 3. 更新前端状态 (成功)
             if (data.quota) setQuota(data.quota);
 
             setResult({
@@ -206,7 +199,7 @@ export function DBFusionStudio() {
 
             toast({
                 title: "Fusion Successful!",
-                description: `Super Saiyan Power! ${data.quota?.remaining || 0} generations left.`,
+                description: `Super Saiyan Power! ${user ? (data.quota?.remaining || 0) + ' left' : 'Free Trial Used'}.`,
             });
 
         } catch (error: any) {
@@ -222,6 +215,33 @@ export function DBFusionStudio() {
     };
 
     const canGenerate = prompt.trim() && !isGenerating;
+
+    // 下载处理
+    const handleDownload = async () => {
+        if (!result?.imageUrl) return;
+
+        try {
+            const response = await fetch(result.imageUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dragon-ball-fusion-${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast({
+                title: "✅ Download Started",
+                description: "Kamehameha! Image saved.",
+            });
+        } catch (error) {
+            console.error('Download error:', error);
+            // Fallback
+            window.open(result.imageUrl, '_blank');
+        }
+    };
 
     return (
         <div id="fusion-studio" className="space-y-6 scroll-mt-20">
@@ -407,7 +427,7 @@ export function DBFusionStudio() {
                             <div className="mt-4 flex justify-center gap-4">
                                 <Button
                                     variant="outline"
-                                    onClick={() => window.open(result.imageUrl, '_blank')}
+                                    onClick={handleDownload}
                                     aria-label="Download fusion image in HD quality"
                                 >
                                     Download HD

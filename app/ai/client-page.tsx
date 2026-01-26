@@ -295,10 +295,18 @@ export default function AIFusionStudioPage() {
             if (res.status === 402) {
                 const errorMsg = data.error || "Insufficient credits";
                 setError(errorMsg);
-                // Redirect to pricing with source tracking
+
+                // Redirect logic
                 setTimeout(() => {
-                    window.location.href = "/pricing?source=ai_studio&reason=insufficient_credits";
+                    if (data.isLimitReached) {
+                        // Free trial ended -> Login/Register
+                        window.location.href = "/login?source=ai_studio&reason=free_limit";
+                    } else {
+                        // Insufficient credits -> Pricing
+                        window.location.href = "/pricing?source=ai_studio&reason=insufficient_credits";
+                    }
                 }, 2000);
+
                 throw new Error(errorMsg);
             }
 

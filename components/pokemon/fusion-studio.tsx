@@ -131,15 +131,7 @@ export function PokeFusionStudio() {
 
     // 生成融合
     const handleGenerate = async () => {
-        // 1. 客户端认证检查
-        if (!user) {
-            toast({
-                title: "Authentication Required",
-                description: "Redirecting to sign in...",
-            });
-            setTimeout(() => window.location.href = '/sign-in?redirect_to=/pokemon', 1500);
-            return;
-        }
+        // 允许匿名用户尝试生成
 
         if (!prompt.trim()) {
             toast({
@@ -162,28 +154,29 @@ export function PokeFusionStudio() {
                 body: JSON.stringify({ prompt }),
             });
 
-            // 先检查认证错误（401）- 不尝试解析JSON
-            if (response.status === 401) {
-                toast({
-                    title: "🔐 Authentication Required",
-                    description: "Please sign in to generate Pokemon fusions",
-                    variant: "destructive",
-                });
-                setTimeout(() => window.location.href = '/sign-in?page=pokemon-fusion&action=generate-btn-click', 2000);
-                return;
-            }
-
             // 尝试解析JSON响应
-            let data;
+            let data: any;
             try {
-                data = await response.json();
+                data = await response.json() as any;
             } catch (jsonError) {
-                throw new Error('Invalid response from server');
+                if (!response.ok) throw new Error(response.statusText);
             }
 
             // 处理配额限制（429）
             if (response.status === 429) {
+                const isLimitReached = data.isLimitReached; // 匿名试用结束标识
                 const isQuotaError = data.limit !== undefined;
+
+                if (isLimitReached) {
+                    // 匿名用户试用结束 -> 引导注册
+                    toast({
+                        title: "Free Trial Ended",
+                        description: data.error || "Please sign in to continue.",
+                        variant: "destructive",
+                    });
+                    setTimeout(() => window.location.href = `/sign-in?redirect_to=${window.location.pathname}&reason=trial_ended`, 1500);
+                    return;
+                }
 
                 if (isQuotaError) {
                     toast({
@@ -201,7 +194,6 @@ export function PokeFusionStudio() {
                         description: data.error,
                         variant: "destructive",
                     });
-                    return;
                 }
                 return;
             }
@@ -221,7 +213,7 @@ export function PokeFusionStudio() {
 
             // 其他错误
             if (!response.ok) {
-                throw new Error(data.error || 'Failed to generate');
+                throw new Error(data?.error || 'Failed to generate');
             }
 
             // 更新配额信息
@@ -239,9 +231,9 @@ export function PokeFusionStudio() {
 
             toast({
                 title: "✨ Fusion Created!",
-                description: data.quota
-                    ? `Generation successful! ${data.quota.remaining}/${data.quota.limit} generations remaining today${data.quota.isVIP ? ' (VIP)' : ' (Free)'}.`
-                    : "Your Pokemon fusion has been generated successfully.",
+                description: user
+                    ? (data.quota ? `Generation successful! ${data.quota.remaining}/${data.quota.limit} remaining.` : "Success!")
+                    : "Free Trial Generation Successful!",
             });
         } catch (error: any) {
             console.error('Generation error:', error);

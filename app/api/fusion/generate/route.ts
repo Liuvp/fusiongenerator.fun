@@ -19,23 +19,15 @@ export async function POST(req: NextRequest) {
         }
 
         let supabase = await createClient(); // User client for Auth
-
-        // ... (Auth Logic) ...
-
-        // [Existing Auth Code here matches previous steps, assume skipped for brevity in instructions but tool keeps context]
-        // Since I'm replacing a huge chunk, I must replicate the Auth Logic carefully or use a smaller range.
-        // Actually, just inserting the check at the top is safer.
-        // Let's execute this in smaller chunks. 
-        // THIS TOOL CALL IS ONLY FOR INSERTING THE CHECK AT THE TOP.
-
+        let user = null;
 
         // [DEBUG] Log HEADERS
-        console.log("[API DEBUG] Headers:", JSON.stringify(Object.fromEntries(req.headers.entries())));
+        // console.log("[API DEBUG] Headers:", JSON.stringify(Object.fromEntries(req.headers.entries())));
 
         // 0. Check for Authorization Header (Bearer Token) override
         const authHeader = req.headers.get('Authorization');
         if (authHeader) {
-            console.log("[API DEBUG] Found Authorization Header");
+            // console.log("[API DEBUG] Found Authorization Header");
             try {
                 const tokenClient = createJsClient(
                     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,72 +37,107 @@ export async function POST(req: NextRequest) {
                 const { data: { user: headerUser }, error: headerError } = await tokenClient.auth.getUser();
                 if (headerUser && !headerError) {
                     supabase = tokenClient as any;
+                    user = headerUser;
                 }
             } catch (e) {
                 console.warn("[API DEBUG] Token Client Error:", e);
             }
         }
 
-        // Try getUser() first (most secure)
-        let { data: { user }, error: authError } = await supabase.auth.getUser();
+        // Try getUser() if not found in header
+        if (!user) {
+            const { data: { user: supabaseUser }, error: authError } = await supabase.auth.getUser();
+            user = supabaseUser;
 
-        // Fallback: If getUser fails, try getSession
-        if (!user || authError) {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) user = session.user;
+            // Fallback: If getUser fails, try getSession
+            if (!user || authError) {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) user = session.user;
+            }
         }
+
+        let activeCustomer: any = null;
+        const COST = 1;
+
+        // --- BRANCH: ANONYMOUS vs LOGGED IN ---
 
         if (!user) {
-            return NextResponse.json({ error: "[Auth Error] Unauthorized. Please login again." }, { status: 401 });
-        }
+            // ANONYMOUS Logic: Check IP Rate Limit
+            const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
 
+            // Requires @upstash/redis
+            // If Redis envs are missing, we might want to fail open or closed. Here we fail closed for safety.
+            if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+                console.warn("Redis not configured, denying anonymous access.");
+                return NextResponse.json({ error: "Anonymous generation temporarily unavailable." }, { status: 503 });
+            }
 
-        // 1. Check Credits / Subscription (User Client)
-        let activeCustomer: any = null;
-        try {
-            const { data: customer, error: custError } = await supabase
-                .from("customers")
-                .select("credits, id")
-                .eq("user_id", user.id)
-                .single();
+            const { Redis } = await import('@upstash/redis');
+            const redis = Redis.fromEnv();
+            const ratelimitKey = `fusion:anonymous:${ip}`;
 
-            if (customer) {
-                activeCustomer = customer;
-            } else if (custError && custError.code !== 'PGRST116') {
-                throw custError;
-            } else {
-                // Auto-create
-                const { data: newCustomer, error: createError } = await supabase
+            // Check usage
+            // incr returns the new value. If it's 1, it's the first time.
+            const usage = await redis.incr(ratelimitKey);
+
+            // Set expiry if new key (e.g., 30 days to prevent infinite abuse, effectively "1 time per month")
+            if (usage === 1) {
+                await redis.expire(ratelimitKey, 60 * 60 * 24 * 30);
+            }
+
+            if (usage > 1) {
+                return NextResponse.json({
+                    error: "Free trial limit reached. Please login to get more credits!",
+                    isLimitReached: true // Signal for frontend
+                }, { status: 402 });
+            }
+
+            console.log(`Anonymous user (IP: ${ip}) used 1 free credit.`);
+
+        } else {
+            // LOGGED IN Logic: Check Credits
+            try {
+                const { data: customer, error: custError } = await supabase
                     .from("customers")
-                    .insert([{ user_id: user.id, credits: 3 }])
                     .select("credits, id")
+                    .eq("user_id", user.id)
                     .single();
 
-                if (createError) throw createError;
-                activeCustomer = newCustomer;
+                if (customer) {
+                    activeCustomer = customer;
+                } else if (custError && custError.code !== 'PGRST116') {
+                    throw custError;
+                } else {
+                    // Auto-create with 1 Credit (New Requirement: Register gets 1 credit)
+                    const { data: newCustomer, error: createError } = await supabase
+                        .from("customers")
+                        .insert([{ user_id: user.id, credits: 1 }])
+                        .select("credits, id")
+                        .single();
+
+                    if (createError) throw createError;
+                    activeCustomer = newCustomer;
+                }
+            } catch (dbError: any) {
+                console.error(">> DATABASE ERROR:", dbError.message);
+                return NextResponse.json(
+                    { error: "Service temporarily unavailable. Please try again later." },
+                    { status: 503 }
+                );
             }
-        } catch (dbError: any) {
-            console.error(">> DATABASE ERROR:", dbError.message);
-            return NextResponse.json(
-                { error: "Service temporarily unavailable. Please try again later." },
-                { status: 503 }
-            );
+
+            // Check Credits
+            if (activeCustomer.credits < 1) {
+                return NextResponse.json({ error: "Insufficient credits. Please top up." }, { status: 402 });
+            }
         }
 
-        // Check Credits
-        if (activeCustomer.credits < 1) {
-            return NextResponse.json({ error: "Insufficient credits. Please top up." }, { status: 402 });
-        }
 
-        // 2. Parse FormData & 3. Upload Images... (No changes needed)
+        // 2. Parse FormData & 3. Upload Images... 
         const formData = await req.formData();
         const image1 = formData.get("image1") as File;
         const image2 = formData.get("image2") as File;
         const prompt = formData.get("prompt") as string || "A creative fusion of two images";
-
-        if (!image1 || !image2) {
-            return NextResponse.json({ error: "Missing images." }, { status: 400 });
-        }
 
         if (!image1 || !image2) {
             return NextResponse.json({ error: "Missing images." }, { status: 400 });
@@ -151,7 +178,8 @@ export async function POST(req: NextRequest) {
             image2Description = "a distinct character";
         }
 
-        const finalPrompt = `(Masterpiece). Fusion of character in image AND character looking like: ${image2Description || "the second uploaded image"}. ${prompt}. Detailed.`;
+        const watermarkInstruction = !user ? " Add subtle watermark text 'FusionGenerator.fun' in bottom right corner." : "";
+        const finalPrompt = `(Masterpiece). Fusion of character in image AND character looking like: ${image2Description || "the second uploaded image"}. ${prompt}.${watermarkInstruction} Detailed.`;
 
         // Generate
         try {
@@ -160,21 +188,27 @@ export async function POST(req: NextRequest) {
                 logs: true
             });
 
-            // 5. Deduct Credit (Cost: 1) using USER CLIENT (Best Effort)
-            const COST = 1;
-            try {
-                const { error: updateError } = await supabase
-                    .from("customers")
-                    .update({ credits: activeCustomer.credits - COST })
-                    .eq("id", activeCustomer.id);
+            // 5. Deduct Credit Only for Logged In Users
+            let remainingCredits = 0;
+            if (user && activeCustomer) {
+                try {
+                    const { error: updateError } = await supabase
+                        .from("customers")
+                        .update({ credits: activeCustomer.credits - COST })
+                        .eq("id", activeCustomer.id);
 
-                if (updateError) console.error("Failed to deduct credit:", updateError);
-            } catch (e) { console.error("Deduction Error:", e); }
+                    if (!updateError) remainingCredits = activeCustomer.credits - COST;
+                    else console.error("Failed to deduct credit:", updateError);
+                } catch (e) { console.error("Deduction Error:", e); }
+            } else {
+                // For anonymous, remaining is 0 (since they only had 1)
+                remainingCredits = 0;
+            }
 
             return NextResponse.json({
                 success: true,
                 imageUrl: result.images[0].url,
-                remainingCredits: activeCustomer.credits - COST,
+                remainingCredits: remainingCredits,
                 logs: result.logs
             });
 

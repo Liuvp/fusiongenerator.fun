@@ -18,6 +18,30 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'No email found' }, { status: 400 });
         }
 
+        // 1.5 Give Free Credits (1 Credit)
+        try {
+            const { createServiceRoleClient } = await import('@/utils/supabase/service-role');
+            const supabase = createServiceRoleClient();
+
+            // Allow insert to fail silently if record exists (although for new user it shouldn't)
+            // Using upsert or strict insert
+            const { error: dbError } = await supabase
+                .from('customers')
+                .upsert(
+                    { user_id: id, credits: 1 },
+                    { onConflict: 'user_id', ignoreDuplicates: true } // If exists, keep existing (prevent overwrite if race condition)
+                );
+
+            if (dbError) {
+                console.error('Failed to grant free credits:', dbError);
+            } else {
+                console.log(`Granted 1 free credit to new user: ${email}`);
+            }
+        } catch (creditError) {
+            console.error('Credit Grant Error:', creditError);
+            // Non-blocking, continue to send email
+        }
+
         // 2. 调用 Resend API 发送邮件 (使用原生 fetch，零依赖)
         const resendApiKey = process.env.RESEND_API_KEY;
         if (!resendApiKey) {
