@@ -32,16 +32,7 @@ export default function Home() {
     }
   };
 
-  const breadcrumbData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [{
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://fusiongenerator.fun/"
-    }]
-  };
+
 
   const softwareApplicationData = {
     "@context": "https://schema.org",
@@ -110,7 +101,7 @@ export default function Home() {
         id="structured-data"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([structuredData, breadcrumbData, softwareApplicationData, faqData])
+          __html: JSON.stringify([structuredData, softwareApplicationData, faqData])
         }}
       />
       <div className="flex flex-col min-h-screen">

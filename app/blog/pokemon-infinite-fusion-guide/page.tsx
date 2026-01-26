@@ -20,7 +20,7 @@ export const metadata: Metadata = {
         type: "article",
         images: [
             {
-                url: "/images/blog/pokemon-infinite-fusion-guide-og.jpg",
+                url: "/images/blog/pokemon-infinite-fusion-guide-cover.png",
                 width: 1200,
                 height: 630,
                 alt: "Pokemon Infinite Fusion Generator Guide"
@@ -37,10 +37,10 @@ export const metadata: Metadata = {
 export default function PokemonInfiniteFusionGuidePage() {
     const articleSchema = {
         "@context": "https://schema.org",
-        "@type": "Article",
+        "@type": "BlogPosting",
         headline: "Pokemon Infinite Fusion Generator: The Ultimate Guide & How to Use It",
         description: "A comprehensive guide to the fan-made phenomenon that lets you fuse any Pokemon from Generations 1 through 9, creating millions of unique combinations.",
-        image: "https://fusiongenerator.fun/images/blog/pokemon-infinite-fusion-guide-schema.jpg",
+        image: "https://fusiongenerator.fun/images/blog/pokemon-infinite-fusion-guide-cover.png",
         datePublished: "2026-01-11",
         dateModified: "2026-01-11",
         author: {
@@ -91,10 +91,10 @@ export default function PokemonInfiniteFusionGuidePage() {
                         <div className="my-8 rounded-2xl overflow-hidden border shadow-lg">
                             <div className="relative w-full aspect-video bg-muted">
                                 <Image
-                                    src="/images/fusion-generator-logo.svg"
+                                    src="/images/blog/pokemon-infinite-fusion-guide-cover.png"
                                     alt="Showcase of amazing Pokemon fusions created with an infinite fusion generator"
                                     fill
-                                    className="object-contain p-8"
+                                    className="object-cover"
                                     priority
                                 />
                             </div>
@@ -185,7 +185,7 @@ export default function PokemonInfiniteFusionGuidePage() {
                                 <h3 className="text-2xl font-bold mb-2">Ready to Try It Yourself?</h3>
                                 <p className="mb-4 text-muted-foreground">Experience a streamlined and user-friendly fusion generator right here. Our tool is perfect for quick creativity and sharing.</p>
                                 <Link
-                                    href="/pokemon"
+                                    href="/pokemon?ref=blog_guide"
                                     className="inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-full text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg transition-all"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

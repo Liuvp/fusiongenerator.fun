@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Script from "next/script";
 import { motion } from "framer-motion";
 import { Check, Crown, Gift, Sparkles, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -78,7 +79,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                         variants={fadeInUp}
                     >
                         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
-                            Fusion Generator Pricing
+                            Fusion Generator Pricing Plans
                         </h1>
                         <p className="mx-auto max-w-2xl text-muted-foreground">
                             Create High-Quality AI Character Fusions with Advanced AI Technology
@@ -111,8 +112,8 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                     <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border border-border hover:border-primary/20 flex flex-col">
                                         <div className="flex flex-col space-y-1.5 p-6 text-center pb-4">
                                             <div className="flex items-center justify-center mb-4">
-                                                <div className="p-3 rounded-full bg-muted">
-                                                    <Gift className="h-6 w-6 text-muted-foreground" />
+                                                <div className="p-3 rounded-full bg-muted" aria-label="Free Plan Icon" role="img">
+                                                    <Gift className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
                                                 </div>
                                             </div>
                                             <h3 className="tracking-tight text-2xl font-bold text-foreground">Free Plan</h3>
@@ -189,8 +190,8 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
 
                                         <div className="flex flex-col space-y-1.5 p-6 text-center pb-4">
                                             <div className="flex items-center justify-center mb-4">
-                                                <div className="p-4 rounded-full bg-primary/20 ring-4 ring-primary/10">
-                                                    <Crown className="h-8 w-8 text-primary" />
+                                                <div className="p-4 rounded-full bg-primary/20 ring-4 ring-primary/10" aria-label="Pro Unlimited Plan Icon" role="img">
+                                                    <Crown className="h-8 w-8 text-primary" aria-hidden="true" />
                                                 </div>
                                             </div>
                                             <h3 className="tracking-tight text-3xl font-bold text-foreground">Pro Unlimited</h3>
@@ -276,8 +277,8 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                     <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border border-border hover:border-primary/20 flex flex-col">
                                         <div className="flex flex-col space-y-1.5 p-6 text-center pb-4">
                                             <div className="flex items-center justify-center mb-4">
-                                                <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/20">
-                                                    <Sparkles className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                                                <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/20" aria-label="Extra Credits Icon" role="img">
+                                                    <Sparkles className="h-6 w-6 text-orange-600 dark:text-orange-400" aria-hidden="true" />
                                                 </div>
                                             </div>
                                             <h3 className="tracking-tight text-2xl font-bold text-foreground">Extra Credits</h3>

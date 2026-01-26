@@ -11,6 +11,18 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/blog",
   },
+  openGraph: {
+    title: "Blog – Fusion Generator",
+    description: "Read the latest guides, tips, and news about Dragon Ball and Pokémon fusion generation.",
+    url: "https://fusiongenerator.fun/blog",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Blog – Fusion Generator",
+    description: "Read the latest guides, tips, and news about Dragon Ball and Pokémon fusion generation.",
+  },
 };
 
 export default function Page() {

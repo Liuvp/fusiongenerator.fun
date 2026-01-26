@@ -8,7 +8,7 @@ export function DBHero() {
         <div className="grid gap-8 md:grid-cols-2 items-center">
             <div className="space-y-6">
                 <div className="inline-flex items-center rounded-full px-3 py-1 text-sm bg-primary/10 text-primary">
-                    <Sparkles className="mr-2 h-4 w-4" />
+                    <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
                     Dragon Ball Fusion Studio
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">

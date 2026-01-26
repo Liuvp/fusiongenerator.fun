@@ -1,9 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { fadeInUp, staggerContainer } from "./animations";
 
 export function FeaturesSection() {
     return (
@@ -16,9 +12,8 @@ export function FeaturesSection() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Dragon Ball Fusion */}
-                    <motion.div
-                        whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                        className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
+                    <div
+                        className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
                     >
                         <div className="h-48 relative overflow-hidden bg-orange-50">
                             <Image
@@ -26,7 +21,7 @@ export function FeaturesSection() {
                                 alt="Dragon Ball fusion AI tool – Anime Fighter Fusions"
                                 width={400}
                                 height={200}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                             />
                         </div>
                         <div className="p-6">
@@ -42,12 +37,11 @@ export function FeaturesSection() {
                                 Dragon Ball Fusion Generator
                             </Link>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* Pokemon Fusion */}
-                    <motion.div
-                        whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                        className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
+                    <div
+                        className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
                     >
                         <div className="h-48 relative overflow-hidden">
                             <Image
@@ -55,7 +49,7 @@ export function FeaturesSection() {
                                 alt="Pokémon fusion AI tool – Monster Hybrid Maker"
                                 width={400}
                                 height={200}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                             />
                         </div>
                         <div className="p-6">
@@ -71,12 +65,11 @@ export function FeaturesSection() {
                                 Pokemon Fusion Generator
                             </Link>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* AI Fusion */}
-                    <motion.div
-                        whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                        className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
+                    <div
+                        className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
                     >
                         <div className="h-48 relative overflow-hidden">
                             <Image
@@ -84,7 +77,7 @@ export function FeaturesSection() {
                                 alt="AI fusion tool combining any two images – Custom AI Mixer"
                                 width={400}
                                 height={200}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                             />
                         </div>
                         <div className="p-6">
@@ -100,7 +93,7 @@ export function FeaturesSection() {
                                 AI Fusion Generator
                             </Link>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </section>

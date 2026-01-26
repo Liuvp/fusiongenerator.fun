@@ -309,12 +309,12 @@ export function PokeFusionStudio() {
                     >
                         {isGenerating ? (
                             <>
-                                <Sparkles className="mr-2 h-5 w-5 animate-spin" />
+                                <Sparkles className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
                                 Generating Fusion...
                             </>
                         ) : (
                             <>
-                                <Sparkles className="mr-2 h-5 w-5" />
+                                <Sparkles className="mr-2 h-5 w-5" aria-hidden="true" />
                                 EVOLVE & FUSE!
                             </>
                         )}

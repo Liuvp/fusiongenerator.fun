@@ -17,10 +17,42 @@ export function PokePopularFusions() {
 
             <div className="grid gap-6 sm:grid-cols-2">
                 {[
-                    { left: "Pikachu", right: "Charizard", name: "Pikazard", types: ["⚡ Electric", "🐉 Dragon"], desc: "High speed special attacker" },
-                    { left: "Mewtwo", right: "Lucario", name: "Mewcario", types: ["🔮 Psychic", "🥊 Fighting"], desc: "Ultimate Aura master" },
-                    { left: "Gengar", right: "Snorlax", name: "Snorenar", types: ["⭐ Normal", "👻 Ghost"], desc: "Dream eater tank" },
-                    { left: "Lapras", right: "Charizard", name: "Aquazard", types: ["💧 Water", "🔥 Fire"], desc: "Sea and Sky guardian" },
+                    {
+                        left: "Dragonite",
+                        right: "Snorlax",
+                        name: "Dragolax",
+                        types: ["🐉 Dragon", "⭐ Normal"],
+                        desc: "Bulky sleepy dragon",
+                        image: "/images/dragonite-snorlax-character-fusion-pokemon-preview.webp",
+                        alt: "AI-generated Pokémon character fusion preview combining Dragonite and Snorlax traits"
+                    },
+                    {
+                        left: "Charizard",
+                        right: "Mewtwo",
+                        name: "Charitwo",
+                        types: ["🔥 Fire", "🔮 Psychic"],
+                        desc: "Ultimate Psychic Dragon",
+                        image: "/images/charizard-mewtwo-character-fusion-pokemon-preview.webp",
+                        alt: "AI-generated Pokémon character fusion preview combining Charizard and Mewtwo traits"
+                    },
+                    {
+                        left: "Snorlax",
+                        right: "Pikachu",
+                        name: "Pikalax",
+                        types: ["⭐ Normal", "⚡ Electric"],
+                        desc: "Cute but bulky hybrid",
+                        image: "/images/snorlax-pikachu-ai-fusion-creature.webp",
+                        alt: "Pokemon Infinite Fusion: A creative AI mashup of Pikachu and Snorlax, showing a cute but bulky pink hybrid"
+                    },
+                    {
+                        left: "Pikachu",
+                        right: "Eevee",
+                        name: "PikaVee",
+                        types: ["⚡ Electric", "⭐ Normal"],
+                        desc: "Cute and adorable playful expression",
+                        image: "/images/cute-pikachu-character-pokemon-preview.webp",
+                        alt: "Cute and adorable Pikachu character illustration with a playful expression"
+                    },
                 ].map((item, i) => (
                     <TooltipProvider key={i}>
                         <Tooltip>
@@ -41,10 +73,10 @@ export function PokePopularFusions() {
                                             </div>
                                             <div className="relative w-24 h-24 bg-muted rounded-full overflow-hidden border">
                                                 <Image
-                                                    src="/images/fusion-generator-logo.svg"
-                                                    alt={`${item.name} - Pokemon Fusion of ${item.left} and ${item.right}`}
+                                                    src={(item as any).image || "/images/fusion-generator-logo.svg"}
+                                                    alt={(item as any).alt || `${item.name} - Pokemon Fusion of ${item.left} and ${item.right}`}
                                                     fill
-                                                    className="object-cover p-2"
+                                                    className={(item as any).image ? "object-cover" : "object-cover p-2"}
                                                 />
                                             </div>
                                         </div>

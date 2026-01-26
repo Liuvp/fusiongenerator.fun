@@ -7,7 +7,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, Zap, Wand2, Upload, ChevronDown } from "lucide-react";
 import Script from "next/script";
 
-import FusionClientPage from "./client-page";
+// Optimize: Dynamic import to reduce initial JS bundle size
+const FusionClientPage = nextDynamic(() => import('./client-page'), {
+    loading: () => (
+        <div className="w-full max-w-2xl mx-auto px-4 py-12 space-y-8 animate-pulse">
+            <div className="h-8 bg-muted rounded-md w-1/3 mx-auto" />
+            <div className="h-4 bg-muted rounded-md w-2/3 mx-auto" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="aspect-square bg-muted rounded-2xl" />
+                <div className="aspect-square bg-muted rounded-2xl" />
+            </div>
+            <div className="h-12 bg-muted rounded-xl w-full" />
+            <div className="h-14 bg-muted rounded-2xl w-full" />
+        </div>
+    ),
+});
 
 // Force static generation to ensure meta tags are in <head>
 export const dynamic = 'force-static';
@@ -28,10 +42,10 @@ export const metadata: Metadata = {
         type: "website",
         images: [
             {
-                url: "/gallery/AI-Fusion-Generator-Preview.png", // Assuming a generic preview
+                url: "/images/character-fusion-mashup-ai-generator.webp",
                 width: 1200,
                 height: 630,
-                alt: "AI Fusion Generator Preview",
+                alt: "AI Fusion Generator output example: A high-quality creative mashup of different character styles",
             },
         ],
     },
@@ -40,6 +54,7 @@ export const metadata: Metadata = {
         title: "AI Fusion Generator – Anime & Character Fusions Online",
         description:
             "Create unique anime and character fusions with our free AI Fusion Generator. Easily merge photos, cartoons, and manga characters online in seconds.",
+        images: ["/images/character-fusion-mashup-ai-generator.webp"],
     },
 };
 
@@ -83,12 +98,69 @@ export default function AIFusionPage() {
         ],
     };
 
+    const softwareAppJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "AI Fusion Generator",
+        "description": "Advanced AI technology to merge any two images. Create unique character fusions, anime mashups, and artistic photo blends instantly.",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Web",
+        "url": "https://fusiongenerator.fun/ai",
+        "image": "https://fusiongenerator.fun/images/character-fusion-mashup-ai-generator.webp",
+        "author": {
+            "@type": "Organization",
+            "name": "FusionGenerator",
+            "url": "https://fusiongenerator.fun"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+        },
+        "interactionStatistic": {
+            "@type": "InteractionCounter",
+            "interactionType": "https://schema.org/UseAction",
+            "userInteractionCount": 5800
+        },
+        "featureList": [
+            "Cross-IP Character Fusion",
+            "Photo to Anime Merging",
+            "Custom Fusion Prompts",
+            "Real-time AI Processing"
+        ],
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": 120
+        }
+    };
+
+    const breadcrumbJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://fusiongenerator.fun/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "AI Fusion Generator",
+                "item": "https://fusiongenerator.fun/ai"
+            }
+        ]
+    };
+
     return (
         <>
             <Script
-                id="faq-schema"
+                id="ai-fusion-schema"
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([faqSchema, softwareAppJsonLd, breadcrumbJsonLd]) }}
             />
 
             <div className="min-h-screen bg-background">
@@ -98,7 +170,7 @@ export default function AIFusionPage() {
                         {/* Hero Section - Mobile First */}
                         <div className="text-center space-y-4 sm:space-y-6">
                             <div className="inline-flex items-center rounded-full px-3 py-1.5 text-xs sm:text-sm bg-primary/10 text-primary font-medium">
-                                <Sparkles className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                <Sparkles className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
                                 AI-Powered Fusion Studio
                             </div>
                             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight">
@@ -107,6 +179,17 @@ export default function AIFusionPage() {
                                     Create Anime & Character Fusions
                                 </span>
                             </h1>
+                            <div className="relative w-full max-w-3xl mx-auto aspect-[16/9] rounded-xl overflow-hidden shadow-2xl my-6">
+                                <Image
+                                    src="/images/character-fusion-mashup-ai-generator.webp"
+                                    alt="AI Fusion Generator output example: A high-quality creative mashup of different character styles"
+                                    fill
+                                    className="object-cover hover:scale-105 transition-transform duration-700"
+                                    priority
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1000px"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                            </div>
                             <p className="text-base sm:text-lg text-muted-foreground max-w-xl sm:max-w-2xl mx-auto leading-relaxed px-2">
                                 Advanced AI fusion technology to merge any two images. Supports characters, animals, and custom photos with professional results.
                             </p>
@@ -123,6 +206,19 @@ export default function AIFusionPage() {
 
                         {/* AI Fusion Studio Section */}
                         <FusionClientPage />
+
+                        <noscript>
+                            <div className="w-full max-w-2xl mx-auto px-4 py-12 text-center space-y-6 border-2 border-dashed border-primary/20 rounded-2xl bg-muted/10">
+                                <Sparkles className="h-12 w-12 text-primary mx-auto opacity-50" />
+                                <div className="space-y-2">
+                                    <h2 className="text-2xl font-bold">AI Fusion Studio</h2>
+                                    <p className="text-muted-foreground max-w-md mx-auto">
+                                        JavaScript is required to use the interactive fusion studio.
+                                        Please enable JavaScript to upload images and generate amazing character fusions.
+                                    </p>
+                                </div>
+                            </div>
+                        </noscript>
 
                         {/* About Section */}
                         <div className="space-y-6">
@@ -144,7 +240,7 @@ export default function AIFusionPage() {
                                 <Card className="border-2 shadow-sm flex-shrink-0 w-[280px] sm:w-auto snap-start">
                                     <CardHeader className="pb-2">
                                         <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3">
-                                            <Wand2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                                            <Wand2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" aria-hidden="true" />
                                         </div>
                                         <CardTitle className="text-base sm:text-lg">AI-Powered Blending</CardTitle>
                                     </CardHeader>
@@ -157,7 +253,7 @@ export default function AIFusionPage() {
                                 <Card className="border-2 shadow-sm flex-shrink-0 w-[280px] sm:w-auto snap-start">
                                     <CardHeader className="pb-2">
                                         <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-secondary/20 to-secondary/5 flex items-center justify-center mb-3">
-                                            <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-secondary" />
+                                            <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-secondary" aria-hidden="true" />
                                         </div>
                                         <CardTitle className="text-base sm:text-lg">Instant Results</CardTitle>
                                     </CardHeader>
@@ -170,7 +266,7 @@ export default function AIFusionPage() {
                                 <Card className="border-2 shadow-sm flex-shrink-0 w-[280px] sm:w-auto snap-start">
                                     <CardHeader className="pb-2">
                                         <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-3">
-                                            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
+                                            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-accent" aria-hidden="true" />
                                         </div>
                                         <CardTitle className="text-base sm:text-lg">Multiple Styles</CardTitle>
                                     </CardHeader>
@@ -202,38 +298,42 @@ export default function AIFusionPage() {
                                         left: "Goku",
                                         right: "Vegeta",
                                         series: "Dragon Ball",
-                                        desc: "High-energy Saiyan fusion with balanced power"
+                                        desc: "High-energy Saiyan fusion with balanced power",
+                                        image: "/images/dragon-ball-fusion-preview-goku-vegeta.webp"
                                     },
                                     {
                                         left: "Pikachu",
                                         right: "Charizard",
                                         series: "Pokemon",
-                                        desc: "Electric dragon hybrid with fire and lightning"
+                                        desc: "Electric dragon hybrid with fire and lightning",
+                                        image: "/images/pokemon-character-fusion-generator-preview.webp"
                                     },
                                     {
                                         left: "Naruto",
-                                        right: "Sasuke",
+                                        right: "Kurama",
                                         series: "Anime",
-                                        desc: "Ninja fusion combining chakra techniques"
+                                        desc: "Sage Mode power awakening in human-beast hybrid form",
+                                        image: "/images/naruto-kurama-fusion.webp"
                                     },
                                     {
-                                        left: "Iron Man",
-                                        right: "Spider-Man",
-                                        series: "Marvel",
-                                        desc: "Tech-enhanced web-slinger hybrid"
+                                        left: "Cyborg",
+                                        right: "Samurai",
+                                        series: "Original Art",
+                                        desc: "Futuristic warrior blending high-tech armor with traditional bushido",
+                                        image: "/images/cyberpunk-samurai-fusion.webp"
                                     },
                                 ].map((item, i) => (
-                                    <Card key={i} className="border-2 shadow-sm flex-shrink-0 w-[260px] sm:w-auto snap-start">
+                                    <Card key={i} className="border-2 shadow-sm flex-shrink-0 w-[260px] sm:w-auto snap-start bg-card/50 backdrop-blur-sm">
                                         <CardContent className="p-4 sm:p-6">
                                             <div className="space-y-3">
-                                                <div className="relative w-full aspect-square bg-muted rounded-xl overflow-hidden border">
+                                                <div className="relative w-full aspect-square bg-muted rounded-xl overflow-hidden border shadow-sm">
                                                     <Image
-                                                        src="/images/fusion-generator-logo.svg"
+                                                        src={item.image}
                                                         alt={`AI Fusion Example: ${item.left} and ${item.right} from ${item.series} - ${item.desc}`}
                                                         fill
                                                         sizes="(max-width: 640px) 260px, (max-width: 768px) 50vw, 33vw"
                                                         loading="lazy"
-                                                        className="object-cover p-6 sm:p-8 opacity-70"
+                                                        className="object-cover hover:scale-110 transition-transform duration-700"
                                                     />
                                                 </div>
                                                 <div>
@@ -271,7 +371,7 @@ export default function AIFusionPage() {
                         {/* Bottom CTA - Mobile optimized */}
                         <div className="text-center space-y-4 px-4 sm:px-0">
                             <div className="inline-flex items-center rounded-full px-3 py-1.5 text-xs sm:text-sm bg-primary/10 text-primary font-medium">
-                                <Sparkles className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                <Sparkles className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
                                 Ready to create amazing AI fusions?
                             </div>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

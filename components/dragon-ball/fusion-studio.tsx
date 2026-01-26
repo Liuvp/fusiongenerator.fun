@@ -272,12 +272,12 @@ export function DBFusionStudio() {
                     >
                         {isGenerating ? (
                             <>
-                                <Sparkles className="mr-2 h-5 w-5 animate-spin" />
+                                <Sparkles className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
                                 CHARGING KI...
                             </>
                         ) : (
                             <>
-                                <Sparkles className="mr-2 h-5 w-5" />
+                                <Sparkles className="mr-2 h-5 w-5" aria-hidden="true" />
                                 FUU-SION-HA!
                             </>
                         )}

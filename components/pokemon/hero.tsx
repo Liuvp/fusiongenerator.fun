@@ -8,7 +8,7 @@ export function PokeHero() {
         <div className="grid gap-8 md:grid-cols-2 items-center">
             <div className="space-y-6">
                 <div className="inline-flex items-center rounded-full px-3 py-1 text-sm bg-blue-100 text-blue-700">
-                    <Sparkles className="mr-2 h-4 w-4" />
+                    <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
                     Infinite Pokemon Fusion Generator
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
@@ -31,8 +31,8 @@ export function PokeHero() {
             </div>
             <div className="relative w-full h-[260px] md:h-[360px]">
                 <Image
-                    src="/images/fusion-generator-logo.svg"
-                    alt="Pokemon Fusion Generator Preview - Infinite Combinations"
+                    src="/images/pokemon-character-fusion-generator-preview.webp"
+                    alt="AI-generated Pokémon character fusion preview showing combined creature designs"
                     fill
                     className="object-contain"
                     priority

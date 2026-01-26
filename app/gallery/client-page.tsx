@@ -24,35 +24,51 @@ type FusionItem = {
 const ITEMS: FusionItem[] = [
     {
         id: "db-1",
-        name: "Gogeta Variant",
+        name: "Gogeta Blue",
         left: "Goku",
         right: "Vegeta",
         series: "dragon-ball",
-        image: "/images/fusion-generator-logo.svg",
+        image: "/images/dragon-ball-fusion-preview-goku-vegeta.webp",
     },
     {
         id: "db-2",
-        name: "Piccolo x Krillin",
-        left: "Piccolo",
-        right: "Krillin",
+        name: "Picceta",
+        left: "Vegeta",
+        right: "Piccolo",
         series: "dragon-ball",
-        image: "/images/fusion-generator-logo.svg",
+        image: "/images/vegeta-piccolo-potara-fusion.webp",
     },
     {
         id: "pk-1",
-        name: "Charizard x Blastoise",
-        left: "Charizard",
-        right: "Blastoise",
+        name: "Pikazard",
+        left: "Pikachu",
+        right: "Charizard",
         series: "pokemon",
-        image: "/images/fusion-generator-logo.svg",
+        image: "/images/pokemon-character-fusion-generator-preview.webp",
     },
     {
         id: "pk-2",
-        name: "Gengar x Alakazam",
-        left: "Gengar",
-        right: "Alakazam",
+        name: "Dragolax",
+        left: "Dragonite",
+        right: "Snorlax",
         series: "pokemon",
-        image: "/images/fusion-generator-logo.svg",
+        image: "/images/dragonite-snorlax-character-fusion-pokemon-preview.webp",
+    },
+    {
+        id: "pk-3",
+        name: "Mewzard",
+        left: "Charizard",
+        right: "Mewtwo",
+        series: "pokemon",
+        image: "/images/charizard-mewtwo-character-fusion-pokemon-preview.webp",
+    },
+    {
+        id: "pk-4",
+        name: "Pikalax",
+        left: "Snorlax",
+        right: "Pikachu",
+        series: "pokemon",
+        image: "/images/snorlax-pikachu-ai-fusion-creature.webp",
     },
 ]
 
@@ -234,14 +250,11 @@ export default function GalleryPage() {
                     <p className="text-muted-foreground">Discover amazing <strong>Dragon Ball fusions</strong> and creative <strong>Pokemon fusions</strong> created by our community. Each fusion combines unique traits and abilities to create entirely new characters.</p>
                 </section>
 
-                <motion.div
-                    layout
-                    className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-                >
+                <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {filtered.map((item, idx) => (
-                        <motion.div key={item.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                        <div key={item.id}>
                             <Card
-                                className="group cursor-pointer overflow-hidden focus-within:ring-2 focus-within:ring-primary"
+                                className="group cursor-pointer overflow-hidden focus-within:ring-2 focus-within:ring-primary h-full"
                                 onClick={() => setSelected(item)}
                                 tabIndex={0}
                                 onKeyDown={(e) => {
@@ -273,9 +286,9 @@ export default function GalleryPage() {
                                     <div className="mt-3 text-xs text-muted-foreground truncate">{getSeoImageName(item)}</div>
                                 </CardContent>
                             </Card>
-                        </motion.div>
+                        </div>
                     ))}
-                </motion.div>
+                </div>
 
                 <div className="mt-12 bg-muted rounded-lg p-6">
                     <h2 className="text-xl font-bold mb-4">About Our Fusion Gallery</h2>
