@@ -357,7 +357,7 @@ export function DBFusionStudio() {
                                                                     src={c.imageUrl}
                                                                     alt={`${c.name} - ${c.description.substring(0, 50)}`}
                                                                     fill
-                                                                    sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, 100px"
+                                                                    sizes="128px"
                                                                     loading="lazy"
                                                                     className="object-contain transition-transform duration-300"
                                                                 />
