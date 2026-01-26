@@ -38,7 +38,7 @@ export function PokeHero() {
                     priority={true}
                     loading="eager"
                     fetchPriority="high"
-                    sizes="(max-width: 768px) 100vw, 500px"
+                    sizes="(max-width: 768px) 100vw, 360px"
                 />
             </div>
         </div>
