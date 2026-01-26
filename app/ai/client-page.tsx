@@ -115,18 +115,20 @@ function UploadBox({ side, file, onUpload, onRemove, disabled }: UploadBoxProps)
                 </div>
             ) : (
                 // Upload State - Single interactive element
-                <button
-                    type="button"
+                <div
                     {...getRootProps()}
-                    className={`relative w-full cursor-pointer group focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-2xl transition-all duration-300 text-left ${disabled ? 'opacity-50 pointer-events-none' : ''
+                    className={`relative w-full cursor-pointer group focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-2xl transition-all duration-300 ${disabled ? 'opacity-50 pointer-events-none' : ''
                         }`}
+                    role="button"
                     aria-label={`Upload ${side === "left" ? "Image A" : "Image B"}`}
+                    tabIndex={0}
                     onClick={handleTap}
                     onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
                             handleTap();
                         }
                     }}
+                    suppressHydrationWarning
                 >
                     <input {...getInputProps()} />
                     <div
@@ -148,7 +150,7 @@ function UploadBox({ side, file, onUpload, onRemove, disabled }: UploadBoxProps)
                             JPG, PNG, WebP (Max 5MB)
                         </p>
                     </div>
-                </button>
+                </div>
             )}
 
             {/* Mobile Close Actions Hint */}
