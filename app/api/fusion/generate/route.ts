@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { createClient as createJsClient } from "@supabase/supabase-js";
 import { storage, subscribe, config } from "@fal-ai/serverless-client";
+import { getUserSubscription } from "@/utils/supabase/subscriptions";
 
 // Set FAL_KEY explicitly to ensure server-side access
 config({
@@ -178,7 +179,17 @@ export async function POST(req: NextRequest) {
             image2Description = "a distinct character";
         }
 
-        const watermarkInstruction = !user ? " Add subtle watermark text 'FusionGenerator.fun' in bottom right corner." : "";
+        // Check Subscription status for Watermark
+        let isPremium = false;
+        if (user) {
+            const subscription = await getUserSubscription(user.id);
+            isPremium = !!subscription;
+        }
+
+        const watermarkInstruction = !isPremium
+            ? " text \"fusiongenerator.fun\" watermark in bottom right corner."
+            : "";
+
         const finalPrompt = `(Masterpiece). Fusion of character in image AND character looking like: ${image2Description || "the second uploaded image"}. ${prompt}.${watermarkInstruction} Detailed.`;
 
         // Generate
