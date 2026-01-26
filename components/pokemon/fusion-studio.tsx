@@ -48,23 +48,10 @@ export function PokeFusionStudio() {
     useEffect(() => {
         const checkUser = async () => {
             try {
-                console.log('[PokeFusion] 开始检查用户认证状态...');
-
                 // 1. 首先尝试获取 Session
                 const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                console.log('[PokeFusion] Session 检查:', {
-                    hasSession: !!session,
-                    sessionError: sessionError?.message
-                });
-
                 // 2. 然后获取用户信息
                 const { data: { user }, error: userError } = await supabase.auth.getUser();
-                console.log('[PokeFusion] 用户信息:', {
-                    hasUser: !!user,
-                    userId: user?.id,
-                    email: user?.email,
-                    userError: userError?.message
-                });
 
                 setUser(user);
                 setIsLoadingAuth(false);
@@ -80,7 +67,6 @@ export function PokeFusionStudio() {
                 if (response.ok) {
                     const data = await response.json();
                     setQuota(data.quota);
-                    console.log('[PokeFusion] 配额信息:', data.quota);
                 }
             } catch (error) {
                 console.error('[PokeFusion] 获取配额失败:', error);
@@ -93,8 +79,6 @@ export function PokeFusionStudio() {
         // 3. 监听认证状态变化（关键！）
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
-                console.log('[PokeFusion] 认证状态变化:', { event, hasSession: !!session, userId: session?.user?.id });
-
                 if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
                     setUser(session?.user ?? null);
                     // 重新获取配额
@@ -254,10 +238,10 @@ export function PokeFusionStudio() {
             <h2 className="text-2xl font-bold">Pokemon Fusion Studio</h2>
 
             <Card className="border-2 shadow-sm">
-                <CardContent className="p-6 space-y-4">
+                <CardContent className="p-4 sm:p-6 space-y-4">
                     {/* 主输入区 - 紧凑设计 */}
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <Label className="text-sm font-medium">Fusion Prompt</Label>
                             <div className="flex items-center gap-2">
                                 {promptSource === "manual" && (
@@ -297,7 +281,7 @@ export function PokeFusionStudio() {
                         onClick={handleGenerate}
                         disabled={!canGenerate}
                         aria-label="Generate Pokemon fusion"
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-semibold py-6 text-lg"
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-semibold py-4 text-base sm:py-6 sm:text-lg"
                     >
                         {isGenerating ? (
                             <>
@@ -328,8 +312,8 @@ export function PokeFusionStudio() {
                     <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                             <Label className="text-sm">Pokemon 1</Label>
-                            <div className="border rounded-lg p-2 max-h-[200px] overflow-y-auto bg-muted/20">
-                                <div className="grid grid-cols-3 gap-2">
+                            <div className="border rounded-lg p-2 max-h-[160px] sm:max-h-[200px] overflow-y-auto bg-muted/20">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                     {POKEMON_DATABASE.filter((p: Pokemon) => p.id !== pokemon2?.id).slice(0, 12).map((p: Pokemon) => (
                                         <Card
                                             key={p.id}
@@ -374,8 +358,8 @@ export function PokeFusionStudio() {
 
                         <div className="space-y-2">
                             <Label className="text-sm">Pokemon 2</Label>
-                            <div className="border rounded-lg p-2 max-h-[200px] overflow-y-auto bg-muted/20">
-                                <div className="grid grid-cols-3 gap-2">
+                            <div className="border rounded-lg p-2 max-h-[160px] sm:max-h-[200px] overflow-y-auto bg-muted/20">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                     {POKEMON_DATABASE.filter((p: Pokemon) => p.id !== pokemon1?.id).slice(0, 12).map((p: Pokemon) => (
                                         <Card
                                             key={p.id}
@@ -433,7 +417,7 @@ export function PokeFusionStudio() {
                                     }
                                 }
                             }}
-                            className="grid grid-cols-2 md:grid-cols-3 gap-2"
+                            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"
                         >
                             {FUSION_STYLES.map((s) => (
                                 <div

@@ -58,8 +58,8 @@ export function PokePopularFusions() {
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Card className="border-2 shadow-sm cursor-pointer hover:border-primary/50 transition-colors">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
+                                    <CardContent className="p-4 sm:p-6">
+                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                             <div className="space-y-1 text-left">
                                                 <p className="text-sm text-muted-foreground">{item.left} × {item.right}</p>
                                                 <p className="font-semibold text-lg">{item.name}</p>
@@ -71,11 +71,12 @@ export function PokePopularFusions() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <div className="relative w-24 h-24 bg-muted rounded-full overflow-hidden border">
+                                            <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full overflow-hidden border">
                                                 <Image
                                                     src={(item as any).image || "/images/fusion-generator-logo.svg"}
                                                     alt={(item as any).alt || `${item.name} - Pokemon Fusion of ${item.left} and ${item.right}`}
                                                     fill
+                                                    sizes="(max-width: 640px) 80px, 96px"
                                                     className={(item as any).image ? "object-cover" : "object-cover p-2"}
                                                 />
                                             </div>

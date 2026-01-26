@@ -3,7 +3,7 @@ import { Zap, Palette, Leaf } from "lucide-react";
 
 export function PokeFeatures() {
     return (
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
             <Card className="border-2 shadow-sm">
                 <CardHeader>
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
