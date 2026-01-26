@@ -36,6 +36,11 @@ interface UploadBoxProps {
 
 function UploadBox({ side, file, onUpload, onRemove, disabled }: UploadBoxProps) {
     const [showActions, setShowActions] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
         accept: {
@@ -59,6 +64,33 @@ function UploadBox({ side, file, onUpload, onRemove, disabled }: UploadBoxProps)
             open(); // Fix: manually trigger open if no file
         }
     };
+
+    if (!mounted) {
+        // SSR / Initial Render Fallback - Static representation to prevent hydration mismatch
+        return (
+            <div className="relative w-full">
+                {file ? (
+                    <div className="relative aspect-square rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-background to-muted/30 overflow-hidden shadow-lg">
+                        <Image
+                            src={file.preview}
+                            alt={`Uploaded ${side === "left" ? "Image A" : "Image B"}`}
+                            fill
+                            className="object-contain p-3"
+                        />
+                    </div>
+                ) : (
+                    <div
+                        className="relative w-full rounded-2xl aspect-square border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center p-4 bg-muted/10 cursor-wait"
+                    >
+                        <Upload className="h-6 w-6 text-muted-foreground mb-3" />
+                        <p className="text-base font-semibold text-foreground/50">
+                            {side === "left" ? "Upload Image A" : "Upload Image B"}
+                        </p>
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="relative w-full">
