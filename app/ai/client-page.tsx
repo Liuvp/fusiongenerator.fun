@@ -320,9 +320,15 @@ export default function AIFusionStudioPage() {
         }
     };
 
+    const [canShare, setCanShare] = useState(false);
+
+    useEffect(() => {
+        setCanShare(typeof navigator !== 'undefined' && 'share' in navigator);
+    }, []);
+
     /* -------- Share Result -------- */
     const shareResult = async () => {
-        if (!resultImage || !navigator.share) return;
+        if (!resultImage || !canShare) return;
         try {
             await navigator.share({
                 title: 'AI Fusion 创作',
@@ -494,7 +500,7 @@ export default function AIFusionStudioPage() {
                                 >
                                     <Download size={18} />
                                 </button>
-                                {typeof navigator !== 'undefined' && 'share' in navigator && (
+                                {canShare && (
                                     <button
                                         onClick={shareResult}
                                         className="p-2.5 rounded-xl bg-muted hover:bg-muted/80 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
