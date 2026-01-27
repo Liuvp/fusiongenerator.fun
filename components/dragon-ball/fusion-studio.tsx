@@ -223,7 +223,7 @@ export function DBFusionStudio() {
                             return (
                                 <button key={character.id} onClick={() => selectCharacter(character)} className={`group relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 active:scale-95 touch-manipulation ${isSelected1 ? 'border-orange-500 shadow-md ring-2 ring-orange-200 ring-offset-1 scale-105' : isSelected2 ? 'border-blue-500 shadow-md ring-2 ring-blue-200 ring-offset-1 scale-105' : 'border-gray-200 hover:border-orange-300 hover:shadow-sm'}`} aria-label={`Select ${character.name}`} aria-pressed={isSelected}>
                                     <div className="relative w-full h-full bg-gray-100">
-                                        <Image src={character.imageUrl} alt={character.name} fill sizes="(max-width: 640px) 25vw, 80px" priority={index < 8} className={`object-cover transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} />
+                                        <Image src={character.imageUrl} alt={character.name} fill sizes="(max-width: 640px) 25vw, 80px" priority={index < 8} className={`object-contain p-1 transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} />
                                         {isSelected && <div className={`absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected1 ? 'bg-orange-500 text-white shadow-md' : 'bg-blue-500 text-white shadow-md'}`}>{isSelected1 ? '1' : '2'}</div>}
                                     </div>
                                 </button>
@@ -304,16 +304,16 @@ const CharacterSlot = ({ char, position }: { char?: DBCharacter; position: numbe
 
     return (
         <div className="flex flex-col items-center">
-            <div className={`relative w-20 h-20 rounded-full overflow-hidden border-4 shadow-lg ${char ? color.border : 'border-gray-200'}`}>
+            <div className={`relative w-24 h-24 rounded-xl overflow-hidden border-4 shadow-lg ${char ? color.border : 'border-gray-200'} bg-gray-100`}>
                 {char ? (
-                    <Image src={char.imageUrl} alt={char.name} fill className="object-cover" sizes="80px" />
+                    <Image src={char.imageUrl} alt={char.name} fill className="object-contain p-1" sizes="96px" />
                 ) : (
                     <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                         <span className="text-2xl font-black text-gray-300">?</span>
                     </div>
                 )}
             </div>
-            <div className={`mt-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${char ? `${color.bg} text-white` : 'bg-gray-100 text-gray-400'}`}>
+            <div className={`mt-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${char ? `${color.bg} text-white` : 'bg-gray-100 text-gray-400'}`}>
                 {char ? char.name : `SLOT ${position}`}
             </div>
         </div>
