@@ -7,21 +7,16 @@ import { ThemeProvider } from "next-themes";
 import { createClient } from "@/utils/supabase/server";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
-import { cookies } from "next/headers";
-
 
 const baseUrl = process.env.BASE_URL
   ? `https://${process.env.BASE_URL}`
   : "https://fusiongenerator.fun/";
-
-
 
 export const metadata = {
   metadataBase: new URL("https://fusiongenerator.fun/"),
   title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
   description:
     "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
-  // keywords removed for SEO best practices
   openGraph: {
     title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
     description:
@@ -68,16 +63,8 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  /* Removed Multi-language Logic */
-
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://www.google-analytics.com" />
-        <link rel="preconnect" href="https://www.clarity.ms" />
-        <link rel="preconnect" href="https://c.bing.com" />
-      </head>
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
@@ -106,16 +93,6 @@ export default async function RootLayout({
             gtag('js', new Date());
 
             gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
-          `}
-        </Script>
-        {/* Microsoft Clarity */}
-        <Script id="microsoft-clarity" strategy="afterInteractive">
-          {`
-            (function(c,l,a,r,i,t,y){
-                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i+"?ref=bwt";
-                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-            })(window, document, "clarity", "script", "v5zc7wdkn7");
           `}
         </Script>
       </body>
