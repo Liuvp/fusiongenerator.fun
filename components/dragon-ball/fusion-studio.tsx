@@ -64,7 +64,9 @@ export function DBFusionStudio() {
         const checkUser = async () => {
             try {
                 const { data, error } = await supabase.auth.getUser();
-                if (error) console.warn("Auth check verify:", error.message);
+                if (error && error.message !== 'Auth session missing!') {
+                    console.warn("Auth check verify:", error.message);
+                }
                 setUser(data?.user ?? null);
                 setIsLoadingAuth(false);
             } catch (error) {
