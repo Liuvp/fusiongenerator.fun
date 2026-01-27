@@ -14,6 +14,9 @@ export const revalidate = 3600;
 export const metadata = {
   title: "Fusion Generator – Create Dragon Ball & Pokémon AI Fusions",
   description: "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
+  alternates: {
+    canonical: 'https://fusiongenerator.fun/',
+  },
 };
 
 export default function Home() {
@@ -31,8 +34,6 @@ export default function Home() {
       "priceCurrency": "USD"
     }
   };
-
-
 
   const softwareApplicationData = {
     "@context": "https://schema.org",
@@ -96,7 +97,6 @@ export default function Home() {
 
   return (
     <>
-      <link rel="canonical" href="https://fusiongenerator.fun/" />
       <Script
         id="structured-data"
         type="application/ld+json"
