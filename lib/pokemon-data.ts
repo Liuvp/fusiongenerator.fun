@@ -490,7 +490,7 @@ export function buildPokemonPrompt(p1: Pokemon, p2: Pokemon, style?: FusionStyle
     `;
 
     // 组合属性
-    const types = [...new Set([...p1.types, ...p2.types])].join(' and ');
+    const types = Array.from(new Set([...p1.types, ...p2.types])).join(' and ');
     const typeDesc = `The creature should reflect the ${types} elemental types.`;
 
     const stylePrompt = style?.prompt ? `Style: ${style.prompt}.` : '';
