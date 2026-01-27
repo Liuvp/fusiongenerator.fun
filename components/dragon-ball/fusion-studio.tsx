@@ -262,6 +262,7 @@ export function DBFusionStudio() {
                                         size="sm"
                                         className="h-6 text-xs text-orange-600"
                                         onClick={() => setPromptSource("auto")}
+                                        disabled={isGenerating}
                                     >
                                         Reset to Auto
                                     </Button>
@@ -279,6 +280,7 @@ export function DBFusionStudio() {
                             }}
                             placeholder="Describe your ultimate warrior..."
                             rows={3}
+                            disabled={isGenerating}
                             className={`resize-none transition-all duration-300 ${promptUpdated ? "ring-2 ring-orange-500 bg-orange-50" : ""}`}
                         />
                     </div>
