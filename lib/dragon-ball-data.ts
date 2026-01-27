@@ -200,6 +200,20 @@ export const DB_FUSION_STYLES: DBFusionStyle[] = [
     }
 ];
 
+export const POPULAR_COMBINATIONS = [
+    { char1: "Goku", char2: "Vegeta", style: "dance" },
+    { char1: "Goku", char2: "Vegeta", style: "potara" },
+    { char1: "Trunks", char2: "Gotenks", style: "dance" }, // Gotenks is technically a fusion, but it's a character in the DB
+    { char1: "Goku", char2: "Broly", style: "ssj4" },
+    { char1: "Frieza", char2: "Cell", style: "villain" },
+    { char1: "Piccolo", char2: "Gohan", style: "ui" }
+];
+
+export function getRandomCharacters(count: number = 2): DBCharacter[] {
+    const shuffled = [...DB_CHARACTERS].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
+
 export function buildDBPrompt(char1?: DBCharacter, char2?: DBCharacter, style?: DBFusionStyle, customPrompt?: string): string {
     if (!char1 && !char2) return '';
 

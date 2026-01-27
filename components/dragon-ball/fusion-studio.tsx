@@ -1,78 +1,74 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Download, RefreshCw, Share2, LogIn, Crown, ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/utils/supabase/client";
-import {
-    DB_CHARACTERS,
-    DB_FUSION_STYLES,
-    DBCharacter,
-    DBFusionStyle,
-    buildDBPrompt
-} from "@/lib/dragon-ball-data";
+import { DB_CHARACTERS, DBCharacter, DB_FUSION_STYLES, getRandomCharacters } from "@/lib/dragon-ball-data";
+import { User } from "@supabase/supabase-js";
 
 export function DBFusionStudio() {
     const { toast } = useToast();
+    const router = useRouter();
     const supabase = createClient();
+    const resultRef = useRef<HTMLDivElement>(null);
 
-    // State
-    const [prompt, setPrompt] = useState("");
-    const [promptSource, setPromptSource] = useState<"manual" | "auto">("auto");
-    const [promptUpdated, setPromptUpdated] = useState(false);
-    const [char1, setChar1] = useState<DBCharacter | undefined>();
-    const [char2, setChar2] = useState<DBCharacter | undefined>();
-    const [style, setStyle] = useState<DBFusionStyle>(DB_FUSION_STYLES[0]);
+    const [char1, setChar1] = useState<DBCharacter>();
+    const [char2, setChar2] = useState<DBCharacter>();
     const [isGenerating, setIsGenerating] = useState(false);
-    const [result, setResult] = useState<any>(null);
-
-    // 配额状态
-    // 配额状态
-    const [quota, setQuota] = useState<{
-        used: number;
-        remaining: number;
-        limit: number;
-        isVIP: boolean;
-    } | null>(null);
-
-    // 用户状态
-    const [user, setUser] = useState<any>(null);
+    const [result, setResult] = useState<{ imageUrl: string; char1: DBCharacter; char2: DBCharacter } | null>(null);
+    const [quota, setQuota] = useState<{ used: number; remaining: number; limit: number; isVIP: boolean } | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
-    // 获取用户 session 和配额 - 改进的认证检测
+    /** Load saved selection */
     useEffect(() => {
+        const saved = localStorage.getItem("fusion_state");
+        if (saved) {
+            try {
+                const { c1, c2 } = JSON.parse(saved);
+                if (c1) setChar1(DB_CHARACTERS.find(c => c.id === c1));
+                if (c2) setChar2(DB_CHARACTERS.find(c => c.id === c2));
+            } catch (e) {
+                console.error("Failed to load saved state");
+            }
+        }
+    }, []);
+
+    /** Save selection */
+    useEffect(() => {
+        if (char1 || char2) {
+            localStorage.setItem("fusion_state", JSON.stringify({ c1: char1?.id, c2: char2?.id }));
+        }
+    }, [char1, char2]);
+
+    /** Scroll to result when generated */
+    useEffect(() => {
+        if (result && resultRef.current && !isGenerating) {
+            // Small timeout to ensure DOM render
+            setTimeout(() => {
+                resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 100);
+        }
+    }, [result, isGenerating]);
+
+    /** Auth & Quota */
+    useEffect(() => {
+        let subscription: { unsubscribe: () => void } | undefined;
+
         const checkUser = async () => {
             try {
-                console.log('[DBFusion] 开始检查用户认证状态...');
-
-                // 1. 首先尝试获取 Session
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                console.log('[DBFusion] Session 检查:', {
-                    hasSession: !!session,
-                    sessionError: sessionError?.message
-                });
-
-                // 2. 然后获取用户信息
-                const { data: { user }, error: userError } = await supabase.auth.getUser();
-                console.log('[DBFusion] 用户信息:', {
-                    hasUser: !!user,
-                    userId: user?.id,
-                    email: user?.email,
-                    userError: userError?.message
-                });
-
-                setUser(user);
+                const { data, error } = await supabase.auth.getUser();
+                if (error) console.warn("Auth check verify:", error.message);
+                setUser(data?.user ?? null);
                 setIsLoadingAuth(false);
             } catch (error) {
-                console.error('[DBFusion] 认证检查失败:', error);
+                console.error('Auth check critical error:', error);
                 setIsLoadingAuth(false);
             }
         };
@@ -81,60 +77,66 @@ export function DBFusionStudio() {
             try {
                 const response = await fetch('/api/get-quota');
                 if (response.ok) {
-                    const data: any = await response.json();
+                    const data = await response.json();
                     setQuota(data.quota);
-                    console.log('[DBFusion] 配额信息:', data.quota);
                 }
             } catch (error) {
-                console.error('[DBFusion] 获取配额失败:', error);
+                console.error('Failed to fetch quota:', error);
             }
         };
 
         checkUser();
         fetchQuota();
 
-        // 3. 监听认证状态变化（关键！）
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-                console.log('[DBFusion] 认证状态变化:', { event, hasSession: !!session, userId: session?.user?.id });
-
-                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                    setUser(session?.user ?? null);
-                    // 重新获取配额
-                    fetchQuota();
-                } else if (event === 'SIGNED_OUT') {
-                    setUser(null);
-                    setQuota(null);
-                }
+        const { data: authData } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                setUser(session?.user ?? null);
+                fetchQuota();
+            } else if (event === 'SIGNED_OUT') {
+                setUser(null);
+                setQuota(null);
             }
-        );
+        });
+        subscription = authData.subscription;
 
-        // 清理订阅
         return () => {
-            subscription.unsubscribe();
+            if (subscription) subscription.unsubscribe();
         };
     }, [supabase]);
 
-    // 自动更新 Prompt
-    useEffect(() => {
-        if ((char1 || char2) && promptSource === "auto") {
-            const generatedPrompt = buildDBPrompt(char1, char2, style);
-            setPrompt(generatedPrompt);
-            setPromptUpdated(true);
-            setTimeout(() => setPromptUpdated(false), 600);
+    /** Helpers */
+    const getRemainingDisplay = () => quota?.isVIP ? "∞" : (quota ? quota.remaining : user ? "0" : "1");
+    const hasQuotaAccess = () => quota?.isVIP || (quota ? quota.remaining > 0 : !user);
+    const isSelectionComplete = !!(char1 && char2);
+    const shouldDisableButton = !isSelectionComplete || isGenerating;
+
+    /** Actions */
+    const selectCharacter = (char: DBCharacter) => {
+        if (char1?.id === char.id || char2?.id === char.id) return;
+        if (!char1) setChar1(char);
+        else if (!char2) setChar2(char);
+        else { setChar2(char1); setChar1(char); }
+    };
+
+    const randomize = () => {
+        const [c1, c2] = getRandomCharacters(2);
+        setChar1(c1);
+        setChar2(c2);
+        setResult(null);
+        toast({ title: "Random Pair Selected", description: `${c1.name} + ${c2.name}`, duration: 2000 });
+    };
+
+    const clearSelection = () => { setChar1(undefined); setChar2(undefined); setResult(null); };
+
+    const generateFusion = async () => {
+        if (!hasQuotaAccess()) {
+            if (!user) router.push(`/sign-in?redirect_to=${window.location.pathname}&reason=fusion_quota`);
+            else router.push('/pricing?source=dragon_ball_fusion&reason=upgrade_for_more');
+            return;
         }
-    }, [char1, char2, style, promptSource]);
 
-    // 生成融合
-    const handleGenerate = async () => {
-        // 允许匿名用户尝试生成，移除前端拦截
-
-        if (!prompt.trim()) {
-            toast({
-                title: "Prompt Required",
-                description: "Select characters or enter a prompt!",
-                variant: "destructive",
-            });
+        if (!char1 || !char2) {
+            toast({ title: "Select Two Characters", description: "Choose two fighters to fuse", variant: "destructive", duration: 3000 });
             return;
         }
 
@@ -142,303 +144,176 @@ export function DBFusionStudio() {
         setResult(null);
 
         try {
+            const defaultStyle = DB_FUSION_STYLES[0];
+            const payload = { prompt: "", char1: char1.id, char2: char2.id, style: defaultStyle.id };
+
             const response = await fetch('/api/generate-fusion', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt }),
+                body: JSON.stringify(payload),
             });
 
-            // 尝试解析JSON响应
             let data: any;
-            try {
-                data = await response.json();
-            } catch (jsonError) {
-                // 如果是 401/403 等可能返回非 JSON
-                if (!response.ok) throw new Error(response.statusText);
-            }
+            try { data = await response.json(); } catch (e) { data = {}; }
 
-            // 1. 频率限制检查 (后端返回 429)
-            if (response.status === 429) {
-                const isLimitReached = data.isLimitReached; // 匿名用户限制标识
+            if (response.status === 429) { toast({ title: "Limit Reached", description: data.error || "Please try again later.", variant: "destructive", duration: 5000 }); return; }
+            if (response.status === 402) { toast({ title: "Insufficient Credits", description: "Upgrade to continue.", variant: "destructive", duration: 5000 }); return; }
+            if (!response.ok) throw new Error(data?.error || `Server error: ${response.status}`);
 
-                toast({
-                    title: isLimitReached ? "Free Trial Ended" : "Daily Limit Reached",
-                    description: data.error || "Please wait a moment.",
-                    variant: "destructive",
-                });
-
-                if (isLimitReached) {
-                    // 匿名用户 -> 引导注册
-                    setTimeout(() => window.location.href = `/sign-in?redirect_to=${window.location.pathname}&reason=trial_ended`, 1500);
-                }
-                return;
-            }
-
-            // 2. 积分不足检查 (后端返回 402)
-            if (response.status === 402) {
-                toast({
-                    title: "🪙 Insufficient Credits",
-                    description: data.error || "Please upgrade or top up to continue generating.",
-                    variant: "destructive",
-                });
-
-                // 延迟跳转到定价页面
-                setTimeout(() => window.location.href = data.upgradeUrl || '/pricing?source=dragon_ball&reason=insufficient_credits', 2000);
-                return;
-            }
-
-            if (!response.ok) throw new Error(data?.error || 'Generation failed');
-
-            // 3. 更新前端状态 (成功)
             if (data.quota) setQuota(data.quota);
-
-            setResult({
-                imageUrl: data.imageUrl,
-                prompt,
-            });
-
-            toast({
-                title: "Fusion Successful!",
-                description: `Super Saiyan Power! ${user ? (data.quota?.remaining || 0) + ' left' : 'Free Trial Used'}.`,
-            });
+            setResult({ imageUrl: data.imageUrl, char1, char2 });
+            toast({ title: "Fusion Complete!", description: "A new warrior is born!", duration: 3000 });
 
         } catch (error: any) {
-            console.error('Generation error:', error);
-            toast({
-                title: "Generation Failed",
-                description: error.message || "Something went wrong",
-                variant: "destructive",
-            });
-        } finally {
-            setIsGenerating(false);
-        }
+            console.error("Fusion error:", error);
+            toast({ title: "Fusion Failed", description: error.message || "Please try again", variant: "destructive", duration: 4000 });
+        } finally { setIsGenerating(false); }
     };
 
-    const canGenerate = prompt.trim() && !isGenerating;
-
-    // 下载处理
-    const handleDownload = async () => {
+    const downloadImage = async () => {
         if (!result?.imageUrl) return;
-
         try {
             const response = await fetch(result.imageUrl);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `dragon-ball-fusion-${Date.now()}.png`;
+            a.download = `fusion-${result.char1.name}-${result.char2.name}-${Date.now()}.png`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+            toast({ title: "Download Started", description: "Image saved to your device", duration: 3000 });
+        } catch (error) { window.open(result.imageUrl, '_blank'); toast({ title: "Opening Image", description: "Use browser menu to save image.", duration: 3000 }); }
+    };
 
-            toast({
-                title: "✅ Download Started",
-                description: "Kamehameha! Image saved.",
-            });
-        } catch (error) {
-            console.error('Download error:', error);
-            // Fallback
-            window.open(result.imageUrl, '_blank');
-        }
+    const shareResult = async () => {
+        if (!result) return;
+        const shareData = { title: `${result.char1.name} × ${result.char2.name} Fusion`, text: `Check out this Dragon Ball fusion!`, url: window.location.href };
+        try { if (navigator.share && navigator.canShare(shareData)) await navigator.share(shareData); else { await navigator.clipboard.writeText(window.location.href); toast({ title: "Link Copied!", description: "Paste to share", duration: 3000 }); } }
+        catch (error) { console.error("Share failed:", error); }
     };
 
     return (
-        <div id="fusion-studio" className="space-y-6 scroll-mt-20">
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">
-                Dragon Ball Fusion Studio
-            </h2>
+        <div id="fusion-studio" className="bg-gradient-to-b from-orange-50/30 to-white p-4 pb-8 rounded-3xl min-h-[600px]">
+            {/* Header */}
+            <header className="flex justify-between items-center mb-6">
+                <div>
+                    <h2 className="text-2xl font-black text-orange-600 tracking-tight">Dragon Ball Fusion Studio</h2>
+                </div>
+                <Badge variant={hasQuotaAccess() ? "default" : "destructive"} className="text-sm px-3 py-1.5 min-w-[80px] justify-center">
+                    {quota?.isVIP ? "VIP" : `${getRemainingDisplay()} Left`}
+                </Badge>
+            </header>
 
-            <Card className="border-2 shadow-sm border-orange-500/20">
-                <CardContent className="p-6 space-y-6">
-                    {/* Prompt Input */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-sm font-medium">Fusion Prompt</Label>
-                            <div className="flex items-center gap-2">
-                                {promptSource === "manual" && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 text-xs text-orange-600"
-                                        onClick={() => setPromptSource("auto")}
-                                        disabled={isGenerating}
-                                    >
-                                        Reset to Auto
-                                    </Button>
-                                )}
-                                <Badge variant="outline" className="text-xs border-orange-200 text-orange-700 bg-orange-50">
-                                    {prompt.length} / 1000
-                                </Badge>
-                            </div>
-                        </div>
-                        <Textarea
-                            value={prompt}
-                            onChange={(e) => {
-                                setPrompt(e.target.value.slice(0, 1000));
-                                setPromptSource("manual");
-                            }}
-                            placeholder="Describe your ultimate warrior..."
-                            rows={3}
-                            disabled={isGenerating}
-                            className={`resize-none transition-all duration-300 ${promptUpdated ? "ring-2 ring-orange-500 bg-orange-50" : ""}`}
-                        />
+            {/* 上半部分：角色选择 */}
+            <Card className="border-0 shadow-md mb-6">
+                <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-sm font-semibold text-gray-700">Choose Fighters</h2>
+                        <Button variant="ghost" size="sm" onClick={randomize} className="h-7 px-2 text-xs text-gray-600 hover:text-orange-600"><RefreshCw className="w-3 h-3 mr-1" />Random</Button>
                     </div>
-
-                    {/* Generate Button */}
-                    <Button
-                        onClick={handleGenerate}
-                        disabled={!canGenerate}
-                        aria-label="Generate Dragon Ball fusion"
-                        className="w-full bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 font-bold py-6 text-lg shadow-lg transform active:scale-95 transition-all text-white"
-                    >
-                        {isGenerating ? (
-                            <>
-                                <Sparkles className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
-                                CHARGING KI...
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles className="mr-2 h-5 w-5" aria-hidden="true" />
-                                FUU-SION-HA!
-                            </>
-                        )}
-                    </Button>
-
-                    {/* Quota */}
-                    {quota && (
-                        <div className="text-center text-sm text-muted-foreground">
-                            {quota.isVIP ? '💎 VIP' : '👤 Free'}: {quota.remaining}/{quota.limit} energy remaining
-                        </div>
-                    )}
-
-                    {/* Character Selectors */}
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {['Character 1', 'Character 2'].map((label, idx) => {
-                            const isFirst = idx === 0;
-                            const selected = isFirst ? char1 : char2;
-                            const setter = isFirst ? setChar1 : setChar2;
-                            const other = isFirst ? char2 : char1;
-
+                    <div className="grid grid-cols-4 gap-3 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+                        {DB_CHARACTERS.map((character, index) => {
+                            const isSelected1 = char1?.id === character.id;
+                            const isSelected2 = char2?.id === character.id;
+                            const isSelected = isSelected1 || isSelected2;
                             return (
-                                <div key={idx} className="space-y-2">
-                                    <Label className="text-sm font-semibold text-orange-800">{label}</Label>
-                                    <div className="border rounded-lg p-2 max-h-[220px] overflow-y-auto bg-muted/20 custom-scrollbar">
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {DB_CHARACTERS.map((c, charIndex) => {
-                                                const isSelected = selected?.id === c.id;
-                                                const isDisabled = other?.id === c.id;
-
-                                                return (
-                                                    <Card
-                                                        key={c.id}
-                                                        className={`
-                                                            cursor-pointer transition-all duration-200 
-                                                            ${isSelected
-                                                                ? "ring-2 ring-orange-500 shadow-md scale-95 bg-orange-50/50"
-                                                                : "hover:scale-105 hover:shadow-sm hover:border-orange-200"
-                                                            }
-                                                            ${isDisabled ? "opacity-40 cursor-not-allowed grayscale" : ""}
-                                                        `}
-                                                        onClick={() => !isDisabled && setter(c)}
-                                                        role="button"
-                                                        tabIndex={isDisabled ? -1 : 0}
-                                                        aria-label={`Select ${c.name} as ${label}`}
-                                                        aria-pressed={isSelected}
-                                                        aria-disabled={isDisabled}
-                                                        onKeyDown={(e) => {
-                                                            if ((e.key === 'Enter' || e.key === ' ') && !isDisabled) {
-                                                                e.preventDefault();
-                                                                setter(c);
-                                                            }
-                                                        }}
-                                                    >
-                                                        <CardContent className="p-2 flex flex-col items-center">
-                                                            <div className="relative w-full aspect-square mb-2 overflow-hidden rounded-md bg-gray-100">
-                                                                <Image
-                                                                    src={c.imageUrl}
-                                                                    alt={`${c.name} - ${c.description.substring(0, 50)}`}
-                                                                    fill
-                                                                    sizes="128px"
-                                                                    loading="lazy"
-                                                                    className="object-contain transition-transform duration-300"
-                                                                />
-                                                            </div>
-                                                            <span className="text-[10px] sm:text-xs font-bold text-center leading-tight line-clamp-1 w-full block">
-                                                                {c.name}
-                                                            </span>
-                                                        </CardContent>
-                                                    </Card>
-                                                );
-                                            })}
-                                        </div>
+                                <button key={character.id} onClick={() => selectCharacter(character)} className={`group relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 active:scale-95 touch-manipulation ${isSelected1 ? 'border-orange-500 shadow-md ring-2 ring-orange-200 ring-offset-1 scale-105' : isSelected2 ? 'border-blue-500 shadow-md ring-2 ring-blue-200 ring-offset-1 scale-105' : 'border-gray-200 hover:border-orange-300 hover:shadow-sm'}`} aria-label={`Select ${character.name}`} aria-pressed={isSelected}>
+                                    <div className="relative w-full h-full bg-gray-100">
+                                        <Image src={character.imageUrl} alt={character.name} fill sizes="(max-width: 640px) 25vw, 80px" priority={index < 8} className={`object-cover transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} />
+                                        {isSelected && <div className={`absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected1 ? 'bg-orange-500 text-white shadow-md' : 'bg-blue-500 text-white shadow-md'}`}>{isSelected1 ? '1' : '2'}</div>}
                                     </div>
-                                </div>
+                                </button>
                             );
                         })}
                     </div>
-
-                    {/* Style Selector */}
-                    <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-orange-800">Fusion Style</Label>
-                        <RadioGroup
-                            value={style.id}
-                            onValueChange={(val) => {
-                                const s = DB_FUSION_STYLES.find(x => x.id === val);
-                                if (s) setStyle(s);
-                            }}
-                            className="grid grid-cols-2 md:grid-cols-3 gap-2"
-                        >
-                            {DB_FUSION_STYLES.map((s) => (
-                                <div
-                                    key={s.id}
-                                    className={`
-                                        flex items-center space-x-2 border rounded-md p-2 cursor-pointer hover:bg-orange-50 transition-colors
-                                        ${style.id === s.id ? "bg-orange-100 border-orange-500" : ""}
-                                    `}
-                                    onClick={() => setStyle(s)}
-                                >
-                                    <RadioGroupItem value={s.id} id={`style-${s.id}`} className="text-orange-600 border-orange-600" />
-                                    <Label htmlFor={`style-${s.id}`} className="text-xs cursor-pointer flex-1 font-medium">
-                                        {s.name}
-                                    </Label>
-                                </div>
-                            ))}
-                        </RadioGroup>
-                    </div>
-
-                    {/* Result Display */}
-                    {result && (
-                        <div className="mt-8 pt-8 border-t animate-in fade-in zoom-in duration-500 scroll-mt-10" id="result-area">
-                            <h3 className="text-xl font-bold mb-4 text-center text-orange-700">Fusion Complete!</h3>
-                            <div className="relative aspect-square w-full max-w-md mx-auto rounded-xl border-4 border-yellow-400 shadow-2xl overflow-hidden bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center group">
-                                <Image
-                                    src={result.imageUrl}
-                                    alt={`Dragon Ball fusion result: ${result.prompt.substring(0, 100)}`}
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, 450px"
-                                    quality={95}
-                                    unoptimized
-                                    className="object-contain transition-transform duration-700 group-hover:scale-105"
-                                />
-                                <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-black/10 rounded-xl" />
-                            </div>
-                            <p className="text-center text-xs text-muted-foreground mt-2 italic max-w-md mx-auto">
-                                "{result.prompt.slice(0, 100)}..."
-                            </p>
-                            <div className="mt-4 flex justify-center gap-4">
-                                <Button
-                                    variant="outline"
-                                    onClick={handleDownload}
-                                    aria-label="Download fusion image in HD quality"
-                                >
-                                    Download HD
-                                </Button>
-                            </div>
-                        </div>
-                    )}
                 </CardContent>
             </Card>
+
+            {/* 下半部分：当前选择 + 生成按钮 */}
+            <Card className="border-0 shadow-md mb-6 bg-white/90 backdrop-blur-sm">
+                <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-sm font-semibold text-gray-700">{isSelectionComplete ? "Selected Fusion" : "Select 2 Fighters"}</h2>
+                        {(char1 || char2) && <Button variant="ghost" size="sm" onClick={clearSelection} className="h-7 px-2 text-xs text-gray-500 hover:text-destructive">Clear</Button>}
+                    </div>
+                    <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4">
+                        <CharacterSlot char={char1} position={1} />
+                        <div className="flex flex-col items-center gap-1">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center shadow-sm"><span className="text-xl font-bold text-orange-500">+</span></div>
+                            <span className="text-[10px] text-orange-400 font-medium">FUSE</span>
+                        </div>
+                        <CharacterSlot char={char2} position={2} />
+                    </div>
+
+                    <Button onClick={generateFusion} disabled={shouldDisableButton} size="lg" className={`w-full py-6 text-xl font-black uppercase tracking-wide shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${isGenerating ? 'bg-gray-200 text-gray-500' : (!hasQuotaAccess() ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' : 'bg-gradient-to-r from-orange-600 via-orange-500 to-yellow-500 hover:shadow-2xl text-white')}`}>
+                        {isGenerating ? <span className="flex items-center gap-3"><Sparkles className="w-6 h-6 animate-spin" />FUSING...</span> : !isSelectionComplete ? "SELECT 2 FIGHTERS" : !hasQuotaAccess() ? (user ? "UPGRADE TO VIP" : "LOGIN FOR ENERGY") : <span className="flex items-center gap-3"><Sparkles className="w-6 h-6" />FUU-SION-HA!</span>}
+                    </Button>
+                </CardContent>
+            </Card>
+
+            {/* Loading State */}
+            {isGenerating && (
+                <Card className="border-0 shadow-md mb-6 animate-pulse">
+                    <CardContent className="h-[400px] flex flex-col items-center justify-center p-5 space-y-4 bg-gray-50/50 rounded-xl">
+                        <Sparkles className="w-12 h-12 text-orange-400 animate-spin" />
+                        <p className="text-gray-500 font-medium">Channeling Ki...</p>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* 结果显示 */}
+            {result && (
+                <Card ref={resultRef} id="fusion-result" className="border-0 shadow-xl overflow-hidden mb-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
+                    <CardContent className="p-0">
+                        <div className="relative aspect-square w-full bg-gradient-to-br from-gray-50 to-gray-100">
+                            <Image src={result.imageUrl} alt={`${result.char1.name} fused with ${result.char2.name}`} fill className="object-contain p-4" unoptimized />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                        </div>
+                        <div className="p-5 space-y-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">{result.char1.name} × {result.char2.name}</h3>
+                                <p className="text-sm text-gray-500 mt-1">Fusion Complete</p>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                <Button onClick={downloadImage} variant="default" className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"><Download className="w-4 h-4 mr-2" />Save</Button>
+                                <Button onClick={shareResult} variant="outline"><Share2 className="w-4 h-4 mr-2" />Share</Button>
+                                <Button onClick={clearSelection} variant="outline"><RefreshCw className="w-4 h-4 mr-2" />New</Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Footer */}
+            <div className="mt-8 text-center space-y-1">
+                <p className="text-xs text-gray-500">Daily free attempts reset at midnight. Log in for more.</p>
+                <p className="text-xs text-gray-400">Fusion results are AI-generated for entertainment. Not official Dragon Ball content.</p>
+            </div>
         </div>
     );
 }
+
+/** Character Slot */
+const CharacterSlot = ({ char, position }: { char?: DBCharacter; position: number }) => {
+    const colors = { 1: { border: 'border-orange-500', bg: 'bg-orange-500' }, 2: { border: 'border-blue-500', bg: 'bg-blue-500' } };
+    const color = colors[position as keyof typeof colors];
+
+    return (
+        <div className="flex flex-col items-center">
+            <div className={`relative w-20 h-20 rounded-full overflow-hidden border-4 shadow-lg ${char ? color.border : 'border-gray-200'}`}>
+                {char ? (
+                    <Image src={char.imageUrl} alt={char.name} fill className="object-cover" sizes="80px" />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <span className="text-2xl font-black text-gray-300">?</span>
+                    </div>
+                )}
+            </div>
+            <div className={`mt-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${char ? `${color.bg} text-white` : 'bg-gray-100 text-gray-400'}`}>
+                {char ? char.name : `SLOT ${position}`}
+            </div>
+        </div>
+    );
+};

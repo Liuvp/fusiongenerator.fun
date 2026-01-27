@@ -3,6 +3,7 @@ import * as fal from "@fal-ai/serverless-client";
 import { SYSTEM_PROMPT, NEGATIVE_PROMPT, DRAGON_BALL_SYSTEM_PROMPT, DRAGON_BALL_NEGATIVE_PROMPT } from '@/lib/prompt-builder';
 import { checkIPRateLimit, checkUserDailyQuota, checkVIPUserDailyQuota, getClientIP } from '@/lib/rate-limit';
 import { createClient } from '@/utils/supabase/server';
+import { DB_CHARACTERS, DB_FUSION_STYLES, buildDBPrompt } from '@/lib/dragon-ball-data';
 
 // 配置 Fal.ai
 fal.config({
@@ -137,22 +138,43 @@ export async function POST(request: NextRequest) {
         }
 
         // ============================================================================
-        // 4️⃣ 处理生成请求 & Prompt
+        // 4️⃣ 处理生成请求 & Prompt (Dragon Ball Fusion Specific)
         // ============================================================================
-        const { prompt } = await request.json();
+        const body = await request.json();
+        const { char1: char1Id, char2: char2Id, style: styleId, prompt: customPromptRaw } = body;
 
-        if (!prompt) {
-            return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+        let finalPrompt = "";
+
+        // Mode A: Dragon Ball Fusion (via char IDs)
+        if (char1Id && char2Id) {
+            const char1 = DB_CHARACTERS.find(c => c.id === char1Id);
+            const char2 = DB_CHARACTERS.find(c => c.id === char2Id);
+            const style = DB_FUSION_STYLES.find(s => s.id === styleId);
+
+            if (!char1 || !char2) {
+                return NextResponse.json({ error: 'Invalid characters selected' }, { status: 400 });
+            }
+
+            finalPrompt = buildDBPrompt(char1, char2, style, customPromptRaw);
+            console.log(`[DB Fusion] Generating: ${char1.name} + ${char2.name} (${style?.name || 'default'})`);
+
+            // Mode B: Direct Prompt (Fallback)
+        } else if (customPromptRaw || body.prompt) {
+            finalPrompt = customPromptRaw || body.prompt;
+
+        } else {
+            return NextResponse.json({ error: 'Missing character selection or prompt' }, { status: 400 });
         }
 
-        // Prompt Logic
-        const isDragonBall = prompt.toLowerCase().includes('dragon ball') ||
-            prompt.includes('Akira Toriyama') ||
-            prompt.includes('Saiyan') ||
-            prompt.includes('Goku') ||
-            prompt.includes('Vegeta') ||
-            prompt.includes('Frieza') ||
-            prompt.includes('Majin Buu');
+        // Prompt Logic Analysis
+        const promptLower = finalPrompt.toLowerCase();
+        const isDragonBall = promptLower.includes('dragon ball') ||
+            promptLower.includes('akira toriyama') ||
+            promptLower.includes('saiyan') ||
+            promptLower.includes('goku') ||
+            promptLower.includes('vegeta') ||
+            promptLower.includes('frieza') ||
+            promptLower.includes('majin');
 
         const selectedSystemPrompt = isDragonBall ? DRAGON_BALL_SYSTEM_PROMPT : SYSTEM_PROMPT;
         const selectedNegativePrompt = isDragonBall ? DRAGON_BALL_NEGATIVE_PROMPT : NEGATIVE_PROMPT;
@@ -162,12 +184,12 @@ export async function POST(request: NextRequest) {
         // 三层Prompt拼接
         const fullPrompt = `${selectedSystemPrompt}
 
-${prompt} ${watermarkInstruction}`;
+${finalPrompt} ${watermarkInstruction}`;
 
         console.log('=== Fusion Generation Request ===');
         console.log('User:', user ? user.email : 'Anonymous');
         console.log('IP:', clientIP);
-        console.log('Full Prompt:', fullPrompt);
+        console.log('Final Prompt:', fullPrompt);
 
         // ============================================================================
         // Fal.ai API 调用
@@ -204,14 +226,7 @@ ${prompt} ${watermarkInstruction}`;
         // ============================================================================
         if (user) {
             if (isVIP) {
-                // VIP Quota already checked and incremented in checkVIPUserDailyQuota theoretically (or check logic needs to increment)
-                // Based on previous step, checkVIPUserDailyQuota uses Redis ratelimit. 
-                // We don't need to manually deduct credits for VIP, just hit the rate limit. 
-                // Note: Ideally we should increment usage here if checkVIPUserDailyQuota was just a check. 
-                // Assuming checkVIPUserDailyQuota implements sliding window or we need to increment.
-                // Let's assume the check function handles state or we need to incr.
-                // Re-using exiting logic style:
-                // Actually standard Redis ratelimit usually checks and increments atomically.
+                // VIP Quota handled by check function limit in this simplified version
             } else if (customerProfile) {
                 const COST_PER_GEN = 1;
                 const { error: updateError } = await supabase
@@ -225,7 +240,7 @@ ${prompt} ${watermarkInstruction}`;
 
         return NextResponse.json({
             imageUrl: imageUrl,
-            prompt: prompt,
+            prompt: finalPrompt,
             quota: {
                 used: usedQuota,
                 remaining: remainingQuota,
