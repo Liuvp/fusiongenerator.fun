@@ -4,6 +4,7 @@ import { SYSTEM_PROMPT, NEGATIVE_PROMPT, DRAGON_BALL_SYSTEM_PROMPT, DRAGON_BALL_
 import { checkIPRateLimit, checkUserDailyQuota, checkVIPUserDailyQuota, getClientIP } from '@/lib/rate-limit';
 import { createClient } from '@/utils/supabase/server';
 import { DB_CHARACTERS, DB_FUSION_STYLES, buildDBPrompt } from '@/lib/dragon-ball-data';
+import { POKEMON_DATABASE, buildPokemonPrompt } from '@/lib/pokemon-data';
 
 // 配置 Fal.ai
 fal.config({
@@ -138,12 +139,13 @@ export async function POST(request: NextRequest) {
         }
 
         // ============================================================================
-        // 4️⃣ 处理生成请求 & Prompt (Dragon Ball Fusion Specific)
+        // 4️⃣ 处理生成请求 & Prompt (Fusion Specific)
         // ============================================================================
         const body = await request.json();
-        const { char1: char1Id, char2: char2Id, style: styleId, prompt: customPromptRaw } = body;
+        const { char1: char1Id, char2: char2Id, style: styleId, prompt: customPromptRaw, p1: p1Id, p2: p2Id } = body;
 
         let finalPrompt = "";
+        let isPokemon = false;
 
         // Mode A: Dragon Ball Fusion (via char IDs)
         if (char1Id && char2Id) {
@@ -152,13 +154,26 @@ export async function POST(request: NextRequest) {
             const style = DB_FUSION_STYLES.find(s => s.id === styleId);
 
             if (!char1 || !char2) {
-                return NextResponse.json({ error: 'Invalid characters selected' }, { status: 400 });
+                return NextResponse.json({ error: 'Invalid DB characters selected' }, { status: 400 });
             }
 
             finalPrompt = buildDBPrompt(char1, char2, style, customPromptRaw);
             console.log(`[DB Fusion] Generating: ${char1.name} + ${char2.name} (${style?.name || 'default'})`);
 
-            // Mode B: Direct Prompt (Fallback)
+            // Mode B: Pokemon Fusion (via p1/p2 IDs)
+        } else if (p1Id && p2Id) {
+            const p1 = POKEMON_DATABASE.find(p => p.id === p1Id);
+            const p2 = POKEMON_DATABASE.find(p => p.id === p2Id);
+
+            if (!p1 || !p2) {
+                return NextResponse.json({ error: 'Invalid Pokemon selected' }, { status: 400 });
+            }
+
+            isPokemon = true;
+            finalPrompt = buildPokemonPrompt(p1, p2); // Currently no style support for Pokemon
+            console.log(`[Poke Fusion] Generating: ${p1.name} + ${p2.name}`);
+
+            // Mode C: Direct Prompt (Fallback)
         } else if (customPromptRaw || body.prompt) {
             finalPrompt = customPromptRaw || body.prompt;
 
@@ -167,14 +182,19 @@ export async function POST(request: NextRequest) {
         }
 
         // Prompt Logic Analysis
+        // If it's explicitly Pokemon mode, we don't force Dragon Ball context
         const promptLower = finalPrompt.toLowerCase();
-        const isDragonBall = promptLower.includes('dragon ball') ||
-            promptLower.includes('akira toriyama') ||
-            promptLower.includes('saiyan') ||
-            promptLower.includes('goku') ||
-            promptLower.includes('vegeta') ||
-            promptLower.includes('frieza') ||
-            promptLower.includes('majin');
+        let isDragonBall = false;
+
+        if (!isPokemon) {
+            isDragonBall = promptLower.includes('dragon ball') ||
+                promptLower.includes('akira toriyama') ||
+                promptLower.includes('saiyan') ||
+                promptLower.includes('goku') ||
+                promptLower.includes('vegeta') ||
+                promptLower.includes('frieza') ||
+                promptLower.includes('majin');
+        }
 
         const selectedSystemPrompt = isDragonBall ? DRAGON_BALL_SYSTEM_PROMPT : SYSTEM_PROMPT;
         const selectedNegativePrompt = isDragonBall ? DRAGON_BALL_NEGATIVE_PROMPT : NEGATIVE_PROMPT;

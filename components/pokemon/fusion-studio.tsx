@@ -1,62 +1,69 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Download, RefreshCw, Share2 } from "lucide-react";
 import Image from "next/image";
-import { PokemonSelector } from "./pokemon-selector";
-import { ResultDisplay } from "./result-display";
-import { FUSION_STYLES, POKEMON_DATABASE, getPokemonImageUrl, type Pokemon, type FusionStyle } from "@/lib/pokemon-data";
-import { buildFusionPrompt, validatePokemonSelection } from "@/lib/prompt-builder";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/utils/supabase/client";
+import { POKEMON_DATABASE, getPokemonImageUrl, type Pokemon, getRandomPokemon } from "@/lib/pokemon-data";
 
 export function PokeFusionStudio() {
     const { toast } = useToast();
+    const router = useRouter();
     const supabase = createClient();
+    const resultRef = useRef<HTMLDivElement>(null);
 
-    // State
-    const [prompt, setPrompt] = useState("");
-    const [promptSource, setPromptSource] = useState<"manual" | "auto">("auto");
-    const [promptUpdated, setPromptUpdated] = useState(false);
-    const [pokemon1, setPokemon1] = useState<Pokemon | undefined>();
-    const [pokemon2, setPokemon2] = useState<Pokemon | undefined>();
-    const [style, setStyle] = useState<FusionStyle>(FUSION_STYLES[0]);
-    const [customStyle, setCustomStyle] = useState(""); // 自定义风格
+    const [pokemon1, setPokemon1] = useState<Pokemon>();
+    const [pokemon2, setPokemon2] = useState<Pokemon>();
     const [isGenerating, setIsGenerating] = useState(false);
-    const [result, setResult] = useState<any>(null);
-
-    // 配额状态
-    const [quota, setQuota] = useState<{
-        used: number;
-        remaining: number;
-        limit: number;
-        isVIP: boolean;
-    } | null>(null);
-
-    // 用户状态
+    const [result, setResult] = useState<{ imageUrl: string; p1: Pokemon; p2: Pokemon } | null>(null);
+    const [quota, setQuota] = useState<{ used: number; remaining: number; limit: number; isVIP: boolean } | null>(null);
     const [user, setUser] = useState<any>(null);
     const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
-    // 获取用户 session 和配额 - 改进的认证检测
+    /** Load saved selection */
+    useEffect(() => {
+        const saved = localStorage.getItem("pokemon_fusion_state");
+        if (saved) {
+            try {
+                const { p1, p2 } = JSON.parse(saved);
+                if (p1) setPokemon1(POKEMON_DATABASE.find(c => c.id === p1));
+                if (p2) setPokemon2(POKEMON_DATABASE.find(c => c.id === p2));
+            } catch (e) {
+                console.error("Failed to load saved state");
+            }
+        }
+    }, []);
+
+    /** Save selection */
+    useEffect(() => {
+        if (pokemon1 || pokemon2) {
+            localStorage.setItem("pokemon_fusion_state", JSON.stringify({ p1: pokemon1?.id, p2: pokemon2?.id }));
+        }
+    }, [pokemon1, pokemon2]);
+
+    /** Scroll to result when generated */
+    useEffect(() => {
+        if (result && resultRef.current && !isGenerating) {
+            setTimeout(() => {
+                resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 100);
+        }
+    }, [result, isGenerating]);
+
+    /** Auth & Quota */
     useEffect(() => {
         const checkUser = async () => {
             try {
-                // 1. 首先尝试获取 Session
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                // 2. 然后获取用户信息
-                const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-                setUser(user);
+                const { data } = await supabase.auth.getUser();
+                setUser(data?.user ?? null);
                 setIsLoadingAuth(false);
             } catch (error) {
-                console.error('[PokeFusion] 认证检查失败:', error);
+                // console.error('Auth check error:', error);
                 setIsLoadingAuth(false);
             }
         };
@@ -69,60 +76,61 @@ export function PokeFusionStudio() {
                     setQuota(data.quota);
                 }
             } catch (error) {
-                console.error('[PokeFusion] 获取配额失败:', error);
+                console.error('Failed to fetch quota:', error);
             }
         };
 
         checkUser();
         fetchQuota();
 
-        // 3. 监听认证状态变化（关键！）
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                    setUser(session?.user ?? null);
-                    // 重新获取配额
-                    fetchQuota();
-                } else if (event === 'SIGNED_OUT') {
-                    setUser(null);
-                    setQuota(null);
-                }
+        const { data: authData } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                setUser(session?.user ?? null);
+                fetchQuota();
+            } else if (event === 'SIGNED_OUT') {
+                setUser(null);
+                setQuota(null);
             }
-        );
+        });
 
-        // 清理订阅
         return () => {
-            subscription.unsubscribe();
+            if (authData.subscription) authData.subscription.unsubscribe();
         };
     }, [supabase]);
 
-    // 当用户通过卡片选择时，只在 auto 模式下更新 Prompt
-    useEffect(() => {
-        if ((pokemon1 || pokemon2) && promptSource === "auto") {
-            // 如果是custom风格且有自定义内容，使用自定义风格
-            const effectiveStyle = style.id === 'custom' && customStyle
-                ? { ...style, prompt: customStyle }
-                : style;
+    /** Helpers */
+    const getRemainingDisplay = () => quota?.isVIP ? "∞" : (quota ? quota.remaining : user ? "0" : "1");
+    const hasQuotaAccess = () => quota?.isVIP || (quota ? quota.remaining > 0 : !user);
+    const isSelectionComplete = !!(pokemon1 && pokemon2);
+    const shouldDisableButton = !isSelectionComplete || isGenerating;
 
-            const generatedPrompt = buildFusionPrompt(pokemon1, pokemon2, effectiveStyle);
-            setPrompt(generatedPrompt);
+    /** Actions */
+    const selectPokemon = (p: Pokemon) => {
+        if (pokemon1?.id === p.id || pokemon2?.id === p.id) return;
+        if (!pokemon1) setPokemon1(p);
+        else if (!pokemon2) setPokemon2(p);
+        else { setPokemon2(pokemon1); setPokemon1(p); }
+    };
 
-            // 触发高亮效果
-            setPromptUpdated(true);
-            setTimeout(() => setPromptUpdated(false), 600);
+    const randomize = () => {
+        const [p1, p2] = getRandomPokemon(2);
+        setPokemon1(p1);
+        setPokemon2(p2);
+        setResult(null);
+        toast({ title: "Random Pair Selected", description: `${p1.name} + ${p2.name}`, duration: 2000 });
+    };
+
+    const clearSelection = () => { setPokemon1(undefined); setPokemon2(undefined); setResult(null); };
+
+    const generateFusion = async () => {
+        if (!hasQuotaAccess()) {
+            if (!user) router.push(`/sign-in?redirect_to=${window.location.pathname}&reason=fusion_quota`);
+            else router.push('/pricing?source=pokemon_fusion&reason=upgrade_for_more');
+            return;
         }
-    }, [pokemon1, pokemon2, style, customStyle, promptSource]);
 
-    // 生成融合
-    const handleGenerate = async () => {
-        // 允许匿名用户尝试生成
-
-        if (!prompt.trim()) {
-            toast({
-                title: "Prompt Required",
-                description: "Please enter a fusion description or select Pokemon below",
-                variant: "destructive",
-            });
+        if (!pokemon1 || !pokemon2) {
+            toast({ title: "Select Two Pokémon", description: "Choose two Pokémon to fuse", variant: "destructive", duration: 3000 });
             return;
         }
 
@@ -130,365 +138,169 @@ export function PokeFusionStudio() {
         setResult(null);
 
         try {
+            const payload = { p1: pokemon1.id, p2: pokemon2.id };
+
             const response = await fetch('/api/generate-fusion', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ prompt }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
             });
 
-            // 尝试解析JSON响应
             let data: any;
-            try {
-                data = await response.json() as any;
-            } catch (jsonError) {
-                if (!response.ok) throw new Error(response.statusText);
-            }
+            try { data = await response.json(); } catch { data = {}; }
 
-            // 处理配额限制（429）
-            if (response.status === 429) {
-                const isLimitReached = data.isLimitReached; // 匿名试用结束标识
-                const isQuotaError = data.limit !== undefined;
+            if (response.status === 429) { toast({ title: "Limit Reached", description: data.error || "Try again later.", variant: "destructive", duration: 5000 }); return; }
+            if (response.status === 402) { toast({ title: "Insufficient Credits", description: "Upgrade to continue.", variant: "destructive", duration: 5000 }); return; }
+            if (!response.ok) throw new Error(data?.error || `Server error: ${response.status}`);
 
-                if (isLimitReached) {
-                    // 匿名用户试用结束 -> 引导注册
-                    toast({
-                        title: "Free Trial Ended",
-                        description: data.error || "Please sign in to continue.",
-                        variant: "destructive",
-                    });
-                    setTimeout(() => window.location.href = `/sign-in?redirect_to=${window.location.pathname}&reason=trial_ended`, 1500);
-                    return;
-                }
+            if (data.quota) setQuota(data.quota);
+            setResult({ imageUrl: data.imageUrl, p1: pokemon1, p2: pokemon2 });
+            toast({ title: "Fusion Complete!", description: "A new Pokémon is born!", duration: 3000 });
 
-                if (isQuotaError) {
-                    toast({
-                        title: quota?.isVIP ? "💎 VIP Daily Limit Reached" : "📊 Daily Limit Reached",
-                        description: data.error,
-                        variant: "destructive",
-                    });
-
-                    if (!quota?.isVIP) {
-                        setTimeout(() => window.location.href = '/pricing?page=pokemon-fusion&action=quota-exceeded&plan=free', 3000);
-                    }
-                } else {
-                    toast({
-                        title: "⏱️ Rate Limit",
-                        description: data.error,
-                        variant: "destructive",
-                    });
-                }
-                return;
-            }
-
-            // 处理积分不足（402）
-            if (response.status === 402) {
-                toast({
-                    title: "🪙 Insufficient Credits",
-                    description: data.error || "Please upgrade or top up to continue generating.",
-                    variant: "destructive",
-                });
-
-                // 延迟跳转到定价页面
-                setTimeout(() => window.location.href = data.upgradeUrl || '/pricing?page=pokemon-fusion&action=insufficient-credits', 2000);
-                return;
-            }
-
-            // 其他错误
-            if (!response.ok) {
-                throw new Error(data?.error || 'Failed to generate');
-            }
-
-            // 更新配额信息
-            if (data.quota) {
-                setQuota(data.quota);
-            }
-
-            setResult({
-                imageUrl: data.imageUrl,
-                prompt,
-                pokemon1Name: pokemon1?.name || "Custom",
-                pokemon2Name: pokemon2?.name || "Fusion",
-                styleName: style.name,
-            });
-
-            toast({
-                title: "✨ Fusion Created!",
-                description: user
-                    ? (data.quota ? `Generation successful! ${data.quota.remaining}/${data.quota.limit} remaining.` : "Success!")
-                    : "Free Trial Generation Successful!",
-            });
         } catch (error: any) {
-            console.error('Generation error:', error);
-            toast({
-                title: "Generation Failed",
-                description: error.message || "Try simplifying your prompt or check your connection",
-                variant: "destructive",
-            });
-        } finally {
-            setIsGenerating(false);
-        }
+            console.error("Fusion error:", error);
+            toast({ title: "Fusion Failed", description: error.message || "Please try again", variant: "destructive", duration: 4000 });
+        } finally { setIsGenerating(false); }
     };
 
-    const canGenerate = prompt.trim() && !isGenerating;
+    const downloadImage = async () => {
+        if (!result?.imageUrl) return;
+        try {
+            const response = await fetch(result.imageUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fusion-${result.p1.name}-${result.p2.name}-${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            toast({ title: "Download Started", description: "Image saved to your device", duration: 3000 });
+        } catch { window.open(result.imageUrl, '_blank'); toast({ title: "Opening Image", description: "Use browser menu to save image.", duration: 3000 }); }
+    };
+
+    const shareResult = async () => {
+        if (!result) return;
+        const shareData = { title: `${result.p1.name} × ${result.p2.name} Fusion`, text: `Check out this Pokémon fusion!`, url: window.location.href };
+        try { if (navigator.share && navigator.canShare(shareData)) await navigator.share(shareData); else { await navigator.clipboard.writeText(window.location.href); toast({ title: "Link Copied!", description: "Paste to share", duration: 3000 }); } }
+        catch (error) { console.error("Share failed:", error); }
+    };
 
     return (
-        <div id="fusion-studio" className="space-y-6 scroll-mt-20">
-            <h2 className="text-2xl font-bold">Pokemon Fusion Studio</h2>
+        <div id="fusion-studio" className="bg-gradient-to-b from-blue-50/30 to-white p-4 pb-8 rounded-3xl min-h-[600px]">
+            <header className="flex justify-between items-center mb-6">
+                <div>
+                    <h2 className="text-2xl font-black text-blue-600 tracking-tight">Pokémon Fusion Studio</h2>
+                </div>
+                <Badge variant={hasQuotaAccess() ? "default" : "destructive"} className="text-sm px-3 py-1.5 min-w-[80px] justify-center">
+                    {quota?.isVIP ? "VIP" : `${getRemainingDisplay()} Left`}
+                </Badge>
+            </header>
 
-            <Card className="border-2 shadow-sm">
-                <CardContent className="p-4 sm:p-6 space-y-4">
-                    {/* 主输入区 - 紧凑设计 */}
-                    <div className="space-y-3">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <Label className="text-sm font-medium">Fusion Prompt</Label>
-                            <div className="flex items-center gap-2">
-                                {promptSource === "manual" && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 text-xs"
-                                        onClick={() => setPromptSource("auto")}
-                                    >
-                                        Switch to Auto
-                                    </Button>
-                                )}
-                                <Badge
-                                    variant={prompt.length > 800 ? "destructive" : prompt.length > 500 ? "secondary" : "outline"}
-                                    className="text-xs"
-                                >
-                                    {prompt.length > 800 ? "⚠️ Too long" : `${prompt.length} / 1000`}
-                                </Badge>
-                            </div>
-                        </div>
-
-                        <Textarea
-                            value={prompt}
-                            onChange={(e) => {
-                                setPrompt(e.target.value.slice(0, 1000));
-                                setPromptSource("manual");
-                            }}
-                            placeholder="Describe your fusion, or use examples/helper below..."
-                            rows={3}
-                            className={`resize-none transition-all duration-300 ${promptUpdated ? "ring-2 ring-primary bg-primary/5" : ""
-                                }`}
-                        />
+            {/* 选择区 */}
+            <Card className="border-0 shadow-md mb-6">
+                <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-sm font-semibold text-gray-700">Choose Pokémon</h2>
+                        <Button variant="ghost" size="sm" onClick={randomize} className="h-7 px-2 text-xs text-gray-600 hover:text-blue-600"><RefreshCw className="w-3 h-3 mr-1" />Random</Button>
                     </div>
-
-                    {/* 生成按钮 */}
-                    <Button
-                        onClick={handleGenerate}
-                        disabled={!canGenerate}
-                        aria-label="Generate Pokemon fusion"
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-semibold py-4 text-base sm:py-6 sm:text-lg"
-                    >
-                        {isGenerating ? (
-                            <>
-                                <Sparkles className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
-                                Generating Fusion...
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles className="mr-2 h-5 w-5" aria-hidden="true" />
-                                EVOLVE & FUSE!
-                            </>
-                        )}
-                    </Button>
-
-                    {/* 配额显示 */}
-                    {quota && (
-                        <div className="text-center text-sm text-muted-foreground">
-                            {quota.isVIP ? '💎 VIP' : '👤 Free'}: {quota.remaining}/{quota.limit} generations remaining today
-                        </div>
-                    )}
-
-                    {/* 提示文字 */}
-                    <p className="text-center text-xs text-muted-foreground">
-                        💡 Edit prompt above or select Pokemon below
-                    </p>
-
-                    {/* Pokemon 选择器 - 紧凑网格 */}
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label className="text-sm">Pokemon 1</Label>
-                            <div className="border rounded-lg p-2 max-h-[160px] sm:max-h-[200px] overflow-y-auto bg-muted/20">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                    {POKEMON_DATABASE.filter((p: Pokemon) => p.id !== pokemon2?.id).slice(0, 12).map((p: Pokemon) => (
-                                        <Card
-                                            key={p.id}
-                                            className={`cursor-pointer transition-all ${pokemon1?.id === p.id
-                                                ? "ring-2 ring-primary shadow-lg"
-                                                : "hover:border-primary/50 hover:shadow-sm"
-                                                }`}
-                                            onClick={() => {
-                                                setPokemon1(p);
-                                                setPromptSource("auto");
-                                            }}
-                                            role="button"
-                                            tabIndex={0}
-                                            aria-label={`Select ${p.name} as Pokemon 1`}
-                                            aria-pressed={pokemon1?.id === p.id}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    e.preventDefault();
-                                                    setPokemon1(p);
-                                                    setPromptSource("auto");
-                                                }
-                                            }}
-                                        >
-                                            <CardContent className="p-2">
-                                                <div className="relative w-full aspect-square bg-gray-100 rounded">
-                                                    <Image
-                                                        src={getPokemonImageUrl(p)}
-                                                        alt={`${p.name} - ${p.types.join(', ')} type Pokemon`}
-                                                        fill
-                                                        sizes="(max-width: 640px) 30vw, (max-width: 768px) 25vw, 100px"
-                                                        loading="lazy"
-                                                        className="object-contain p-1"
-                                                    />
-                                                </div>
-                                                <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="text-sm">Pokemon 2</Label>
-                            <div className="border rounded-lg p-2 max-h-[160px] sm:max-h-[200px] overflow-y-auto bg-muted/20">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                    {POKEMON_DATABASE.filter((p: Pokemon) => p.id !== pokemon1?.id).slice(0, 12).map((p: Pokemon) => (
-                                        <Card
-                                            key={p.id}
-                                            className={`cursor-pointer transition-all ${pokemon2?.id === p.id
-                                                ? "ring-2 ring-primary shadow-lg"
-                                                : "hover:border-primary/50 hover:shadow-sm"
-                                                }`}
-                                            onClick={() => {
-                                                setPokemon2(p);
-                                                setPromptSource("auto");
-                                            }}
-                                            role="button"
-                                            tabIndex={0}
-                                            aria-label={`Select ${p.name} as Pokemon 2`}
-                                            aria-pressed={pokemon2?.id === p.id}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    e.preventDefault();
-                                                    setPokemon2(p);
-                                                    setPromptSource("auto");
-                                                }
-                                            }}
-                                        >
-                                            <CardContent className="p-2">
-                                                <div className="relative w-full aspect-square bg-gray-100 rounded">
-                                                    <Image
-                                                        src={getPokemonImageUrl(p)}
-                                                        alt={`${p.name} - ${p.types.join(', ')} type Pokemon`}
-                                                        fill
-                                                        sizes="(max-width: 640px) 30vw, (max-width: 768px) 25vw, 100px"
-                                                        loading="lazy"
-                                                        className="object-contain p-1"
-                                                    />
-                                                </div>
-                                                <div className="text-[11px] font-medium text-center mt-1">{p.name}</div>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 风格选择 */}
-                    <div className="space-y-2">
-                        <Label className="text-sm">Fusion Style</Label>
-                        <RadioGroup
-                            value={style.id}
-                            onValueChange={(value) => {
-                                const selectedStyle = FUSION_STYLES.find(s => s.id === value);
-                                if (selectedStyle) {
-                                    setStyle(selectedStyle);
-                                    if (value !== 'custom') {
-                                        setCustomStyle('');
-                                    }
-                                }
-                            }}
-                            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"
-                        >
-                            {FUSION_STYLES.map((s) => (
-                                <div
-                                    key={s.id}
-                                    className={`flex items-center space-x-2 border rounded-md p-2 cursor-pointer hover:bg-accent ${style.id === s.id ? "bg-accent border-primary" : ""
-                                        }`}
-                                    onClick={() => {
-                                        setStyle(s);
-                                        if (s.id !== 'custom') {
-                                            setCustomStyle('');
-                                        }
-                                    }}
-                                >
-                                    <RadioGroupItem value={s.id} id={s.id} />
-                                    <Label htmlFor={s.id} className="text-xs cursor-pointer flex-1">
-                                        {s.name}
-                                    </Label>
-                                </div>
-                            ))}
-                        </RadioGroup>
-
-                        {/* Custom风格输入框 */}
-                        {style.id === 'custom' && (
-                            <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">Custom Style Description</Label>
-                                <input
-                                    type="text"
-                                    value={customStyle}
-                                    onChange={(e) => {
-                                        setCustomStyle(e.target.value);
-                                        // 触发高亮效果
-                                        if (e.target.value.trim()) {
-                                            setPromptUpdated(true);
-                                            setTimeout(() => setPromptUpdated(false), 600);
-                                        }
-                                    }}
-                                    placeholder="e.g., cute, dark, epic..."
-                                    className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                                />
-                                {customStyle && (
-                                    <p className="text-xs text-primary">
-                                        ✨ Custom style: "{customStyle}"
-                                    </p>
-                                )}
-                            </div>
-                        )}
+                    <div className="grid grid-cols-4 gap-3 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+                        {POKEMON_DATABASE.map((p, idx) => {
+                            const isSelected1 = pokemon1?.id === p.id;
+                            const isSelected2 = pokemon2?.id === p.id;
+                            const isSelected = isSelected1 || isSelected2;
+                            return (
+                                <button key={p.id} onClick={() => selectPokemon(p)} className={`group relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 active:scale-95 touch-manipulation ${isSelected1 ? 'border-blue-500 shadow-md ring-2 ring-blue-200 ring-offset-1 scale-105' : isSelected2 ? 'border-green-500 shadow-md ring-2 ring-green-200 ring-offset-1 scale-105' : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'}`} aria-label={`Select ${p.name}`} aria-pressed={isSelected}>
+                                    <div className="relative w-full h-full bg-gray-100">
+                                        <Image src={getPokemonImageUrl(p)} alt={p.name} fill sizes="(max-width: 640px) 25vw, 80px" priority={idx < 8} className={`object-contain p-1 transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} unoptimized />
+                                        {isSelected && <div className={`absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected1 ? 'bg-blue-500 text-white shadow-md' : 'bg-green-500 text-white shadow-md'}`}>{isSelected1 ? '1' : '2'}</div>}
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
                 </CardContent>
             </Card>
 
-            {/* 结果展示 */}
-            {result && (
-                <ResultDisplay
-                    imageUrl={result.imageUrl}
-                    prompt={result.prompt}
-                    pokemon1Name={result.pokemon1Name}
-                    pokemon2Name={result.pokemon2Name}
-                    styleName={result.styleName}
-                />
-            )}
+            {/* 生成按钮 */}
+            <Card className="border-0 shadow-md mb-6 bg-white/90 backdrop-blur-sm">
+                <CardContent className="p-5">
+                    <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4">
+                        <CharacterSlot char={pokemon1} position={1} />
+                        <div className="flex flex-col items-center gap-1">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center shadow-sm"><span className="text-xl font-bold text-blue-500">+</span></div>
+                            <span className="text-[10px] text-blue-400 font-medium">FUSE</span>
+                        </div>
+                        <CharacterSlot char={pokemon2} position={2} />
+                    </div>
 
-            {/* Loading骨架 */}
+                    <Button onClick={generateFusion} disabled={shouldDisableButton} size="lg" className={`w-full py-6 text-xl font-black uppercase tracking-wide shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${isGenerating ? 'bg-gray-200 text-gray-500' : (!hasQuotaAccess() ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white' : 'bg-gradient-to-r from-blue-600 via-blue-500 to-green-500 hover:shadow-2xl text-white')}`}>
+                        {isGenerating ? <span className="flex items-center gap-3"><Sparkles className="w-6 h-6 animate-spin" />FUSING...</span> : !isSelectionComplete ? "SELECT 2 POKÉMON" : !hasQuotaAccess() ? (user ? "UPGRADE TO VIP" : "LOGIN FOR ENERGY") : <span className="flex items-center gap-3"><Sparkles className="w-6 h-6" />FUU-SION!</span>}
+                    </Button>
+                </CardContent>
+            </Card>
+
+            {/* Loading */}
             {isGenerating && (
-                <Card>
-                    <CardContent className="p-6">
-                        <Skeleton className="aspect-square w-full rounded-lg" />
-                        <Skeleton className="h-4 w-3/4 mx-auto mt-4" />
-                        <Skeleton className="h-3 w-1/2 mx-auto mt-2" />
+                <Card className="border-0 shadow-md mb-6 animate-pulse">
+                    <CardContent className="h-[400px] flex flex-col items-center justify-center p-5 space-y-4 bg-gray-50/50 rounded-xl">
+                        <Sparkles className="w-12 h-12 text-blue-400 animate-spin" />
+                        <p className="text-gray-500 font-medium">Channeling Energy...</p>
                     </CardContent>
                 </Card>
             )}
+
+            {/* 结果显示 */}
+            {result && (
+                <Card ref={resultRef} className="border-0 shadow-xl overflow-hidden mb-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
+                    <CardContent className="p-0">
+                        <div className="relative aspect-square w-full bg-gradient-to-br from-gray-50 to-gray-100">
+                            <Image src={result.imageUrl} alt={`${result.p1.name} fused with ${result.p2.name}`} fill className="object-contain p-4" unoptimized />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                        </div>
+                        <div className="p-5 space-y-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">{result.p1.name} × {result.p2.name}</h3>
+                                <p className="text-sm text-gray-500 mt-1">Fusion Complete</p>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                <Button onClick={downloadImage} variant="default" className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"><Download className="w-4 h-4 mr-2" />Save</Button>
+                                <Button onClick={shareResult} variant="outline"><Share2 className="w-4 h-4 mr-2" />Share</Button>
+                                <Button onClick={clearSelection} variant="outline"><RefreshCw className="w-4 h-4 mr-2" />New</Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            <div className="mt-8 text-center space-y-1">
+                <p className="text-xs text-gray-500">Daily free attempts reset at midnight. Log in for more.</p>
+                <p className="text-xs text-gray-400">Fusion results are AI-generated for entertainment. Not official Pokémon content.</p>
+            </div>
         </div>
     );
 }
+
+/** Character Slot */
+const CharacterSlot = ({ char, position }: { char?: Pokemon; position: number }) => {
+    const colors = { 1: { border: 'border-blue-500', bg: 'bg-blue-500' }, 2: { border: 'border-green-500', bg: 'bg-green-500' } };
+    const color = colors[position as keyof typeof colors];
+
+    return (
+        <div className="flex flex-col items-center">
+            <div className={`relative w-24 h-24 rounded-xl overflow-hidden border-4 shadow-lg ${char ? color.border : 'border-gray-200'} bg-gray-100`}>
+                {char ? (
+                    <Image src={getPokemonImageUrl(char)} alt={char.name} fill className="object-contain p-1" sizes="96px" unoptimized />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <span className="text-2xl font-black text-gray-300">?</span>
+                    </div>
+                )}
+            </div>
+            <div className={`mt-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${char ? `${color.bg} text-white` : 'bg-gray-100 text-gray-400'}`}>
+                {char ? char.name : `SLOT ${position}`}
+            </div>
+        </div>
+    );
+};

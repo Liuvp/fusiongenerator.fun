@@ -305,6 +305,115 @@ export const POKEMON_DATABASE: Pokemon[] = [
         emoji: '⚽',
         generation: 8,
     },
+    // 新增扩展
+    {
+        id: 'jigglypuff',
+        name: 'Jigglypuff',
+        number: 39,
+        types: ['Normal', 'Fairy'],
+        description: 'balloon Pokemon with round pink body, sings lullabies to put foes to sleep',
+        emoji: '🎤',
+        generation: 1,
+    },
+    {
+        id: 'machamp',
+        name: 'Machamp',
+        number: 68,
+        types: ['Fighting'],
+        description: 'superpower Pokemon with four muscular arms, incredible strength and mastery of martial arts',
+        emoji: '💪',
+        generation: 1,
+    },
+    {
+        id: 'arcanine',
+        name: 'Arcanine',
+        number: 59,
+        types: ['Fire'],
+        description: 'legendary Pokemon resembling a large dog with orange fur and black stripes, known for speed',
+        emoji: '🐕',
+        generation: 1,
+    },
+    {
+        id: 'lapras',
+        name: 'Lapras',
+        number: 131,
+        types: ['Water', 'Ice'],
+        description: 'transport Pokemon resembling a plesiosaur, gentle nature and ferries people across water',
+        emoji: '🦕',
+        generation: 1,
+    },
+    {
+        id: 'ditto',
+        name: 'Ditto',
+        number: 132,
+        types: ['Normal'],
+        description: 'transform Pokemon looking like purple blob, can copy any opponent\'s appearance',
+        emoji: '🫠',
+        generation: 1,
+    },
+    {
+        id: 'scizor',
+        name: 'Scizor',
+        number: 212,
+        types: ['Bug', 'Steel'],
+        description: 'pincer Pokemon with red metallic armor and claws containing eyes',
+        emoji: '🦞',
+        generation: 2,
+    },
+    {
+        id: 'metagross',
+        name: 'Metagross',
+        number: 376,
+        types: ['Steel', 'Psychic'],
+        description: 'iron leg Pokemon with four brains, supercomputer intelligence and metallic body',
+        emoji: '🧠',
+        generation: 3,
+    },
+    {
+        id: 'groudon',
+        name: 'Groudon',
+        number: 383,
+        types: ['Ground'],
+        description: 'continent Pokemon with massive red armored body, expands land and causes droughts',
+        emoji: '🌋',
+        generation: 3,
+    },
+    {
+        id: 'kyogre',
+        name: 'Kyogre',
+        number: 382,
+        types: ['Water'],
+        description: 'sea basin Pokemon resembling a whale, expands oceans and causes heavy rain',
+        emoji: '🐋',
+        generation: 3,
+    },
+    {
+        id: 'luxray',
+        name: 'Luxray',
+        number: 405,
+        types: ['Electric'],
+        description: 'gleam eyes Pokemon resembling a lion using x-ray vision',
+        emoji: '🦁',
+        generation: 4,
+    },
+    {
+        id: 'chandelure',
+        name: 'Chandelure',
+        number: 609,
+        types: ['Ghost', 'Fire'],
+        description: 'luring Pokemon resembling a gothic chandelier with purple flames',
+        emoji: '🕯️',
+        generation: 5,
+    },
+    {
+        id: 'mimikyu',
+        name: 'Mimikyu',
+        number: 778,
+        types: ['Ghost', 'Fairy'],
+        description: 'disguise Pokemon wearing a scribbled Pikachu rag to make friends',
+        emoji: '👺',
+        generation: 7,
+    },
 ];
 
 // 融合风格配置
@@ -361,4 +470,30 @@ export function getPokemonById(id: string): Pokemon | undefined {
 
 export function getFusionStyleById(id: string): FusionStyle | undefined {
     return FUSION_STYLES.find(s => s.id === id);
+}
+
+// 缺失的函数 1: 随机获取 Pokemon
+export function getRandomPokemon(count: number = 2): Pokemon[] {
+    const shuffled = [...POKEMON_DATABASE].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
+
+// 缺失的函数 2: 构建 Pokemon Prompt
+export function buildPokemonPrompt(p1: Pokemon, p2: Pokemon, style?: FusionStyle): string {
+    const basePrompt = `A high quality, detailed fusion Pokemon combining features of ${p1.name} and ${p2.name}.`;
+
+    // 组合特征
+    const features = `
+    Primary body base: ${p1.name} (${p1.description}).
+    Secondary features: ${p2.name} (${p2.description}).
+    The fusion should seamlessly blend ${p1.name}'s features with ${p2.name}'s elements.
+    `;
+
+    // 组合属性
+    const types = [...new Set([...p1.types, ...p2.types])].join(' and ');
+    const typeDesc = `The creature should reflect the ${types} elemental types.`;
+
+    const stylePrompt = style?.prompt ? `Style: ${style.prompt}.` : '';
+
+    return `${basePrompt} ${features} ${typeDesc} ${stylePrompt} Ken Sugimori art style, official pokemon artwork aesthetic, white background.`;
 }
