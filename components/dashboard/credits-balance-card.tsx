@@ -44,8 +44,8 @@ export function CreditsBalanceCard({
                   {history.type === "add" ? "+" : "-"}
                   {history.amount}
                 </span>
-                <span className="text-muted-foreground">
-                  {new Date(history.created_at).toLocaleDateString()}
+                <span className="text-muted-foreground" suppressHydrationWarning>
+                  {new Date(history.created_at).toISOString().slice(0, 10)}
                 </span>
               </div>
             ))

@@ -36,8 +36,7 @@ export async function checkIPRateLimit(ip: string): Promise<{ allowed: boolean; 
     const limit = 3;
     const window = 60000; // 60秒（毫秒）
 
-    if (!redis) {
-        // 开发环境：使用内存缓存
+    const useMemory = () => {
         const now = Date.now();
         const cached = memoryCache.get(key);
 
@@ -53,19 +52,21 @@ export async function checkIPRateLimit(ip: string): Promise<{ allowed: boolean; 
             allowed: newValue <= limit,
             remaining: Math.max(0, limit - newValue),
         };
-    }
-
-    // 生产环境：使用Redis
-    const current = await redis!.incr(key);
-
-    if (current === 1) {
-        await redis!.expire(key, 60);
-    }
-
-    return {
-        allowed: current <= limit,
-        remaining: Math.max(0, limit - current),
     };
+
+    if (!redis) return useMemory();
+
+    try {
+        const current = await redis.incr(key);
+        if (current === 1) await redis.expire(key, 60);
+
+        return {
+            allowed: current <= limit,
+            remaining: Math.max(0, limit - current),
+        };
+    } catch {
+        return useMemory();
+    }
 }
 
 /**
@@ -76,8 +77,7 @@ export async function checkUserDailyQuota(userId: string): Promise<{ allowed: bo
     const key = `quota:user:${userId}:${today}`;
     const limit = 3;
 
-    if (!redis) {
-        // 开发环境：使用内存缓存
+    const useMemory = () => {
         const cached = memoryCache.get(key);
         const current = cached ? cached.value + 1 : 1;
         memoryCache.set(key, { value: current, expires: Date.now() + 86400000 });
@@ -87,20 +87,22 @@ export async function checkUserDailyQuota(userId: string): Promise<{ allowed: bo
             remaining: Math.max(0, limit - current),
             used: current,
         };
-    }
-
-    // 生产环境：使用Redis
-    const current = await redis!.incr(key);
-
-    if (current === 1) {
-        await redis!.expire(key, 86400);
-    }
-
-    return {
-        allowed: current <= limit,
-        remaining: Math.max(0, limit - current),
-        used: current,
     };
+
+    if (!redis) return useMemory();
+
+    try {
+        const current = await redis.incr(key);
+        if (current === 1) await redis.expire(key, 86400);
+
+        return {
+            allowed: current <= limit,
+            remaining: Math.max(0, limit - current),
+            used: current,
+        };
+    } catch {
+        return useMemory();
+    }
 }
 
 /**
@@ -111,8 +113,7 @@ export async function checkVIPUserDailyQuota(userId: string): Promise<{ allowed:
     const key = `quota:vip:${userId}:${today}`;
     const limit = 10;
 
-    if (!redis) {
-        // 开发环境：使用内存缓存
+    const useMemory = () => {
         const cached = memoryCache.get(key);
         const current = cached ? cached.value + 1 : 1;
         memoryCache.set(key, { value: current, expires: Date.now() + 86400000 });
@@ -122,20 +123,22 @@ export async function checkVIPUserDailyQuota(userId: string): Promise<{ allowed:
             remaining: Math.max(0, limit - current),
             used: current,
         };
-    }
-
-    // 生产环境：使用Redis
-    const current = await redis!.incr(key);
-
-    if (current === 1) {
-        await redis!.expire(key, 86400);
-    }
-
-    return {
-        allowed: current <= limit,
-        remaining: Math.max(0, limit - current),
-        used: current,
     };
+
+    if (!redis) return useMemory();
+
+    try {
+        const current = await redis.incr(key);
+        if (current === 1) await redis.expire(key, 86400);
+
+        return {
+            allowed: current <= limit,
+            remaining: Math.max(0, limit - current),
+            used: current,
+        };
+    } catch {
+        return useMemory();
+    }
 }
 
 /**
@@ -168,8 +171,13 @@ export async function getIPRateLimit(ip: string): Promise<{ value: number; limit
         const cached = memoryCache.get(key);
         current = cached ? cached.value : 0;
     } else {
-        const val = await redis.get<number>(key);
-        current = val ? parseInt(String(val)) : 0;
+        try {
+            const val = await redis.get<number>(key);
+            current = val ? parseInt(String(val)) : 0;
+        } catch {
+            const cached = memoryCache.get(key);
+            current = cached ? cached.value : 0;
+        }
     }
 
     return {
@@ -192,8 +200,12 @@ export async function getAnonymousRateLimit(ip: string): Promise<{ value: number
         // 本地无 Redis 时的模拟（因为 fusion 逻辑主要依赖 redis，这里做个兼容）
         current = 0;
     } else {
-        const val = await redis.get<number>(key);
-        current = val ? parseInt(String(val)) : 0;
+        try {
+            const val = await redis.get<number>(key);
+            current = val ? parseInt(String(val)) : 0;
+        } catch {
+            current = 0;
+        }
     }
 
     return {
@@ -216,8 +228,13 @@ export async function getVIPQuotaReadOnly(userId: string): Promise<{ value: numb
         const cached = memoryCache.get(key);
         current = cached ? cached.value : 0;
     } else {
-        const val = await redis.get<number>(key);
-        current = val ? parseInt(String(val)) : 0;
+        try {
+            const val = await redis.get<number>(key);
+            current = val ? parseInt(String(val)) : 0;
+        } catch {
+            const cached = memoryCache.get(key);
+            current = cached ? cached.value : 0;
+        }
     }
 
     return {

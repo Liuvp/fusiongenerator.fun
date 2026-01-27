@@ -26,7 +26,8 @@ type StatusConfigs = {
 };
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString();
+  const d = new Date(date);
+  return d.toISOString().slice(0, 10);
 }
 
 function isFutureDate(date: string) {
