@@ -37,6 +37,7 @@ export function DBHero() {
                     priority={true}
                     loading="eager"
                     fetchPriority="high"
+                    unoptimized={true}
                 />
             </div>
         </div>

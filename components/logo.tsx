@@ -9,7 +9,7 @@ export function Logo() {
     >
       <div className="flex items-center justify-center">
         <Image
-          src="/images/fusion-generator-logo-new.svg"
+          src="/fusion-generator-logo.webp"
           alt="Fusion Generator Logo"
           width={32}
           height={32}

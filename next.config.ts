@@ -46,10 +46,15 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "upload.wikimedia.org",
       },
+      {
+        protocol: "https",
+        hostname: "xrapzfknlfdqlnmkulmj.supabase.co",
+      },
     ],
     // Image optimization settings
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 31536000, // Cache images for 1 year
+    qualities: [75, 85],
   },
 
   devIndicators: {
@@ -105,6 +110,7 @@ const nextConfig: NextConfig = {
   // Experimental features for performance
   experimental: {
     optimizeCss: true, // Enable CSS optimization
+    optimizePackageImports: ['lucide-react', '@supabase/supabase-js', 'date-fns'],
   },
 
   // eslint: {
