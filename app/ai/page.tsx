@@ -186,7 +186,8 @@ export default function AIFusionPage() {
                                     fill
                                     className="object-cover hover:scale-105 transition-transform duration-700"
                                     priority
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1000px"
+                                    quality={75}
+                                    sizes="(max-width: 768px) 100vw, 1200px"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                             </div>

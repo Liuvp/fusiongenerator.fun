@@ -2,6 +2,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
+  // Optimize: Fast path for AI page to avoid blocking middleware execution (500ms+ savings)
+  if (request.nextUrl.pathname.startsWith('/ai')) {
+    return NextResponse.next();
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });

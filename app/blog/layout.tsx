@@ -1,36 +1,74 @@
-import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Metadata } from 'next'
+import { ReactNode } from 'react'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
-    title: "Fusion Generator Blog - Dragon Ball & Pokemon Fusion Guides",
-    description:
-        "Expert guides, tips, and tutorials for creating amazing Dragon Ball fusions, Pokemon fusions, and AI character mashups. Learn fusion techniques and best practices.",
-    alternates: {
-        canonical: "/blog",
-        languages: {
-            "en-US": "/blog",
-            en: "/blog",
-            "ja-JP": "/ja/blog",
-            ja: "/ja/blog",
-            "x-default": "/blog",
-        },
+    title: {
+        default: 'Fusion Generator Blog',
+        template: '%s | Fusion Generator Blog'
+    },
+    description: 'Expert guides and tips for Dragon Ball and Pokémon character fusion generation.',
+    robots: {
+        index: true,
+        follow: true,
     },
     openGraph: {
-        title: "Fusion Generator Blog - Expert Fusion Guides & Tutorials",
-        description:
-            "Learn how to create amazing Dragon Ball and Pokemon fusions with our expert guides and tutorials.",
-        url: "https://fusiongenerator.fun/blog",
-        type: "website",
-        locale: "en_US",
-        alternateLocale: ["ja_JP"],
+        type: 'website',
+        locale: 'en_US',
+        url: 'https://fusiongenerator.fun/blog',
+        siteName: 'Fusion Generator Blog',
     },
     twitter: {
-        card: "summary_large_image",
-        title: "Fusion Generator Blog",
-        description: "Expert guides for creating amazing character fusions",
+        card: 'summary_large_image',
+        site: '@FusionGenerator',
+        creator: '@FusionGenerator',
     },
-};
+    alternates: {
+        canonical: 'https://fusiongenerator.fun/blog',
+        types: {
+            'application/rss+xml': 'https://fusiongenerator.fun/blog/rss.xml',
+        },
+    },
+}
 
 export default function BlogLayout({ children }: { children: ReactNode }) {
-    return <>{children}</>;
+    return (
+        <>
+            {/* ✅ 预加载关键资源 */}
+            <link
+                rel="preload"
+                href="/images/blog/blog-og-image.jpg"
+                as="image"
+                type="image/jpeg"
+                fetchPriority="high"
+            />
+
+            {/* ✅ 博客特定的分析脚本 */}
+            <Script
+                strategy="afterInteractive"
+                id="blog-analytics"
+                dangerouslySetInnerHTML={{
+                    __html: `
+            window.blogPageView = () => {
+              if (typeof gtag !== 'undefined') {
+                gtag('event', 'page_view', {
+                  page_title: 'Blog Page',
+                  page_location: window.location.href,
+                  page_path: '/blog'
+                });
+              }
+            };
+            // Track blog page view
+            if (document.readyState === 'complete') {
+              window.blogPageView();
+            } else {
+              window.addEventListener('load', window.blogPageView);
+            }
+          `
+                }}
+            />
+
+            {children}
+        </>
+    )
 }
