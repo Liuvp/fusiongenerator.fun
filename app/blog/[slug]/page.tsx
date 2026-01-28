@@ -5,6 +5,8 @@ import { notFound } from 'next/navigation'
 import { getPostBySlug, getAllPosts, getRelatedPosts } from '../data/posts'
 import BlogCard from '@/components/blog/BlogCard'
 
+export const dynamic = 'force-static'
+
 interface Props {
     params: Promise<{
         slug: string
