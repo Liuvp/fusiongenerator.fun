@@ -32,13 +32,7 @@ export default function BlogLayout({ children }: { children: ReactNode }) {
     return (
         <>
             {/* ✅ 预加载关键资源 */}
-            <link
-                rel="preload"
-                href="/images/blog/blog-og-image.jpg"
-                as="image"
-                type="image/jpeg"
-                fetchPriority="high"
-            />
+
 
             {/* ✅ 博客特定的分析脚本 */}
             <Script
