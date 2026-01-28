@@ -25,9 +25,6 @@ export const metadata: Metadata = {
     },
     alternates: {
         canonical: 'https://fusiongenerator.fun/blog',
-        types: {
-            'application/rss+xml': 'https://fusiongenerator.fun/blog/rss.xml',
-        },
     },
 }
 
