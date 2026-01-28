@@ -113,16 +113,6 @@ export default async function BlogPostPage({ params }: Props) {
                 {/* 顶部进度条/导航占位 - 如果有全局Header这里会自动处理 */}
 
                 <article className="container max-w-4xl mx-auto px-4 sm:px-6 py-8 md:py-12">
-                    {/* 面包屑导航 */}
-                    <nav aria-label="Breadcrumb" className="mb-8 text-sm text-muted-foreground">
-                        <ol className="flex items-center space-x-2">
-                            <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
-                            <li><span className="select-none">/</span></li>
-                            <li><Link href="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
-                            <li><span className="select-none">/</span></li>
-                            <li className="text-foreground truncate max-w-[200px] sm:max-w-md" aria-current="page">{post.title}</li>
-                        </ol>
-                    </nav>
 
                     {/* 文章头部 */}
                     <header className="mb-10 text-center space-y-6">
