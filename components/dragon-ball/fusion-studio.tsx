@@ -400,9 +400,9 @@ export function DBFusionStudio() {
             {/* Header */}
             <header className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-black text-orange-600 tracking-tight">
+                    <h2 className="text-2xl font-black text-orange-600 tracking-tight">
                         Dragon Ball Fusion Studio
-                    </h1>
+                    </h2>
                     <p className="text-sm text-gray-500 mt-1">
                         Combine your favorite characters
                     </p>
