@@ -415,6 +415,24 @@ export function DBFusionStudio() {
                 </Badge>
             </header>
 
+            {/* 步骤指示器 */}
+            <div className="flex items-center justify-center mb-6 space-x-1 sm:space-x-4 px-2">
+                <div className={`flex items-center space-x-2 transition-colors ${!char1 ? 'text-orange-600 font-bold' : 'text-gray-400'}`}>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${!char1 ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-500'}`}>1</span>
+                    <span className="text-xs sm:text-sm">Select P1</span>
+                </div>
+                <div className="w-4 sm:w-8 h-px bg-gray-200" />
+                <div className={`flex items-center space-x-2 transition-colors ${char1 && !char2 ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${char1 && !char2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>2</span>
+                    <span className="text-xs sm:text-sm">Select P2</span>
+                </div>
+                <div className="w-4 sm:w-8 h-px bg-gray-200" />
+                <div className={`flex items-center space-x-2 transition-colors ${isSelectionComplete ? 'text-purple-600 font-bold' : 'text-gray-400'}`}>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${isSelectionComplete ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-500'}`}>3</span>
+                    <span className="text-xs sm:text-sm">Fuse</span>
+                </div>
+            </div>
+
             {/* 上半部分：角色选择 */}
             <Card className="border-0 shadow-md mb-6">
                 <CardContent className="p-5">
@@ -483,7 +501,9 @@ export function DBFusionStudio() {
                                 FUSING...
                             </span>
                         ) : !isSelectionComplete ? (
-                            "SELECT 2 FIGHTERS"
+                            <span className="flex items-center gap-2">
+                                🔒 SELECT 2 FIGHTERS
+                            </span>
                         ) : !hasQuotaAccess() ? (
                             user ? "UPGRADE TO VIP" : "LOGIN FOR ENERGY"
                         ) : (
