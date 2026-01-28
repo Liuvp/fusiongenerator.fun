@@ -101,8 +101,8 @@ export default function PokemonPage() {
         }}
       />
       <div className="min-h-screen bg-background">
-        <div className="container px-4 md:px-6 py-8 md:py-12">
-          <div className="max-w-5xl mx-auto space-y-10 md:space-y-16">
+        <div className="container px-4 md:px-6 py-10 md:py-12">
+          <div className="max-w-5xl mx-auto space-y-12 md:space-y-16">
             <PokeHero />
             <PokeFusionStudio />
             <PokeHowToUse />

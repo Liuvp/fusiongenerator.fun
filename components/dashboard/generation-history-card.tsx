@@ -151,9 +151,7 @@ export function GenerationHistoryCard() {
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        <span suppressHydrationWarning>
-                          {new Date(log.created_at).toISOString().slice(0, 10)}
-                        </span>
+                        {new Date(log.created_at).toLocaleDateString()}
                         <span>•</span>
                         <span className="capitalize">{log.gender}</span>
                         {log.has_personality_traits && (

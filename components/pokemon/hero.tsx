@@ -5,8 +5,8 @@ import { Sparkles } from "lucide-react";
 
 export function PokeHero() {
     return (
-        <div className="grid gap-6 md:gap-8 md:grid-cols-2 items-center">
-            <div className="space-y-6 text-center md:text-left">
+        <div className="grid gap-8 md:grid-cols-2 items-center">
+            <div className="space-y-6">
                 <div className="inline-flex items-center rounded-full px-3 py-1 text-sm bg-blue-100 text-blue-700">
                     <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
                     Infinite Pokemon Fusion Generator
@@ -20,7 +20,7 @@ export function PokeHero() {
                     Instantly create infinite Pokemon fusions! Mix Pikachu, Charizard, Mewtwo, and more to discover new species.
                     Use our free <strong>Pokemon fusion generator online</strong> to create stunning <strong>Pokemon fusion images</strong> in seconds.
                 </p>
-                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                <div className="flex flex-wrap gap-3">
                     <Button asChild className="h-10 px-4 py-2 bg-blue-600 hover:bg-blue-700">
                         <Link href="#fusion-studio">Start Fusing</Link>
                     </Button>
@@ -29,7 +29,7 @@ export function PokeHero() {
                     </Button>
                 </div>
             </div>
-            <div className="relative w-full h-[220px] sm:h-[260px] md:h-[360px]">
+            <div className="relative w-full h-[260px] md:h-[360px]">
                 <Image
                     src="/images/pokemon-character-fusion-generator-preview.webp"
                     alt="AI-generated Pokémon character fusion preview showing combined creature designs"
