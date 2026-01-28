@@ -109,7 +109,7 @@ const nextConfig: NextConfig = {
 
   // Experimental features for performance
   experimental: {
-    optimizeCss: true, // Enable CSS optimization
+    optimizeCss: false, // Disabled due to HTML structure issues
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js', 'date-fns'],
   },
 
