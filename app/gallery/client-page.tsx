@@ -111,6 +111,12 @@ export default function GalleryPage() {
         }
     }
 
+    const [isMounted, setIsMounted] = useState(false)
+
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
+
     useEffect(() => {
         if (user) loadMy()
     }, [user])
@@ -163,6 +169,23 @@ export default function GalleryPage() {
                 },
             },
         ],
+    }
+
+    // Client-side hydration guard to preventing ID mismatch
+    if (!isMounted) {
+        return (
+            <div className="min-h-screen w-full">
+                <div className="mx-auto max-w-6xl px-4 py-8 md:px-6 space-y-8 animate-pulse">
+                    <div className="h-10 bg-muted/20 w-1/3 rounded-lg mx-auto" />
+                    <div className="h-12 bg-muted/20 rounded-lg max-w-sm mx-auto" />
+                    <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {[...Array(6)].map((_, i) => (
+                            <div key={i} className="aspect-square bg-muted/20 rounded-xl" />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     return (

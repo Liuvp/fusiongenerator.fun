@@ -40,7 +40,7 @@ const DBCTA = dynamic(
 export const dynamicParams = true; // Use default behavior but ensure SSG where possible
 export const revalidate = 3600; // Revalidate every hour
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Dragon Ball Fusion Generator – Goku & Vegeta AI Fusions",
   description:
     "Instantly create Dragon Ball fusions like Goku & Vegeta with our free AI tool. Fun, fast, and easy-to-use DBZ fusion generator for fans!",

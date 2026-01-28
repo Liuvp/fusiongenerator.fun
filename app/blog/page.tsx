@@ -1,4 +1,3 @@
-import { Metadata } from 'next'
 import BlogCard from '@/components/blog/BlogCard'
 import { getAllPosts } from './data/posts'
 
@@ -7,7 +6,7 @@ export const dynamic = 'force-static'
 export const revalidate = false // 完全静态，不重新验证
 
 // ✅ SEO优化：完整的元数据
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Blog – Fusion Generator',
   description: 'Read the latest guides, tips, and news about Dragon Ball and Pokémon fusion generation. Updated regularly.',
   robots: {

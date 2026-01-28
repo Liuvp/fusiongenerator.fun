@@ -1,32 +1,5 @@
-import { Metadata } from 'next'
 import { ReactNode } from 'react'
 import Script from 'next/script'
-
-export const metadata: Metadata = {
-    title: {
-        default: 'Fusion Generator Blog',
-        template: '%s | Fusion Generator Blog'
-    },
-    description: 'Expert guides and tips for Dragon Ball and Pokémon character fusion generation.',
-    robots: {
-        index: true,
-        follow: true,
-    },
-    openGraph: {
-        type: 'website',
-        locale: 'en_US',
-        url: 'https://fusiongenerator.fun/blog',
-        siteName: 'Fusion Generator Blog',
-    },
-    twitter: {
-        card: 'summary_large_image',
-        site: '@FusionGenerator',
-        creator: '@FusionGenerator',
-    },
-    alternates: {
-        canonical: 'https://fusiongenerator.fun/blog',
-    },
-}
 
 export default function BlogLayout({ children }: { children: ReactNode }) {
     return (

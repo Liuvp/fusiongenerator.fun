@@ -1,7 +1,6 @@
-import { Metadata } from "next";
 import PricingPage from "./client-page";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Fusion Generator Pricing – Free & Pro AI Character Fusions",
   description: "View Fusion Generator pricing plans. Create AI character fusions for free, or upgrade for unlimited HD images, faster generation, and priority access.",
   alternates: {
