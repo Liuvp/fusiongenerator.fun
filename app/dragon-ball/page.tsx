@@ -44,7 +44,6 @@ export const metadata: Metadata = {
   title: "Dragon Ball Fusion Generator – Goku & Vegeta AI Fusions",
   description:
     "Instantly create Dragon Ball fusions like Goku & Vegeta with our free AI tool. Fun, fast, and easy-to-use DBZ fusion generator for fans!",
-  keywords: "Dragon Ball, DBZ, fusion, Goku, Vegeta, AI generator, anime, fusion generator, Dragon Ball Z",
   robots: {
     index: true,
     follow: true,
