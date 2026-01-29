@@ -27,8 +27,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params
     const post = getPostBySlug(slug)
 
+    // ✅ [NEW] 现在的写法：直接通过抛出异常进入 404 流程
     if (!post) {
-        return {}
+        notFound()
     }
 
     const ogImage = post.coverImage // 实际项目中可以是专门生成的 OG 图片

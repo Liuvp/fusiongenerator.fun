@@ -1,6 +1,7 @@
 import Header from "@/components/header";
 import Script from "next/script";
 import { Footer } from "@/components/footer";
+import type { Metadata, Viewport } from "next";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
@@ -12,8 +13,14 @@ const baseUrl = process.env.BASE_URL
   ? `https://${process.env.BASE_URL}`
   : "https://fusiongenerator.fun/";
 
-export const metadata = {
-  metadataBase: new URL("https://fusiongenerator.fun/"),
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#000000",
+};
+
+export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl.trim()),
   title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
   description:
     "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
