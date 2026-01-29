@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Fusion Gallery – Create Dragon Ball & Pokémon AI Fusions",
     description: "Browse our collection of amazing Dragon Ball and Pokémon character fusions. Get inspired by community creations and start your own fusion journey.",
-    url: "https://fusiongenerator.fun/gallery",
+    url: "/gallery",
     type: "website",
   },
   twitter: {

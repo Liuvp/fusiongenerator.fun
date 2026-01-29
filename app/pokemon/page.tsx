@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     title: "Pokemon Fusion Generator – Pikachu, Charizard & Mewtwo Fusions",
     description:
       "Instantly create infinite Pokemon fusions! Mix Pikachu, Charizard, Mewtwo, and more to discover new species. Free, fun, and easy-to-use Pokemon fusion generator.",
-    url: "https://fusiongenerator.fun/pokemon",
+    url: "/pokemon",
     type: "website",
     images: [
       {

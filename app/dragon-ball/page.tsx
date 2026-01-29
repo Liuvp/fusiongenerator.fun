@@ -1,6 +1,19 @@
 import Script from "next/script";
 import { Metadata } from "next";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic"; // Renamed to avoid usage conflict with export const dynamic
+
+// 获取基础URL（用于JSON-LD）
+const getBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL;
+  }
+  return "https://fusiongenerator.fun";
+};
+
+const baseUrl = getBaseUrl();
 
 // 静态导入关键SEO组件（保证首屏内容）
 import { DBHero } from "@/components/dragon-ball/hero";
@@ -8,28 +21,28 @@ import { DBHowToUse } from "@/components/dragon-ball/how-to-use";
 import { DBFeatures } from "@/components/dragon-ball/features";
 
 // 动态导入非关键组件（减少初始包大小）
-const DBFusionStudio = dynamic(
+const DBFusionStudio = dynamicImport(
   () => import("@/components/dragon-ball/fusion-studio").then(mod => mod.DBFusionStudio),
   {
     loading: () => <FusionStudioSkeleton />
   }
 );
 
-const DBPopularFusions = dynamic(
+const DBPopularFusions = dynamicImport(
   () => import("@/components/dragon-ball/popular-fusions").then(mod => mod.DBPopularFusions),
   {
     loading: () => <PopularFusionsSkeleton />
   }
 );
 
-const DBFAQ = dynamic(
+const DBFAQ = dynamicImport(
   () => import("@/components/dragon-ball/faq").then(mod => mod.DBFAQ),
   {
     loading: () => <FAQSkeleton />
   }
 );
 
-const DBCTA = dynamic(
+const DBCTA = dynamicImport(
   () => import("@/components/dragon-ball/cta").then(mod => mod.DBCTA),
   {
     loading: () => <CTASkeleton />
@@ -37,24 +50,15 @@ const DBCTA = dynamic(
 );
 
 // Force static generation to ensure meta tags are in <head>
-export const dynamicParams = true; // Use default behavior but ensure SSG where possible
+export const dynamic = 'force-static';
 export const revalidate = 3600; // Revalidate every hour
 
-export const metadata = {
+// ✅ 修复：添加 Metadata 类型注解
+export const metadata: Metadata = {
   title: "Dragon Ball Fusion Generator – Goku & Vegeta AI Fusions",
   description:
     "Instantly create Dragon Ball fusions like Goku & Vegeta with our free AI tool. Fun, fast, and easy-to-use DBZ fusion generator for fans!",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    }
-  },
+  robots: "index, follow",
   alternates: {
     canonical: "/dragon-ball",
   },
@@ -62,7 +66,7 @@ export const metadata = {
     title: "Dragon Ball Fusion Generator – Goku & Vegeta AI Fusions",
     description:
       "Instantly create Dragon Ball fusions like Goku & Vegeta with our free AI tool. Fun, fast, and easy-to-use DBZ fusion generator for fans!",
-    url: "https://fusiongenerator.fun/dragon-ball",
+    url: "/dragon-ball",
     type: "website",
     siteName: "Fusion Generator",
     images: [
@@ -135,6 +139,7 @@ function CTASkeleton() {
 }
 
 export default function DragonBallPage() {
+  // ✅ 修复：JSON-LD 使用动态 baseUrl
   const softwareAppJsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -142,7 +147,7 @@ export default function DragonBallPage() {
     "description": "Instantly create Dragon Ball fusions like Goku & Vegeta with our free AI tool. High-quality character designs for fans.",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
-    "url": "https://fusiongenerator.fun/dragon-ball",
+    "url": `${baseUrl}/dragon-ball`, // ✅ 动态URL
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -169,13 +174,13 @@ export default function DragonBallPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://fusiongenerator.fun/"
+        "item": `${baseUrl}/` // ✅ 动态URL
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Dragon Ball Fusion Generator",
-        "item": "https://fusiongenerator.fun/dragon-ball"
+        "item": `${baseUrl}/dragon-ball` // ✅ 动态URL
       }
     ]
   };
@@ -185,18 +190,16 @@ export default function DragonBallPage() {
     "@type": "WebApplication",
     "name": "Dragon Ball Fusion Generator",
     "description": "AI-powered Dragon Ball character fusion generator",
-    "url": "https://fusiongenerator.fun/dragon-ball",
+    "url": `${baseUrl}/dragon-ball`, // ✅ 动态URL
     "browserRequirements": "Requires JavaScript. Requires HTML5.",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
-    "screenshot": "https://fusiongenerator.fun/images/dragon-ball-fusion-preview-goku-vegeta.webp",
+    "screenshot": `${baseUrl}/images/dragon-ball-fusion-preview-goku-vegeta.webp`, // ✅ 动态URL
     "inLanguage": "en"
   };
 
   return (
     <>
-
-
       {/* JSON-LD 结构化数据 */}
       <Script
         id="dragon-ball-json-ld"
@@ -206,17 +209,6 @@ export default function DragonBallPage() {
           __html: JSON.stringify([softwareAppJsonLd, breadcrumbJsonLd, webAppJsonLd])
         }}
       />
-
-      {/* 预加载关键图片 - 等有了WebP文件后再取消注释，目前先用png避免404 */}
-      {/* 
-      <link 
-        rel="preload" 
-        as="image" 
-        href="/images/dragon-ball-fusion-preview-goku-vegeta.webp"
-        type="image/webp"
-        fetchPriority="high"
-      /> 
-      */}
 
       <div className="min-h-screen bg-background">
         <div className="container px-4 md:px-6 py-10 md:py-12">
