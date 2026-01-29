@@ -9,9 +9,40 @@ import { createClient } from "@/utils/supabase/server";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
-const baseUrl = process.env.BASE_URL
-  ? `https://${process.env.BASE_URL}`
-  : "https://fusiongenerator.fun/";
+/* =========================
+   Site URL Configuration
+   ========================= */
+function getSiteUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+
+  // Fallback to hardcoded domain if env var is missing
+  if (!raw) {
+    return "https://fusiongenerator.fun";
+  }
+
+  let url = raw;
+
+  // Ensure protocol
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
+  }
+
+  // Remove trailing slash
+  if (url.endsWith("/")) {
+    url = url.slice(0, -1);
+  }
+
+  // Validate URL format
+  try {
+    new URL(url);
+    return url;
+  } catch {
+    console.warn(`Invalid NEXT_PUBLIC_SITE_URL: ${raw}, falling back to default.`);
+    return "https://fusiongenerator.fun";
+  }
+}
+
+const baseUrl = getSiteUrl();
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -20,7 +51,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(baseUrl.trim()),
+  metadataBase: new URL(baseUrl),
   title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
   description:
     "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
