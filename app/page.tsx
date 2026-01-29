@@ -15,7 +15,28 @@ export const metadata = {
   title: "Fusion Generator – Create Dragon Ball & Pokémon AI Fusions",
   description: "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
   alternates: {
-    canonical: 'https://fusiongenerator.fun/',
+    canonical: '/',
+  },
+  openGraph: {
+    title: "Fusion Generator – Create Dragon Ball & Pokémon AI Fusions",
+    description: "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
+    url: "/",
+    type: "website",
+    siteName: "Fusion Generator",
+    images: [
+      {
+        url: "/hero-fusion-example.webp",
+        width: 1200,
+        height: 630,
+        alt: "Fusion Generator Preview - AI Character Mixer",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fusion Generator – Create Dragon Ball & Pokémon AI Fusions",
+    description: "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
+    images: ["/hero-fusion-example.webp"],
   },
 };
 

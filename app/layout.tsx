@@ -38,17 +38,7 @@ export const metadata: Metadata = {
     description:
       "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
+  robots: "index, follow",
   verification: {
     // Add your Bing Webmaster validation here
     // other: { 'msvalidate.01': 'YOUR_BING_VERIFICATION_CODE' },
