@@ -10,8 +10,7 @@ import { PokeFAQ, FAQ_DATA } from "@/components/pokemon/faq";
 const PokeFusionStudio = dynamicImport(
   () => import("@/components/pokemon/fusion-studio").then(mod => mod.PokeFusionStudio),
   {
-    loading: () => <div className="w-full h-[600px] bg-slate-100 rounded-3xl animate-pulse mx-auto" />,
-    ssr: false
+    loading: () => <div className="w-full h-[600px] bg-slate-100 rounded-3xl animate-pulse mx-auto" />
   }
 );
 import { PokePopularFusions } from "@/components/pokemon/popular-fusions";
