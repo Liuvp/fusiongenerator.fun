@@ -4,10 +4,16 @@ import dynamicImport from "next/dynamic";
 import { PokeHero } from "@/components/pokemon/hero";
 import { PokeHowToUse } from "@/components/pokemon/how-to-use";
 import { PokeFeatures } from "@/components/pokemon/features";
-import { PokeFAQ } from "@/components/pokemon/faq";
+import { PokeFAQ, FAQ_DATA } from "@/components/pokemon/faq";
 
 // Dynamic imports for heavy interactive components
-const PokeFusionStudio = dynamicImport(() => import("@/components/pokemon/fusion-studio").then(mod => mod.PokeFusionStudio));
+const PokeFusionStudio = dynamicImport(
+  () => import("@/components/pokemon/fusion-studio").then(mod => mod.PokeFusionStudio),
+  {
+    loading: () => <div className="w-full h-[600px] bg-slate-100 rounded-3xl animate-pulse mx-auto" />,
+    ssr: false
+  }
+);
 import { PokePopularFusions } from "@/components/pokemon/popular-fusions";
 import { PokeCTA } from "@/components/pokemon/cta";
 
@@ -50,7 +56,7 @@ export default function PokemonPage() {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Pokemon Fusion Generator",
-    "description": "Create infinite Pokemon fusions using AI. Mix Pikachu, Charizard, and all species from Gen 1-9.",
+    "description": "Create infinite Pokemon fusions using AI. Mix Pikachu, Charizard, and iconic species across generations.",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
     "url": "https://fusiongenerator.fun/pokemon",
@@ -72,10 +78,10 @@ export default function PokemonPage() {
       "userInteractionCount": "2500"
     },
     "featureList": [
-      "Supports Gen 1-9 Pokémon",
+      "Supports Iconic Pokémon",
       "Infinite Fusion Combinations",
       "High-Resolution Image Generation",
-      "Shiny and Mega Evolution Styles"
+      "Custom and Shiny Styles"
     ]
   };
 
@@ -104,7 +110,7 @@ export default function PokemonPage() {
         id="pokemon-json-ld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([softwareAppJsonLd, breadcrumbJsonLd])
+          __html: JSON.stringify([softwareAppJsonLd, breadcrumbJsonLd, FAQ_DATA])
         }}
       />
       <div className="min-h-screen bg-background">
@@ -132,7 +138,7 @@ export default function PokemonPage() {
 
                 <div>
                   <p className="text-lg">
-                    Mix Pokémon from <strong>Generation 1 to Generation 9</strong>, including Pikachu, Charizard,
+                    Mix Pokémon from <strong>classic and modern generations</strong>, including Pikachu, Charizard,
                     and Mewtwo. The AI intelligently blends:
                   </p>
                   <ul className="mt-4 space-y-2">

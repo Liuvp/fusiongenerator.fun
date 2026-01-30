@@ -52,9 +52,9 @@ const nextConfig: NextConfig = {
       },
     ],
     // Image optimization settings
-    formats: ['image/webp', 'image/avif'],
+    formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000, // Cache images for 1 year
-    qualities: [75, 85],
+    qualities: [75, 85, 90],
   },
 
   devIndicators: {

@@ -9,7 +9,7 @@ import { Sparkles, RefreshCw, Settings2 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/utils/supabase/client";
-import { POKEMON_DATABASE, FUSION_STYLES, getPokemonImageUrl, type Pokemon, type FusionStyle } from "@/lib/pokemon-data";
+import { POKEMON_DATABASE, FUSION_STYLES, PRE_GENERATED_FUSIONS, getPokemonImageUrl, type Pokemon, type FusionStyle } from "@/lib/pokemon-data";
 import { buildFusionPrompt } from "@/lib/prompt-builder";
 import { User } from "@supabase/supabase-js";
 
@@ -149,6 +149,25 @@ export function PokeFusionStudio() {
         setResult(null);
     };
 
+    const loadDemoFusion = () => {
+        const sample = PRE_GENERATED_FUSIONS[Math.floor(Math.random() * PRE_GENERATED_FUSIONS.length)];
+        const p1 = OPTIMIZED_POKEMON.find(p => p.id === sample.char1Id);
+        const p2 = OPTIMIZED_POKEMON.find(p => p.id === sample.char2Id);
+
+        if (p1 && p2) {
+            setPokemon1(p1);
+            setPokemon2(p2);
+            setPromptSource("auto");
+            setResult({
+                imageUrl: sample.imageUrl,
+                pokemon1: p1,
+                pokemon2: p2,
+                style: FUSION_STYLES[0]
+            });
+            toast({ title: "Demo Loaded", description: `Showing random example: ${sample.name}` });
+        }
+    };
+
     const clearSelection = () => {
         setPokemon1(undefined);
         setPokemon2(undefined);
@@ -229,12 +248,12 @@ export function PokeFusionStudio() {
     return (
         <div id="fusion-studio" className="bg-gradient-to-b from-blue-50/30 to-white p-4 pb-8 rounded-3xl min-h-[600px]">
             {/* Header */}
-            <header className="flex justify-between items-center mb-6">
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 sm:gap-0">
                 <div>
                     <h2 className="text-2xl font-black text-blue-600 tracking-tight">Pokemon Fusion Studio</h2>
-                    <p className="text-sm text-gray-500 mt-1">Combine Gen 1-9 Pokemon with AI</p>
+                    <p className="text-sm text-gray-500 mt-1">Combine Iconic Pokemon with AI</p>
                 </div>
-                <Badge variant={hasQuotaAccess() ? "default" : "destructive"} className="px-3 py-1.5 min-w-[80px] justify-center">
+                <Badge variant={hasQuotaAccess() ? "default" : "destructive"} className="px-3 py-1.5 min-w-[80px] justify-center self-start sm:self-auto">
                     {quota?.isVIP ? "VIP" : `${getRemainingDisplay()} Left`}
                 </Badge>
             </header>
@@ -242,14 +261,17 @@ export function PokeFusionStudio() {
             {/* Selection Area */}
             <Card className="border-0 shadow-md mb-6">
                 <CardContent className="p-5">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
                         <h2 className="text-sm font-semibold text-gray-700">Choose Pokemon</h2>
                         <div className="flex gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => setShowSettings(!showSettings)} className={`h-7 px-2 text-xs ${showSettings ? 'text-blue-600 bg-blue-50' : 'text-gray-500'}`}>
-                                <Settings2 className="w-3 h-3 mr-1" /> Settings
+                            <Button variant="outline" size="sm" onClick={loadDemoFusion} className="h-8 px-3 text-xs border-dashed border-blue-300 text-blue-600 hover:bg-blue-50">
+                                <Sparkles className="w-3 h-3 mr-1.5" /> Try Example
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={randomize} className="h-7 px-2 text-xs text-gray-600 hover:text-blue-600">
-                                <RefreshCw className="w-3 h-3 mr-1" /> Random
+                            <Button variant="secondary" size="sm" onClick={randomize} className="h-8 px-3 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700">
+                                <RefreshCw className="w-3 h-3 mr-1.5" /> Random
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => setShowSettings(!showSettings)} className={`h-8 w-8 p-0 ${showSettings ? 'text-blue-600 bg-blue-50' : 'text-gray-400 hover:text-gray-600'}`}>
+                                <Settings2 className="w-4 h-4" />
                             </Button>
                         </div>
                     </div>

@@ -25,7 +25,9 @@ export function PokeHowToUse() {
     return (
         <div className="space-y-8">
             <div className="text-center space-y-3">
-                <h2 className="text-3xl font-bold tracking-tight">How to Create Pokemon Fusions</h2>
+                <h2 className="text-3xl font-bold tracking-tight">
+                    How to Create <span className="text-blue-600">Pokémon Fusions Online</span> with AI
+                </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                     Follow these simple steps to create amazing Pokemon fusions in under 30 seconds
                 </p>

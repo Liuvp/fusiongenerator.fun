@@ -497,3 +497,38 @@ export function buildPokemonPrompt(p1: Pokemon, p2: Pokemon, style?: FusionStyle
 
     return `${basePrompt} ${features} ${typeDesc} ${stylePrompt} Ken Sugimori art style, official pokemon artwork aesthetic, white background.`;
 }
+
+// 预生成的融合结果 (用于 Demo)
+export interface PreGeneratedFusion {
+    char1Id: string;
+    char2Id: string;
+    imageUrl: string;
+    name: string;
+}
+
+export const PRE_GENERATED_FUSIONS: PreGeneratedFusion[] = [
+    {
+        char1Id: 'dragonite',
+        char2Id: 'snorlax',
+        imageUrl: '/images/dragonite-snorlax-character-fusion-pokemon-preview.webp',
+        name: 'Dragolax'
+    },
+    {
+        char1Id: 'charizard',
+        char2Id: 'mewtwo',
+        imageUrl: '/images/charizard-mewtwo-character-fusion-pokemon-preview.webp',
+        name: 'Charitwo'
+    },
+    {
+        char1Id: 'snorlax',
+        char2Id: 'pikachu',
+        imageUrl: '/images/snorlax-pikachu-ai-fusion-creature.webp',
+        name: 'Pikalax'
+    },
+    {
+        char1Id: 'pikachu',
+        char2Id: 'eevee',
+        imageUrl: '/images/cute-pikachu-character-pokemon-preview.webp',
+        name: 'PikaVee'
+    },
+];
