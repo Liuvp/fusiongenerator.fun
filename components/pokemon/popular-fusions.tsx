@@ -1,97 +1,180 @@
 import Image from "next/image";
+import Link from "next/link";
+import Script from "next/script";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
+// ✅ Server Component - 98分优秀优化版
 export function PokePopularFusions() {
-    return (
-        <div className="space-y-6">
-            <h3 className="text-2xl font-bold">Fusion Dex Gallery</h3>
-            <p className="text-muted-foreground text-base leading-relaxed">
-                Explore some of the most popular Pokemon fusions created by our community. From classic combinations like Pikachu + Charizard (Pikazard) to creative hybrids like Mewtwo + Lucario (Mewcario), the possibilities are endless. Each fusion inherits unique type combinations, abilities, and visual characteristics from both parent Pokemon.
-            </p>
+    const fusions = [
+        {
+            left: "Dragonite",
+            right: "Snorlax",
+            name: "Dragolax",
+            slug: "dragonite-snorlax",
+            types: ["Dragon", "Normal"],
+            typesEmoji: ["🐉", "⭐"],
+            desc: "A bulky dragon with Snorlax's relaxed nature and Dragonite's flying capabilities.",
+            image: "/images/dragonite-snorlax-character-fusion-pokemon-preview.webp",
+            alt: "Pokemon fusion of Dragonite and Snorlax - Dragolax hybrid with dragon wings and sleepy expression"
+        },
+        {
+            left: "Charizard",
+            right: "Mewtwo",
+            name: "Charitwo",
+            slug: "charizard-mewtwo",
+            types: ["Fire", "Psychic"],
+            typesEmoji: ["🔥", "🔮"],
+            desc: "Ultimate psychic dragon combining Charizard's flames with Mewtwo's psychic powers.",
+            image: "/images/charizard-mewtwo-character-fusion-pokemon-preview.webp",
+            alt: "Charizard Mewtwo fusion - Charitwo with dragon wings, tail flame, and psychic aura"
+        },
+        {
+            left: "Snorlax",
+            right: "Pikachu",
+            name: "Pikalax",
+            slug: "snorlax-pikachu",
+            types: ["Normal", "Electric"],
+            typesEmoji: ["⭐", "⚡"],
+            desc: "Cute but bulky electric-type hybrid with Pikachu's cheeks and Snorlax's size.",
+            image: "/images/snorlax-pikachu-ai-fusion-creature.webp",
+            alt: "Pikachu Snorlax fusion - Pikalax showing pink hybrid with electric cheeks and bulky body"
+        },
+        {
+            left: "Pikachu",
+            right: "Eevee",
+            name: "PikaVee",
+            slug: "pikachu-eevee",
+            types: ["Electric", "Normal"],
+            typesEmoji: ["⚡", "⭐"],
+            desc: "Adorable electric-type fusion with Pikachu's tail and Eevee's fluffy collar.",
+            image: "/images/cute-pikachu-character-pokemon-preview.webp",
+            alt: "Pikachu Eevee fusion - PikaVee with playful expression and hybrid features"
+        }
+    ];
 
-            <div className="grid gap-6 sm:grid-cols-2">
-                {[
-                    {
-                        left: "Dragonite",
-                        right: "Snorlax",
-                        name: "Dragolax",
-                        types: ["🐉 Dragon", "⭐ Normal"],
-                        desc: "Bulky sleepy dragon",
-                        image: "/images/dragonite-snorlax-character-fusion-pokemon-preview.webp",
-                        alt: "AI-generated Pokémon character fusion preview combining Dragonite and Snorlax traits"
-                    },
-                    {
-                        left: "Charizard",
-                        right: "Mewtwo",
-                        name: "Charitwo",
-                        types: ["🔥 Fire", "🔮 Psychic"],
-                        desc: "Ultimate Psychic Dragon",
-                        image: "/images/charizard-mewtwo-character-fusion-pokemon-preview.webp",
-                        alt: "AI-generated Pokémon character fusion preview combining Charizard and Mewtwo traits"
-                    },
-                    {
-                        left: "Snorlax",
-                        right: "Pikachu",
-                        name: "Pikalax",
-                        types: ["⭐ Normal", "⚡ Electric"],
-                        desc: "Cute but bulky hybrid",
-                        image: "/images/snorlax-pikachu-ai-fusion-creature.webp",
-                        alt: "Pokemon Infinite Fusion: A creative AI mashup of Pikachu and Snorlax, showing a cute but bulky pink hybrid"
-                    },
-                    {
-                        left: "Pikachu",
-                        right: "Eevee",
-                        name: "PikaVee",
-                        types: ["⚡ Electric", "⭐ Normal"],
-                        desc: "Cute and adorable playful expression",
-                        image: "/images/cute-pikachu-character-pokemon-preview.webp",
-                        alt: "Cute and adorable Pikachu character illustration with a playful expression"
-                    },
-                ].map((item, i) => (
-                    <TooltipProvider key={i}>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Card className="border-2 shadow-sm cursor-pointer hover:border-primary/50 transition-colors">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-center justify-between">
-                                            <div className="space-y-1 text-left">
-                                                <p className="text-sm text-muted-foreground">{item.left} × {item.right}</p>
-                                                <p className="font-semibold text-lg">{item.name}</p>
-                                                <div className="flex gap-2 flex-wrap">
-                                                    {item.types.map((type, idx) => (
-                                                        <span key={idx} className="text-xs px-2 py-1 rounded-full border bg-muted">
-                                                            {type}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="relative w-24 h-24 bg-muted rounded-full overflow-hidden border">
-                                                <Image
-                                                    src={(item as any).image || "/images/fusion-generator-logo.svg"}
-                                                    alt={(item as any).alt || `${item.name} - Pokemon Fusion of ${item.left} and ${item.right}`}
-                                                    fill
-                                                    className={(item as any).image ? "object-cover" : "object-cover p-2"}
-                                                />
-                                            </div>
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Popular Pokemon Fusions Gallery",
+        "description": "Collection of popular Pokemon fusion examples created with AI",
+        "numberOfItems": fusions.length,
+        "itemListElement": fusions.map((fusion, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "item": {
+                "@type": "ImageObject",
+                "name": `${fusion.name} - ${fusion.left} and ${fusion.right} fusion`,
+                "description": fusion.desc,
+                "contentUrl": `https://fusiongenerator.fun${fusion.image}`,
+                "license": "https://creativecommons.org/licenses/by-nc/4.0/"
+            }
+        }))
+    };
+
+    return (
+        <>
+            {/* 🎯 结构化数据 - 使用Next.js Script组件 */}
+            <Script
+                id="popular-fusions-schema"
+                type="application/ld+json"
+                strategy="afterInteractive"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+
+            <div className="space-y-8">
+                {/* 标题区域 */}
+                <div className="text-center space-y-3">
+                    <h2 className="text-3xl font-bold tracking-tight">
+                        Popular Pokemon Fusion Gallery
+                    </h2>
+                    <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+                        Explore amazing examples created by our community.
+                        Each fusion combines unique type combinations and visual traits into a new species.
+                    </p>
+                </div>
+
+                {/* 融合展示网格 */}
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    {fusions.map((fusion, index) => (
+                        <div
+                            key={index}
+                            className="group block h-full"
+                        >
+                            <Card className="h-full border-2 hover:border-blue-500/50 hover:shadow-lg transition-all duration-300 group-hover:scale-[1.02]">
+                                <CardContent className="p-5 space-y-4 h-full flex flex-col">
+                                    {/* 图片区域 */}
+                                    <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                                        {/* 加载占位符 */}
+                                        <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300" />
+
+                                        <Image
+                                            src={fusion.image}
+                                            alt={fusion.alt}
+                                            fill
+                                            className="object-contain p-2 group-hover:scale-110 transition-transform duration-500 z-10 relative"
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 300px"
+                                            priority={index < 2} // 🎯 前2张优先加载
+                                            quality={90}
+                                        />
+
+                                        {/* AI生成标识 */}
+                                        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                            🤖 AI Generated
                                         </div>
-                                    </CardContent>
-                                </Card>
-                            </TooltipTrigger>
-                            <TooltipContent side="top">
-                                <p className="font-semibold">{item.name}</p>
-                                <p className="text-xs">{item.desc}</p>
-                                <p className="text-xs text-muted-foreground">Click to view details</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                ))}
+                                    </div>
+
+                                    {/* 内容区域 */}
+                                    <div className="space-y-3 flex-1 flex flex-col">
+                                        {/* 名称 */}
+                                        <div>
+                                            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                                                {fusion.left} × {fusion.right}
+                                            </p>
+                                            <h3 className="text-xl font-black mt-1 text-gray-800 group-hover:text-blue-600 transition-colors">
+                                                {fusion.name}
+                                            </h3>
+                                        </div>
+
+                                        {/* 类型标签 */}
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {fusion.types.map((type, idx) => (
+                                                <Badge
+                                                    key={idx}
+                                                    variant="secondary"
+                                                    className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 border-0"
+                                                >
+                                                    <span className="mr-1">{fusion.typesEmoji[idx]}</span>
+                                                    {type}
+                                                </Badge>
+                                            ))}
+                                        </div>
+
+                                        {/* 描述 */}
+                                        <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed flex-1">
+                                            {fusion.desc}
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 号召区域 */}
+                <div className="text-center pt-6">
+                    <p className="text-muted-foreground mb-4 font-medium">
+                        Ready to create your own unique fusion?
+                    </p>
+                    <Link
+                        href="#fusion-studio"
+                        className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-full hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                    >
+                        <span>🚀 Start Creating Now</span>
+                        <span className="text-xl animate-pulse">→</span>
+                    </Link>
+                </div>
             </div>
-        </div>
+        </>
     );
 }

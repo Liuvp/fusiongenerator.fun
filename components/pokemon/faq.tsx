@@ -8,34 +8,42 @@ export function PokeFAQ() {
         mainEntity: [
             {
                 "@type": "Question",
-                name: "Can I fuse Legendary Pokémon?",
-                acceptedAnswer: {
+                "name": "Is the Pokemon Fusion Generator really free?",
+                "acceptedAnswer": {
                     "@type": "Answer",
-                    text: "Yes! You can fuse any Pokémon, including Legendary and Mythical species. Some advanced fusions—like Legendary Mega Forms—may require Fusion Stones (a premium feature).",
+                    "text": "Yes, 100% free with no hidden costs. No registration or payment required. You can create Pokemon fusions immediately without signing up.",
                 },
             },
             {
                 "@type": "Question",
-                name: "Can I create Shiny fusions?",
-                acceptedAnswer: {
+                "name": "Do I need an account to use the Pokemon AI fusion tool?",
+                "acceptedAnswer": {
                     "@type": "Answer",
-                    text: "Absolutely! Enable Shiny mode manually, or let the system randomly generate one. There is a 1/4096 probability for a natural Shiny fusion.",
+                    "text": "No account creation needed. Our Pokemon AI fusion tool works instantly without any registration.",
                 },
             },
             {
                 "@type": "Question",
-                name: "Which Pokémon generations are supported?",
-                acceptedAnswer: {
+                "name": "Which Pokemon generations are supported?",
+                "acceptedAnswer": {
                     "@type": "Answer",
-                    text: "All Pokémon from Generation 1 to Generation 9, including regional variants such as Alolan, Galarian, Hisuian, and Paldean forms.",
+                    "text": "We support all Pokemon from Generation 1 to Generation 9, including Scarlet/Violet Pokemon and regional variants.",
                 },
             },
             {
                 "@type": "Question",
-                name: "How many fusions can I create for free?",
-                acceptedAnswer: {
+                "name": "Can I fuse Legendary Pokémon?",
+                "acceptedAnswer": {
                     "@type": "Answer",
-                    text: "You can create 3 free fusions per day. Sharing your creation on social media unlocks bonus fusion attempts.",
+                    "text": "Yes! You can fuse any Pokémon, including Legendary and Mythical species.",
+                },
+            },
+            {
+                "@type": "Question",
+                "name": "Can I create Shiny fusions?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Absolutely! Enable Shiny mode manually, or let the system randomly generate one.",
                 },
             },
         ],

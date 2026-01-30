@@ -13,7 +13,7 @@ export function PokeFeatures() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-muted-foreground text-sm">
-                        Combine colors, patterns, and physical characteristics seamlessly using AI analysis of original sprites.
+                        Smartly combines physical traits, color palettes, and distinctive features using advanced generative AI.
                     </p>
                 </CardContent>
             </Card>
@@ -22,11 +22,11 @@ export function PokeFeatures() {
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                         <Zap className="h-6 w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-lg">Type & Ability Mixing</CardTitle>
+                    <CardTitle className="text-lg">Elemental Fusion</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-muted-foreground text-sm">
-                        Blend elemental types, abilities, and battle stats intelligently to create viable competitive fusions.
+                        Seamlessly merges elemental effects like flames, water, and lightning into a cohesive new design.
                     </p>
                 </CardContent>
             </Card>
@@ -35,11 +35,11 @@ export function PokeFeatures() {
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                         <Leaf className="h-6 w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-lg">Evolution Science</CardTitle>
+                    <CardTitle className="text-lg">Multi-Style Generation</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-muted-foreground text-sm">
-                        Create biologically plausible Pokemon hybrids with generated Pokedex lore and evolutionary backstories.
+                        Create fusions in various artistic styles, from realistic 3D renders to classic anime aesthetics.
                     </p>
                 </CardContent>
             </Card>

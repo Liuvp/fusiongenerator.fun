@@ -2,31 +2,31 @@ import Script from "next/script";
 import { Metadata } from "next";
 import dynamicImport from "next/dynamic";
 import { PokeHero } from "@/components/pokemon/hero";
+import { PokeHowToUse } from "@/components/pokemon/how-to-use";
+import { PokeFeatures } from "@/components/pokemon/features";
+import { PokeFAQ } from "@/components/pokemon/faq";
 
-// Dynamic imports to reduce initial bundle size (Unused JS)
+// Dynamic imports for heavy interactive components
 const PokeFusionStudio = dynamicImport(() => import("@/components/pokemon/fusion-studio").then(mod => mod.PokeFusionStudio));
-const PokeHowToUse = dynamicImport(() => import("@/components/pokemon/how-to-use").then(mod => mod.PokeHowToUse));
-const PokePopularFusions = dynamicImport(() => import("@/components/pokemon/popular-fusions").then(mod => mod.PokePopularFusions));
-const PokeFeatures = dynamicImport(() => import("@/components/pokemon/features").then(mod => mod.PokeFeatures));
-const PokeFAQ = dynamicImport(() => import("@/components/pokemon/faq").then(mod => mod.PokeFAQ));
-const PokeCTA = dynamicImport(() => import("@/components/pokemon/cta").then(mod => mod.PokeCTA));
+import { PokePopularFusions } from "@/components/pokemon/popular-fusions";
+import { PokeCTA } from "@/components/pokemon/cta";
 
 // Force static generation to ensure meta tags are in <head>
 export const dynamic = 'force-static';
 export const revalidate = 3600; // Revalidate every hour
 
 export const metadata: Metadata = {
-  title: "Pokemon Fusion Generator – Pikachu, Charizard & Mewtwo Fusions",
+  title: "Pokemon Fusion Generator | AI Pokemon Fusion Online",
   description:
     "Instantly create infinite Pokemon fusions! Mix Pikachu, Charizard, Mewtwo, and more to discover new species. Free, fun, and easy-to-use Pokemon fusion generator.",
   alternates: {
-    canonical: "/pokemon",
+    canonical: "https://fusiongenerator.fun/pokemon",
   },
   openGraph: {
-    title: "Pokemon Fusion Generator – Pikachu, Charizard & Mewtwo Fusions",
+    title: "Pokemon Fusion Generator | AI Pokemon Fusion Online",
     description:
       "Instantly create infinite Pokemon fusions! Mix Pikachu, Charizard, Mewtwo, and more to discover new species. Free, fun, and easy-to-use Pokemon fusion generator.",
-    url: "/pokemon",
+    url: "https://fusiongenerator.fun/pokemon",
     type: "website",
     images: [
       {
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pokemon Fusion Generator – Pikachu, Charizard & Mewtwo Fusions",
+    title: "Pokemon Fusion Generator | AI Pokemon Fusion Online",
     description: "Instantly create infinite Pokemon fusions! Mix Pikachu, Charizard, Mewtwo, and more to discover new species.",
     images: ["/images/pokemon-character-fusion-generator-preview.webp"],
   },
@@ -54,6 +54,13 @@ export default function PokemonPage() {
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
     "url": "https://fusiongenerator.fun/pokemon",
+    "author": {
+      "@type": "Organization",
+      "name": "Fusion Generator",
+      "alternateName": ["FusionGenerator", "Fusion Generator AI"],
+      "url": "https://fusiongenerator.fun"
+    },
+    "softwareHelp": "https://fusiongenerator.fun/blog",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -104,10 +111,52 @@ export default function PokemonPage() {
         <div className="container px-4 md:px-6 py-10 md:py-12">
           <div className="max-w-5xl mx-auto space-y-12 md:space-y-16">
             <PokeHero />
+
+            {/* SEO Intro Section */}
+            <section className="prose prose-lg prose-neutral max-w-none mx-auto">
+              <h2 className="text-2xl font-bold text-center mb-6">Create AI Pokemon Fusions Online</h2>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  <p className="text-lg">
+                    Our <strong>Pokemon Fusion Generator</strong> is an AI-powered tool that lets you
+                    combine any two Pokémon to create unique fusion characters. Using advanced{" "}
+                    <strong>Pokemon fusion AI</strong>, you can instantly generate new hybrid Pokémon
+                    designs online.
+                  </p>
+                  <p className="mt-4">
+                    Popularized by fan projects like <strong>Pokémon Infinite Fusion</strong>, our
+                    AI-based Pokemon fusion generator allows infinite creative combinations.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-lg">
+                    Mix Pokémon from <strong>Generation 1 to Generation 9</strong>, including Pikachu, Charizard,
+                    and Mewtwo. The AI intelligently blends:
+                  </p>
+                  <ul className="mt-4 space-y-2">
+                    <li className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      <span>Visual traits and colors</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      <span>Type combinations and abilities</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                      <span>Evolutionary characteristics</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
             <PokeFusionStudio />
             <PokeHowToUse />
-            <PokeFeatures />
             <PokePopularFusions />
+            <PokeFeatures />
             <PokeFAQ />
             <PokeCTA />
           </div>
