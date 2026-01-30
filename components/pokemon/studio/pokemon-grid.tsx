@@ -42,7 +42,6 @@ export function PokemonGrid({ pokemon1, pokemon2, onSelect }: PokemonGridProps) 
                                 fill
                                 sizes="(max-width: 640px) 25vw, (max-width: 1024px) 16vw, 120px"
                                 className={`object-contain p-1 transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}
-                                unoptimized // Pokemon sprites are small and external, unoptimized avoids Next.js server processing overhead
                                 priority={isPriority}
                             />
 

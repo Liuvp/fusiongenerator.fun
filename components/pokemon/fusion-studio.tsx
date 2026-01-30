@@ -351,7 +351,7 @@ const CharacterSlot = ({ char, position }: { char?: Pokemon; position: number })
         <div className="flex flex-col items-center group">
             <div className={`relative w-20 h-20 rounded-xl overflow-hidden border-4 shadow-sm transition-all ${char ? (isP1 ? 'border-orange-500' : 'border-blue-500') : 'border-gray-200 bg-gray-50'}`}>
                 {char ? (
-                    <Image src={getPokemonImageUrl(char)} alt={char.name} fill className="object-contain p-1" sizes="80px" unoptimized />
+                    <Image src={getPokemonImageUrl(char)} alt={char.name} fill className="object-contain p-1" sizes="80px" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold text-2xl">?</div>
                 )}
