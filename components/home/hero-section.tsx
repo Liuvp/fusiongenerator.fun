@@ -36,14 +36,12 @@ export function HeroSection() {
                             <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
                                 <Image
                                     src="/hero-fusion-example.webp"
-                                    alt="AI-powered fusion generator showcasing character fusion capabilities with anime and game characters"
-                                    role="img"
+                                    alt="AI-powered fusion generator showcasing character fusion capabilities"
                                     width={600}
                                     height={400}
                                     className="w-full h-auto object-cover"
-                                    priority={true}
-                                    loading="eager"
-                                    fetchPriority="high"
+                                    priority
+                                    sizes="(max-width: 768px) 100vw, 600px"
                                 />
                             </div>
                         </div>

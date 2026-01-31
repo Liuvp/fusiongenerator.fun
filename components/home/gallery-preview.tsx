@@ -24,8 +24,11 @@ export function GalleryPreview() {
                             width={300}
                             height={256}
                             className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
+                            loading="lazy"
                             decoding="async"
                             fetchPriority="low"
+                            quality={65}
+                            sizes="(max-width: 768px) 50vw, 25vw"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                             <p className="text-white p-4 text-sm">Dragon Ball Fusion: Goku + Vegeta</p>
@@ -40,8 +43,11 @@ export function GalleryPreview() {
                             width={300}
                             height={256}
                             className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
+                            loading="lazy"
                             decoding="async"
                             fetchPriority="low"
+                            quality={65}
+                            sizes="(max-width: 768px) 50vw, 25vw"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                             <p className="text-white p-4 text-sm">Pokemon Fusion: Pikachu + Charizard</p>
@@ -56,8 +62,11 @@ export function GalleryPreview() {
                             width={300}
                             height={256}
                             className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
+                            loading="lazy"
                             decoding="async"
                             fetchPriority="low"
+                            quality={65}
+                            sizes="(max-width: 768px) 50vw, 25vw"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                             <p className="text-white p-4 text-sm">Dragon Ball Fusion: Gohan + Piccolo</p>
@@ -72,8 +81,11 @@ export function GalleryPreview() {
                             width={300}
                             height={256}
                             className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
+                            loading="lazy"
                             decoding="async"
                             fetchPriority="low"
+                            quality={65}
+                            sizes="(max-width: 768px) 50vw, 25vw"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                             <p className="text-white p-4 text-sm">Pokemon Fusion: Mewtwo + Lucario</p>
