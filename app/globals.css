@@ -82,7 +82,7 @@
 /* Custom Scrollbar for Dragon Ball Studio */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(249, 115, 22, 0.3) transparent;
+  /* scrollbar-color: rgba(249, 115, 22, 0.3) transparent; */
 }
 
 .custom-scrollbar::-webkit-scrollbar {

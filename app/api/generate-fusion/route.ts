@@ -225,6 +225,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                     guidance_scale: 7.5,
                     num_images: 1,
                     enable_safety_checker: true,
+                    output_format: "png",
                 },
             });
         } catch (falErr: any) {

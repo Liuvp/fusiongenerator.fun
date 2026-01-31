@@ -47,7 +47,10 @@ const QUALITY_ENHANCERS = [
     "dynamic pose",
     "fantasy lighting",
     "detailed textures",
-    "clean silhouette"
+    "clean silhouette",
+    "8k resolution",
+    "sharp focus",
+    "high definition"
 ];
 
 function parseUserModifiers(userInput: string): string {
