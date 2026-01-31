@@ -12,13 +12,10 @@ interface PokemonGridProps {
 export function PokemonGrid({ pokemon1, pokemon2, onSelect }: PokemonGridProps) {
     return (
         <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
-            {POKEMON_DATABASE.map((p, index) => {
+            {POKEMON_DATABASE.map((p) => {
                 const isSelected1 = pokemon1?.id === p.id;
                 const isSelected2 = pokemon2?.id === p.id;
                 const isSelected = isSelected1 || isSelected2;
-
-                // Priority loading for the first row (approx 6 items)
-                const isPriority = index < 6;
 
                 return (
                     <button
@@ -42,7 +39,6 @@ export function PokemonGrid({ pokemon1, pokemon2, onSelect }: PokemonGridProps) 
                                 fill
                                 sizes="(max-width: 640px) 25vw, (max-width: 1024px) 16vw, 120px"
                                 className={`object-contain p-1 transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}
-                                priority={isPriority}
                             />
 
                             {/* Selection Badge */}
