@@ -116,13 +116,81 @@ export default function Home() {
     ]
   };
 
+  const howToData = {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Create Character Fusions with Fusion Generator",
+    "description": "Step-by-step guide to create Dragon Ball and Pokémon fusions instantly.",
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "Choose Your Fusion Tool",
+        "text": "Select Dragon Ball Fusion for anime characters, Pokémon Fusion for monster hybrids, or AI Fusion for custom images."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "Select or Upload Images",
+        "text": "Pick characters from our library or upload your own images (PNG, JPG, or WEBP supported)."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "Configure Fusion Settings",
+        "text": "Adjust fusion strength (low, medium, high) for optimal blending results."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "Generate & Download Fusion",
+        "text": "Click 'Generate' to create your unique character. Download HD version (Pro users get HD quality without watermark)."
+      }
+    ]
+  };
+
+  const breadcrumbData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://fusiongenerator.fun"
+      }
+    ]
+  };
+
+  const siteNavigationData = {
+    "@context": "https://schema.org",
+    "@type": "SiteNavigationElement",
+    "name": "Main Navigation",
+    "url": "https://fusiongenerator.fun",
+    "significantLink": [
+      "https://fusiongenerator.fun/dragon-ball",
+      "https://fusiongenerator.fun/pokemon",
+      "https://fusiongenerator.fun/ai",
+      "https://fusiongenerator.fun/gallery",
+      "https://fusiongenerator.fun/blog",
+      "https://fusiongenerator.fun/pricing"
+    ]
+  };
+
   return (
     <>
       <Script
         id="structured-data"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([structuredData, softwareApplicationData, faqData])
+          __html: JSON.stringify([
+            structuredData,
+            softwareApplicationData,
+            faqData,
+            howToData,
+            breadcrumbData,
+            siteNavigationData
+          ])
         }}
       />
       <div className="flex flex-col min-h-screen">

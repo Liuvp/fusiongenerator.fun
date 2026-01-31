@@ -1,4 +1,4 @@
-"use client";
+
 
 import { Logo } from "./logo";
 import Link from "next/link";
@@ -62,7 +62,7 @@ export function Footer() {
         </div>
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t pt-8 md:flex-row">
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            © 2025 FusionGenerator.fun
+            © 2026 FusionGenerator.fun
           </p>
           <p className="text-center text-xs text-muted-foreground/60 md:text-right max-w-xl">
             This tool is a fan-made AI generator and is not affiliated with or endorsed by Toei Animation, Shueisha, Nintendo, or The Pokémon Company. All character names and references are used for fan art and illustrative purposes only. Fusion Generator uses third-party AI models to generate images. Users are aware that AI-generated content is powered by external AI services.

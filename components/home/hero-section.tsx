@@ -10,9 +10,9 @@ export function HeroSection() {
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
                             Fusion Generator – The Ultimate AI Character Mixer
                         </h1>
-
                         <p className="text-lg md:text-xl text-purple-100 max-w-xl">
-                            Create stunning character fusions instantly. From anime legends to monster collections, our AI blends any two images into a new masterpiece.
+                            Fusion Generator is an AI-powered character fusion tool that allows you to combine two characters into one unique fusion image. <br className="hidden md:inline" />
+                            You can create Dragon Ball fusions, Pokémon fusions, or custom AI character mixes instantly without design skills.
                         </p>
 
                         <div className="relative max-w-lg mt-8">
@@ -50,6 +50,6 @@ export function HeroSection() {
                     </div>
                 </div>
             </div>
-        </section>
+        </section >
     );
 }
