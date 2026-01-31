@@ -54,11 +54,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
   description:
-    "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
+    "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
   openGraph: {
     title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
     description:
-      "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
+      "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
     type: "website",
     url: "https://fusiongenerator.fun/",
     locale: "en_US",
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
     description:
-      "Create amazing Dragon Ball and Pokémon character fusions with our AI. Mix Goku & Vegeta, Pikachu & Charizard, and more instantly – free and easy!",
+      "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
   },
   robots: "index, follow",
   verification: {
