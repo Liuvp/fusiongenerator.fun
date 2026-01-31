@@ -1,17 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Scale, AlertTriangle, CheckCircle, XCircle, Users, Eye, Lock, UserCheck, Database, Globe } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { Scale, AlertTriangle, Eye, Lock, UserCheck, Database, Globe } from "lucide-react";
 
 export default function PrivacyPage() {
-    const pathname = usePathname() || "/";
-    // const locale removed
-    // const L removed
-
     const privacySchema = {
         "@context": "https://schema.org",
         "@type": "WebPage",
@@ -32,18 +26,11 @@ export default function PrivacyPage() {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(privacySchema) }}
             />
             <div className="min-h-screen bg-background">
-                {/* Header removed: duplicate of breadcrumbs */}
-
                 {/* Main Content */}
                 <div className="container px-4 md:px-6 py-10 md:py-12">
                     <div className="max-w-4xl mx-auto space-y-8 md:space-y-12">
                         {/* Hero Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="text-center space-y-6"
-                        >
+                        <div className="animate-fade-in-up text-center space-y-6">
                             <div className="inline-flex items-center rounded-full px-3 py-1 text-sm bg-primary/10 text-primary mb-4">
                                 <Scale className="mr-2 h-4 w-4" />
                                 Legal Terms
@@ -58,15 +45,10 @@ export default function PrivacyPage() {
                             <p className="text-sm text-muted-foreground">
                                 <strong>Last updated:</strong> 2026-01-10
                             </p>
-                        </motion.div>
+                        </div>
 
                         {/* Privacy Principles */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="grid gap-6 md:grid-cols-3"
-                        >
+                        <div className="animate-fade-in-up animation-delay-200 grid gap-6 md:grid-cols-3">
                             <Card className="border-2">
                                 <CardHeader>
                                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
@@ -106,15 +88,10 @@ export default function PrivacyPage() {
                                     </p>
                                 </CardContent>
                             </Card>
-                        </motion.div>
+                        </div>
 
                         {/* Information We Collect */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.4 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-400 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
                                     <Database className="h-6 w-6 text-primary" />
@@ -141,15 +118,10 @@ export default function PrivacyPage() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* How We Use Information */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.6 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-600 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
                                     <AlertTriangle className="h-6 w-6 text-amber-500" />
@@ -176,15 +148,10 @@ export default function PrivacyPage() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Data Sharing */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.8 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-800 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
                                     <Globe className="h-6 w-6 text-primary" />
@@ -200,15 +167,10 @@ export default function PrivacyPage() {
                                     <li>• <strong>With Your Consent:</strong> When you explicitly agree to share information</li>
                                 </ul>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Your Rights */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 1.0 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-1000 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h2 className="text-2xl font-bold mb-6">Acceptable Use and Prohibited Activities</h2>
                                 <div className="grid gap-6 md:grid-cols-2">
@@ -234,15 +196,10 @@ export default function PrivacyPage() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Data Security */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 1.2 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-1200 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h2 className="text-2xl font-bold mb-6">Data Security and Retention</h2>
                                 <div className="space-y-4 text-muted-foreground">
@@ -269,15 +226,10 @@ export default function PrivacyPage() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Data Controller */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 1.3 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-1300 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h2 className="text-2xl font-bold mb-6">Data Controller</h2>
                                 <div className="space-y-4 text-muted-foreground">
@@ -289,15 +241,10 @@ export default function PrivacyPage() {
                                     </p>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Contact Information */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 1.4 }}
-                            className="text-center bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-2xl p-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-1400 text-center bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-2xl p-8">
                             <h3 className="text-2xl font-bold mb-4">Questions About Privacy?</h3>
                             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
                                 Contact us if you need clarification about how we handle your data or any privacy concerns.
@@ -310,7 +257,7 @@ export default function PrivacyPage() {
                                     <Link href="/">Back to Home</Link>
                                 </Button>
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
                 </div>
             </div>

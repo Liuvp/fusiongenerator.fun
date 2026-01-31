@@ -48,52 +48,18 @@ export default function Home() {
     "description": "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
     "url": "https://fusiongenerator.fun/",
     "applicationCategory": "MultimediaApplication",
-    "operatingSystem": "Any",
+    "operatingSystem": "All",
     "offers": {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
-    }
-  };
-
-  const softwareApplicationData = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Fusion Generator",
-    "applicationCategory": "MultimediaApplication",
-    "operatingSystem": "Any",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    }
-  };
-
-  const breadcrumbData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://fusiongenerator.fun"
-      }
-    ]
-  };
-
-  const siteNavigationData = {
-    "@context": "https://schema.org",
-    "@type": "SiteNavigationElement",
-    "name": "Main Navigation",
-    "url": "https://fusiongenerator.fun",
-    "significantLink": [
-      "https://fusiongenerator.fun/dragon-ball",
-      "https://fusiongenerator.fun/pokemon",
-      "https://fusiongenerator.fun/ai",
-      "https://fusiongenerator.fun/gallery",
-      "https://fusiongenerator.fun/blog",
-      "https://fusiongenerator.fun/pricing"
+    },
+    "featureList": [
+      "Dragon Ball Fusion Generator",
+      "Pokémon Fusion Maker",
+      "AI Character Creator",
+      "Style-Consistent Blending",
+      "High-Resolution Export"
     ]
   };
 
@@ -102,24 +68,17 @@ export default function Home() {
       <Script
         id="structured-data"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
-            structuredData,
-            softwareApplicationData,
-            breadcrumbData,
-            siteNavigationData
-          ])
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <div className="flex flex-col min-h-screen">
+      <main className="flex min-h-screen flex-col">
         <HeroSection />
         <FeaturesSection />
-        <GalleryPreview />
         <HowItWorks />
+        <GalleryPreview />
+        <BlogPreview />
         <FAQ />
         <CTA />
-        <BlogPreview />
-      </div>
+      </main>
     </>
   );
 }

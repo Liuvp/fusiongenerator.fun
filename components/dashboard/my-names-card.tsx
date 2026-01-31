@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Star, Eye, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
 
 interface SavedName {
   id: string;
@@ -154,13 +153,11 @@ export function MyNamesCard() {
       <CardContent>
         <div className="space-y-4 max-h-96 overflow-y-auto">
           {savedNames.map((name, index) => (
-            <motion.div
+            <div
               key={name.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`border rounded-lg p-4 space-y-3 ${name.is_selected ? 'border-primary bg-primary/5' : 'border-border'
+              className={`animate-fade-in-up border rounded-lg p-4 space-y-3 ${name.is_selected ? 'border-primary bg-primary/5' : 'border-border'
                 }`}
+              style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
@@ -226,7 +223,7 @@ export function MyNamesCard() {
                   View Details
                 </Button>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </CardContent>

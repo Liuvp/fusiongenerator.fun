@@ -5,7 +5,6 @@ import { useUser } from "@/hooks/use-user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Activity, TrendingUp, Calendar } from "lucide-react";
-import { motion } from "framer-motion";
 
 interface GenerationLog {
   id: string;
@@ -124,12 +123,10 @@ export function GenerationHistoryCard() {
           ) : (
             <div className="space-y-3 max-h-64 overflow-y-auto">
               {logs.slice(0, 10).map((log, index) => (
-                <motion.div
+                <div
                   key={log.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="animate-fade-in-up flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-full">
@@ -168,7 +165,7 @@ export function GenerationHistoryCard() {
                       -{log.credits_used} credits
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           )}

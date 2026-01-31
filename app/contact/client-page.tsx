@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
@@ -42,12 +41,7 @@ export default function ContactPage() {
                 <div className="container px-4 md:px-6 py-16">
                     <div className="max-w-4xl mx-auto space-y-12">
                         {/* Hero */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="text-center space-y-6"
-                        >
+                        <div className="animate-fade-in-up text-center space-y-6">
                             <div className="inline-flex items-center rounded-full px-3 py-1 text-sm bg-primary/10 text-primary mb-4">
                                 <HelpCircle className="mr-2 h-4 w-4" />
                                 Get in touch
@@ -58,15 +52,10 @@ export default function ContactPage() {
                             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                                 Whether you have questions about AI character fusions, need technical support, or want to explore partnership opportunities — we're here to help!
                             </p>
-                        </motion.div>
+                        </div>
 
                         {/* Contact Options */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="grid gap-6 md:grid-cols-3"
-                        >
+                        <div className="animate-fade-in-up animation-delay-200 grid gap-6 md:grid-cols-3">
                             <Card className="border-2 hover:shadow-lg transition-shadow">
                                 <CardHeader>
                                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4" aria-label="Email Support Icon" role="img">
@@ -120,15 +109,10 @@ export default function ContactPage() {
                                     </Button>
                                 </CardContent>
                             </Card>
-                        </motion.div>
+                        </div>
 
                         {/* FAQ Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.4 }}
-                            className="bg-muted/30 rounded-2xl p-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-400 bg-muted/30 rounded-2xl p-8">
                             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                                 <Sparkles className="h-6 w-6 text-primary" />
                                 Common Questions
@@ -153,15 +137,10 @@ export default function ContactPage() {
                                     </p>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Helpful Links */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.6 }}
-                            className="space-y-6"
-                        >
+                        <div className="animate-fade-in-up animation-delay-600 space-y-6">
                             <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-2xl p-8 border border-purple-200 dark:border-purple-800">
                                 <h3 className="text-2xl font-bold mb-4">Helpful Resources</h3>
                                 <div className="grid gap-4 sm:grid-cols-2">
@@ -182,15 +161,10 @@ export default function ContactPage() {
                                     📧 We typically respond within 24–48 hours. For urgent issues, please mention "URGENT" in your subject line.
                                 </p>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Operator Information */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.8 }}
-                            className="bg-muted/30 rounded-2xl p-8 border border-border"
-                        >
+                        <div className="animate-fade-in-up animation-delay-800 bg-muted/30 rounded-2xl p-8 border border-border">
                             <h3 className="text-lg font-semibold mb-4 text-foreground">Contact Information</h3>
                             <div className="space-y-2 text-sm text-muted-foreground">
                                 <p><span className="font-semibold text-foreground">Service:</span> Fusion Generator</p>
@@ -198,7 +172,7 @@ export default function ContactPage() {
                                 <p><span className="font-semibold text-foreground">Email:</span> <a href="mailto:support@fusiongenerator.fun" className="text-primary hover:underline">support@fusiongenerator.fun</a></p>
                                 <p><span className="font-semibold text-foreground">Website:</span> <a href="https://fusiongenerator.fun" className="text-primary hover:underline">fusiongenerator.fun</a></p>
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
                 </div>
             </div>

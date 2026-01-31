@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import Script from "next/script";
 import { Sparkles, Heart, Users, Globe, Zap, Palette, ArrowRight } from "lucide-react";
@@ -35,12 +34,7 @@ export default function AboutPage() {
                 <div className="container px-4 md:px-6 py-16">
                     <div className="max-w-4xl mx-auto space-y-16">
                         {/* Hero Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="text-center space-y-6"
-                        >
+                        <div className="animate-fade-in-up text-center space-y-6">
                             <div className="inline-flex items-center rounded-full px-3 py-1 text-sm bg-primary/10 text-primary mb-4">
                                 <Sparkles className="mr-2 h-4 w-4" />
                                 Unleashing Creative Fusion Power
@@ -52,15 +46,10 @@ export default function AboutPage() {
                             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                                 <Link href="/" className="text-foreground font-semibold hover:text-primary transition-colors">Fusion Generator</Link> is the ultimate platform for creating amazing Dragon Ball fusions, Pokemon fusions, and AI-powered character mashups. We make fusion creativity accessible, fun, and limitless.
                             </p>
-                        </motion.div>
+                        </div>
 
                         {/* Mission Cards */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="grid gap-8 md:grid-cols-2 lg:grid-cols-3"
-                        >
+                        <div className="animate-fade-in-up animation-delay-200 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                             <div className="rounded-lg bg-card text-card-foreground shadow-sm border-2 hover:shadow-lg transition-shadow">
                                 <div className="flex flex-col space-y-1.5 p-6">
                                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
@@ -102,15 +91,10 @@ export default function AboutPage() {
                                     </p>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Our Story Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.4 }}
-                            className="prose prose-lg max-w-none"
-                        >
+                        <div className="animate-fade-in-up animation-delay-400 prose prose-lg max-w-none">
                             <div className="bg-muted/30 rounded-2xl p-8 md:p-12">
                                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
                                     <Sparkles className="h-6 w-6 text-primary" />
@@ -128,15 +112,10 @@ export default function AboutPage() {
                                     </p>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Features Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.6 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-600 space-y-8">
                             <div className="text-center">
                                 <h2 className="text-3xl font-bold mb-4">What Makes Us Different</h2>
                                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -189,15 +168,10 @@ export default function AboutPage() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Service Information Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.8 }}
-                            className="space-y-6"
-                        >
+                        <div className="animate-fade-in-up animation-delay-800 space-y-6">
                             <div className="bg-muted/30 rounded-2xl p-8 md:p-12 border border-border">
                                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
                                     <Globe className="h-6 w-6 text-primary" />
@@ -253,7 +227,7 @@ export default function AboutPage() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
 
                         {/* CTA Section */}

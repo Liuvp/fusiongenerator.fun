@@ -4,7 +4,6 @@ import Link from "next/link"
 import Image from "next/image"
 import Script from "next/script"
 import { usePathname } from "next/navigation"
-import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -193,12 +192,7 @@ export default function GalleryPage() {
             <Script id="gallery-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
             <Script id="gallery-faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
             <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35 }}
-                    className="text-center"
-                >
+                <div className="animate-fade-in-up text-center">
                     <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Fusion Gallery - Dragon Ball & Pokemon Character Fusions</h1>
                     <p className="mt-2 text-muted-foreground">Browse our collection of amazing Dragon Ball and Pokemon character fusions. Get inspired by community creations and start your own fusion journey.</p>
                     <div className="mt-4 flex items-center justify-center gap-3">
@@ -209,10 +203,10 @@ export default function GalleryPage() {
                             <Link href="/pricing">View Pricing</Link>
                         </Button>
                     </div>
-                </motion.div>
+                </div>
 
                 {user && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="mt-10">
+                    <div className="animate-fade-in-up animation-delay-200 mt-10">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-bold">My Saved Fusions</h2>
                             <div className="flex items-center gap-2">
@@ -255,7 +249,7 @@ export default function GalleryPage() {
                                 </Card>
                             ))}
                         </div>
-                    </motion.div>
+                    </div>
                 )}
 
                 <div className="mt-8 flex justify-center">

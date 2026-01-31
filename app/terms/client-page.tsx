@@ -1,17 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Scale, AlertTriangle, CheckCircle, XCircle, Users } from "lucide-react";
-import { usePathname } from "next/navigation";
 
 export default function TermsPage() {
-    const pathname = usePathname() || "/";
-    // const locale removed
-    // const L removed
-
     const termsSchema = {
         "@context": "https://schema.org",
         "@type": "WebPage",
@@ -32,18 +26,11 @@ export default function TermsPage() {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(termsSchema) }}
             />
             <div className="min-h-screen bg-background">
-                {/* Header removed: duplicate of breadcrumbs */}
-
                 {/* Main Content */}
                 <div className="container px-4 md:px-6 py-10 md:py-12">
                     <div className="max-w-4xl mx-auto space-y-8 md:space-y-12">
                         {/* Hero Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="text-center space-y-6"
-                        >
+                        <div className="animate-fade-in-up text-center space-y-6">
                             <div className="inline-flex items-center rounded-full px-3 py-1 text-sm bg-primary/10 text-primary mb-4">
                                 <Scale className="mr-2 h-4 w-4" />
                                 Legal Terms
@@ -57,15 +44,10 @@ export default function TermsPage() {
                             <p className="text-sm text-muted-foreground">
                                 <strong>Last updated:</strong> 2026-01-10
                             </p>
-                        </motion.div>
+                        </div>
 
                         {/* Key Points */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="grid gap-6 md:grid-cols-3"
-                        >
+                        <div className="animate-fade-in-up animation-delay-200 grid gap-6 md:grid-cols-3">
                             <Card className="border-2">
                                 <CardHeader>
                                     <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center mb-4">
@@ -107,15 +89,10 @@ export default function TermsPage() {
                                     </p>
                                 </CardContent>
                             </Card>
-                        </motion.div>
+                        </div>
 
                         {/* Service Description */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.4 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-400 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
                                     <FileText className="h-6 w-6 text-primary" />
@@ -133,15 +110,10 @@ export default function TermsPage() {
                                     </ul>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* User Responsibilities */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.6 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-600 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h3 className="text-2xl font-bold mb-6">Your Responsibilities</h3>
 
@@ -169,15 +141,10 @@ export default function TermsPage() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Intellectual Property */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.8 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-800 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h3 className="text-2xl font-bold mb-6">Intellectual Property and Generated Works</h3>
 
@@ -198,28 +165,18 @@ export default function TermsPage() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Takedown Policy */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.9 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-900 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h3 className="text-2xl font-bold mb-6">Takedown and Rights Requests</h3>
-                                <p className="text-muted-foreground">If you are a rights holder and believe content infringes your rights, contact us with the work’s URL and proof of ownership. We will review and remove eligible content.</p>
+                                <p className="text-muted-foreground">If you are a rights holder and believe content infringes your rights, contact us with the work's URL and proof of ownership. We will review and remove eligible content.</p>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Service Availability */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 1.0 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-1000 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
                                     <AlertTriangle className="h-6 w-6 text-amber-500" />
@@ -239,19 +196,14 @@ export default function TermsPage() {
 
                                     <div>
                                         <h4 className="font-semibold mb-2 text-foreground">No Warranties</h4>
-                                        <p>The service is provided ‘as is’ without warranties. We do not guarantee suitability or acceptance across all contexts.</p>
+                                        <p>The service is provided 'as is' without warranties. We do not guarantee suitability or acceptance across all contexts.</p>
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Payment Terms */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 1.2 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-1200 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h3 className="text-2xl font-bold mb-6">Payment and Subscription Terms</h3>
 
@@ -297,15 +249,10 @@ export default function TermsPage() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Changes to Terms */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 1.4 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-1400 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h3 className="text-2xl font-bold mb-6">Changes to These Terms</h3>
 
@@ -313,21 +260,16 @@ export default function TermsPage() {
                                     <p>We may update these terms to reflect service, legal, or business changes. Continued use after updates constitutes acceptance.</p>
 
                                     <ul className="space-y-2">
-                                        <li>• We update the ‘Last updated’ date</li>
+                                        <li>• We update the 'Last updated' date</li>
                                         <li>• Significant changes may be notified by email or in-app</li>
                                         <li>• You can always find the current version on this page</li>
                                     </ul>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Governing Law and Operator */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 1.5 }}
-                            className="space-y-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-1500 space-y-8">
                             <div className="bg-muted/30 rounded-2xl p-8">
                                 <h3 className="text-2xl font-bold mb-6">Governing Law and Operator</h3>
 
@@ -340,15 +282,10 @@ export default function TermsPage() {
                                     </p>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Contact Information */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 1.6 }}
-                            className="text-center bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-2xl p-8"
-                        >
+                        <div className="animate-fade-in-up animation-delay-1600 text-center bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-2xl p-8">
                             <h3 className="text-2xl font-bold mb-4">Questions About These Terms?</h3>
                             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">Contact us if you need clarification about your rights and responsibilities or our moderation and takedown policies.</p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -363,7 +300,7 @@ export default function TermsPage() {
                                     </Link>
                                 </Button>
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
                 </div>
             </div>

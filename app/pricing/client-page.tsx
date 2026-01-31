@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Script from "next/script";
-import { motion } from "framer-motion";
 import { Check, Crown, Gift, Sparkles, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -10,12 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 
 import { User } from "@supabase/supabase-js";
 import { useUser } from "@/hooks/use-user";
-
-const fadeInUp = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5 }
-};
 
 export default function PricingPage({ user: serverUser }: { user: User | null }) {
     const { user: clientUser, loading } = useUser();
@@ -72,11 +65,8 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                 <div className="container mx-auto px-4 md:px-6 py-10">
 
                     {/* Header */}
-                    <motion.section
-                        className="text-center space-y-2 mb-10"
-                        initial="initial"
-                        animate="animate"
-                        variants={fadeInUp}
+                    <section
+                        className="animate-fade-in-up text-center space-y-2 mb-10"
                     >
                         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
                             Fusion Generator Pricing Plans
@@ -100,7 +90,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                 Yearly <span className="text-green-500 font-bold ml-1">(Save 17%)</span>
                             </span>
                         </div>
-                    </motion.section>
+                    </section>
 
                     {/* Pricing Cards */}
                     <section className="w-full py-6">
@@ -108,7 +98,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
 
                             <div className="grid gap-8 lg:grid-cols-3 max-w-6xl mx-auto items-start">
                                 {/* Free Plan */}
-                                <motion.div className="relative h-full" initial="initial" animate="animate" variants={fadeInUp}>
+                                <div className="animate-fade-in-up animation-delay-200 relative h-full">
                                     <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border border-border hover:border-primary/20 flex flex-col">
                                         <div className="flex flex-col space-y-1.5 p-6 text-center pb-4">
                                             <div className="flex items-center justify-center mb-4">
@@ -168,10 +158,10 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                             </div>
                                         </div>
                                     </div>
-                                </motion.div>
+                                </div>
 
                                 {/* Pro Unlimited - HERO */}
-                                <motion.div className="relative h-full" initial="initial" animate="animate" variants={fadeInUp}>
+                                <div className="animate-fade-in-up animation-delay-400 relative h-full">
                                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-[200px]">
                                         <div className="flex items-center justify-center rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground shadow-lg">
                                             <Sparkles className="h-3 w-3 mr-1" />
@@ -270,10 +260,10 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                             </div>
                                         </div>
                                     </div>
-                                </motion.div>
+                                </div>
 
                                 {/* Extra Credits / Refill Pack */}
-                                <motion.div className="relative h-full" initial="initial" animate="animate" variants={fadeInUp}>
+                                <div className="animate-fade-in-up animation-delay-600 relative h-full">
                                     <div className="rounded-lg bg-card text-card-foreground shadow-sm h-full transition-all duration-300 hover:shadow-lg border border-border hover:border-primary/20 flex flex-col">
                                         <div className="flex flex-col space-y-1.5 p-6 text-center pb-4">
                                             <div className="flex items-center justify-center mb-4">
@@ -325,15 +315,12 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                             </div>
                                         </div>
                                     </div>
-                                </motion.div>
+                                </div>
                             </div>
 
                             {/* Billing & Subscription Info */}
-                            <motion.div
-                                className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800"
-                                initial="initial"
-                                animate="animate"
-                                variants={fadeInUp}
+                            <div
+                                className="animate-fade-in-up animation-delay-800 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800"
                             >
                                 <h3 className="text-lg font-semibold text-foreground mb-4">Billing & Subscription</h3>
                                 <ul className="space-y-2 text-sm text-muted-foreground">
@@ -357,14 +344,11 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                 <p className="text-xs text-muted-foreground/80 mt-4 italic">
                                     *Unlimited usage is subject to fair use and system capacity limits.
                                 </p>
-                            </motion.div>
+                            </div>
 
                             {/* FAQ Section */}
-                            <motion.div
-                                className="text-center space-y-4 pt-8 border-t"
-                                initial="initial"
-                                animate="animate"
-                                variants={fadeInUp}
+                            <div
+                                className="animate-fade-in-up animation-delay-1000 text-center space-y-4 pt-8 border-t"
                             >
                                 <h3 className="text-xl font-semibold text-foreground">Common Questions</h3>
                                 <div className="mx-auto max-w-3xl text-left space-y-6 pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -392,7 +376,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                         <span className="font-semibold text-foreground">Commercial Use Notice:</span> Commercial use applies to original AI-generated artwork. Users are responsible for ensuring compliance with third-party character rights.
                                     </p>
                                 </div>
-                            </motion.div>
+                            </div>
                         </div>
                     </section>
                 </div>
