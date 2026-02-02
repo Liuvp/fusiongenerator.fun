@@ -89,18 +89,17 @@ const CharacterButton = ({
             aria-pressed={isSelected}
             title={`Select ${character.name}`}
         >
-            <div className="relative w-full h-full bg-gray-100">
+            <div className="relative w-full h-full bg-gray-100 flex items-center justify-center p-1">
                 <Image
-                    src={character.imageUrl}
+                    src={character.thumbnailUrl}
                     alt={character.name}
-                    fill
-                    sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 120px"
-                    priority={index < 4}
-                    loading={index < 4 ? "eager" : "lazy"}
-                    quality={85}
-                    unoptimized={true}
+                    width={50}
+                    height={100}
+                    priority={index < 8}
+                    loading={index < 8 ? "eager" : "lazy"}
+                    sizes="100px"
                     className={`
-                        object-contain p-1 transition-transform duration-300
+                        object-contain transition-transform duration-300
                         ${isSelected ? 'scale-110' : 'group-hover:scale-110'}
                     `}
                 />

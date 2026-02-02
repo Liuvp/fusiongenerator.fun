@@ -38,11 +38,12 @@ export function DBHero() {
                 <Image
                     src="/images/dragon-ball-fusion-preview-goku-vegeta.webp"
                     alt="Dragon Ball Z fusion example showing combined Goku and Vegeta characters"
-                    width={1000}
-                    height={750}
-                    className="object-contain w-full h-auto max-w-full"
+                    width={665}
+                    height={499}
                     priority
-                    quality={85}
+                    fetchPriority="high"
+                    sizes="(max-width: 768px) 100vw, 665px"
+                    className="w-full h-auto"
                 />
             </div>
         </section>

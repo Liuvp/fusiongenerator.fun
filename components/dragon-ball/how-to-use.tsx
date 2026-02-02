@@ -29,37 +29,6 @@ export function DBHowToUse() {
         ]
     };
 
-    const faqJsonLd = {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-            {
-                "@type": "Question",
-                "name": "Which Dragon Ball characters can I fuse?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "You can fuse any characters from our roster, including Saiyans like Goku and Vegeta, Namekians like Piccolo, and villains like Frieza or Cell."
-                }
-            },
-            {
-                "@type": "Question",
-                "name": "Is there a daily limit for free fusions?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Visitors get one free trial fusion. After that, you can register a free account to receive starter credits. VIP members enjoy a generous daily limit."
-                }
-            },
-            {
-                "@type": "Question",
-                "name": "Do I need to upload my own images?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "No, you don't need to upload anything. Simply select your favorite fighters directly from our character grid."
-                }
-            }
-        ]
-    };
-
     return (
         <article className="space-y-6">
 
@@ -69,14 +38,6 @@ export function DBHowToUse() {
                 type="application/ld+json"
                 strategy="beforeInteractive"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
-            />
-
-            {/* JSON-LD for FAQ */}
-            <Script
-                id="dragon-ball-faq-json-ld"
-                type="application/ld+json"
-                strategy="beforeInteractive"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
             />
 
             {/* Header */}

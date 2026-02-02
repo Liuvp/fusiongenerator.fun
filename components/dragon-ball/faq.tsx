@@ -8,42 +8,50 @@ export function DBFAQ() {
         "mainEntity": [
             {
                 "@type": "Question",
-                "name": "Do I need to upload my own images to use the Dragon Ball Fusion Generator?",
+                "name": "Is this Dragon Ball Fusion Generator official or affiliated with Toei Animation?",
                 "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "No. For the best experience, we provide a curated library of legendary Dragon Ball fighters. Simply select any two characters from our roster—like Goku, Vegeta, or Frieza—and our AI will handle the rest. You don't need to worry about image quality or background removal."
+                    "text": "No. This Dragon Ball Fusion Generator is a fan-made, AI-powered creative tool. It is not affiliated with, endorsed by, or connected to Toei Animation, Shueisha, or the official Dragon Ball franchise. It is designed purely for creative and entertainment purposes for fans."
                 }
             },
             {
                 "@type": "Question",
-                "name": "Can I fuse any Dragon Ball characters together?",
+                "name": "Do I need to upload images or do you store my data?",
                 "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Yes! You can fuse any characters in our roster, including classic Saiyan duos, Namekian combinations like Piccolo and Gohan, or even creative mixes involving villains like Frieza and Majin Buu. The generator automatically adapts their iconic features to create a brand new warrior."
+                    "text": "No upload is necessary. You select characters directly from our provided roster of legendary fighters. We do not store personal photos. Generated fusion images are processed in real-time and are not linked to your personal identity."
                 }
             },
             {
                 "@type": "Question",
-                "name": "What is the difference between Gogeta and Vegito fusions in the generator?",
+                "name": "What is the difference between Gogeta and Vegito fusions here?",
                 "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "While both result in powerful warriors, our AI understands the stylistic differences. Fusion Dance (Gogeta) results typically feature balanced traits and athletic builds, while Potara (Vegito) fusions emphasize high contrast, specific earring accessories, and a more aggressive Ki presence. The generator captures these anime-accurate motifs automatically."
+                    "text": "Our AI understands the visual legacy of both. Fusion Dance (Gogeta) styles focus on balanced proportions and athletic energy, while Potara (Vegito) styles emphasize sharp contrast, iconic earrings, and an aggressive Ki silhouette."
                 }
             },
             {
                 "@type": "Question",
-                "name": "How many Dragon Ball fusions can I create for free?",
+                "name": "How is this different from other Dragon Ball fusion generators?",
                 "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Visitors can try one fusion for free. After that, you can sign up for a free account to receive starter credits. Standard account credits do not reset daily, while VIP daily limits reset at midnight."
+                    "text": "Unlike basic image mashups, our generator uses advanced AI optimized for Dragon Ball's specific art style—focusing on canonical hair geometry, aura physics, and outfit blending rather than just overlapping sprites."
                 }
             },
             {
                 "@type": "Question",
-                "name": "Can I regenerate a fusion if I want a different result?",
+                "name": "Can I use generated Dragon Ball fusions commercially?",
                 "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Yes. If you choose the same pair of fighters and click 'FUU-SION-HA!' again, the AI will re-channel their Ki to produce a new visual variation. Each generation explores unique details in aura geometry, facial structure, and outfit blending while staying true to the Dragon Ball art style."
+                    "text": "Generated images are for personal and fan use only. As Dragon Ball characters are copyrighted property of their respective owners, we do not recommend using these results for commercial purposes."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How many free fusions do I get and does it work on mobile?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Visitors get one free trial fusion without login. Registered users use a credit system. The studio is fully responsive and works perfectly on mobile browsers like Chrome and Safari."
                 }
             }
         ]
@@ -60,11 +68,11 @@ export function DBFAQ() {
 
             <section className="space-y-6">
                 <header className="space-y-2 border-l-4 border-orange-500 pl-4">
-                    <h3 className="text-2xl font-bold text-gray-900">
+                    <h2 className="text-2xl font-bold text-gray-900">
                         Dragon Ball Fusion Generator FAQ
-                    </h3>
+                    </h2>
                     <p className="text-muted-foreground text-base">
-                        Common questions about Dragon Ball character fusion, privacy, and free usage
+                        Essential information about our fan-made Dragon Ball tool, privacy, and usage
                     </p>
                 </header>
 
@@ -72,10 +80,10 @@ export function DBFAQ() {
                     <CardContent className="p-6 space-y-8">
                         {faqSchema.mainEntity.map((item, index) => (
                             <div key={index} className="space-y-3 group">
-                                <h4 className="font-bold text-lg text-gray-900 group-hover:text-orange-600 transition-colors flex items-start gap-2">
+                                <h3 className="font-bold text-lg text-gray-900 group-hover:text-orange-600 transition-colors flex items-start gap-2">
                                     <span className="text-orange-500 font-black">Q:</span>
                                     {item.name}
-                                </h4>
+                                </h3>
                                 <div className="flex gap-2 pl-6">
                                     <span className="text-blue-500 font-black flex-shrink-0">A:</span>
                                     <p className="text-sm text-muted-foreground leading-relaxed">

@@ -77,12 +77,6 @@ export const metadata: Metadata = {
     description: "Instantly create Dragon Ball fusions like Goku & Vegeta with our free AI tool. Fun, fast, and easy-to-use DBZ fusion generator for fans!",
     images: [`${baseUrl}/images/dragon-ball-fusion-preview-goku-vegeta.webp`],
   },
-  // ✅ 通过Next.js标准API预加载关键资源
-  other: {
-    "preload-image-hero": "/images/dragon-ball-fusion-preview-goku-vegeta.webp",
-    "preload-image-goku": "/images/dragon-ball/characters/goku.webp",
-    "preload-image-vegeta": "/images/dragon-ball/characters/vegeta.webp",
-  },
 };
 
 // ===============================
