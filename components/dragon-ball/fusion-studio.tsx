@@ -2,162 +2,319 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Download, RefreshCw, Share2 } from "lucide-react";
-import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/utils/supabase/client";
-import { DB_CHARACTERS, DBCharacter, DB_FUSION_STYLES, getRandomCharacters } from "@/lib/dragon-ball-data";
+import { DB_CHARACTERS, DBCharacter, getRandomCharacters } from "@/lib/dragon-ball-data";
 import { User } from "@supabase/supabase-js";
 
-// 创建一个优化的字符列表，避免重复计算
-const OPTIMIZED_CHARACTERS = DB_CHARACTERS;
+// ===============================
+// 常量定义
+// ===============================
+const LOCAL_STORAGE_KEY = "db_fusion_studio_state";
+const STORAGE_EXPIRY = 24 * 60 * 60 * 1000; // 24小时
+const DEFAULT_QUOTA = { used: 0, remaining: 3, limit: 3, isVIP: false };
 
+// ===============================
+// 类型定义
+// ===============================
+interface FusionResult {
+    imageUrl: string;
+    char1: DBCharacter;
+    char2: DBCharacter;
+}
+
+interface Quota {
+    used: number;
+    remaining: number;
+    limit: number;
+    isVIP: boolean;
+}
+
+interface LocalStorageState {
+    c1?: string;
+    c2?: string;
+    timestamp: number;
+}
+
+// ===============================
+// 工具函数
+// ===============================
+const getRemainingDisplay = (quota: Quota): string =>
+    quota.isVIP ? "∞" : quota.remaining.toString();
+
+const hasQuotaAccess = (quota: Quota): boolean =>
+    quota.isVIP || quota.remaining > 0;
+
+// ===============================
+// CharacterButton 组件 - 提取出来减少主组件复杂度
+// ===============================
+interface CharacterButtonProps {
+    character: DBCharacter;
+    index: number;
+    isSelected1: boolean;
+    isSelected2: boolean;
+    onSelect: (char: DBCharacter) => void;
+}
+
+const CharacterButton = ({
+    character,
+    index,
+    isSelected1,
+    isSelected2,
+    onSelect
+}: CharacterButtonProps) => {
+    const isSelected = isSelected1 || isSelected2;
+
+    return (
+        <button
+            type="button"
+            onClick={() => onSelect(character)}
+            className={`
+                group relative aspect-square rounded-xl overflow-hidden border-2 
+                transition-all duration-200 active:scale-95 touch-manipulation
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2
+                ${isSelected1
+                    ? 'border-orange-500 shadow-md ring-2 ring-orange-200 ring-offset-1 scale-105'
+                    : isSelected2
+                        ? 'border-blue-500 shadow-md ring-2 ring-blue-200 ring-offset-1 scale-105'
+                        : 'border-gray-200 hover:border-orange-300 hover:shadow-sm'
+                }
+            `}
+            aria-label={`Select ${character.name}`}
+            aria-pressed={isSelected}
+            title={`Select ${character.name}`}
+        >
+            <div className="relative w-full h-full bg-gray-100">
+                <Image
+                    src={character.imageUrl}
+                    alt={character.name}
+                    fill
+                    sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 120px"
+                    priority={index < 4}
+                    loading={index < 4 ? "eager" : "lazy"}
+                    quality={85}
+                    unoptimized={true}
+                    className={`
+                        object-contain p-1 transition-transform duration-300
+                        ${isSelected ? 'scale-110' : 'group-hover:scale-110'}
+                    `}
+                />
+                {isSelected && (
+                    <div className={`
+                        absolute top-1 right-1 w-6 h-6 rounded-full 
+                        flex items-center justify-center text-xs font-bold shadow-md
+                        ${isSelected1 ? 'bg-orange-500' : 'bg-blue-500'} text-white
+                    `}>
+                        {isSelected1 ? '1' : '2'}
+                    </div>
+                )}
+            </div>
+        </button>
+    );
+};
+
+// ===============================
+// 主组件
+// ===============================
 export function DBFusionStudio() {
-    const { toast } = useToast();
     const router = useRouter();
-    const supabase = useMemo(() => createClient(), []);
+    const { toast } = useToast();
     const resultRef = useRef<HTMLDivElement>(null);
 
+    // ✅ 使用 useRef 管理订阅，避免重复创建
+    const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
+    const supabase = createClient();
+
+    // ===============================
+    // 状态管理
+    // ===============================
     const [char1, setChar1] = useState<DBCharacter>();
     const [char2, setChar2] = useState<DBCharacter>();
     const [isGenerating, setIsGenerating] = useState(false);
-    const [result, setResult] = useState<{ imageUrl: string; char1: DBCharacter; char2: DBCharacter } | null>(null);
-    const [quota, setQuota] = useState<{ used: number; remaining: number; limit: number; isVIP: boolean } | null>(null);
+    const [result, setResult] = useState<FusionResult | null>(null);
+    const [quota, setQuota] = useState<Quota>(DEFAULT_QUOTA);
     const [user, setUser] = useState<User | null>(null);
     const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
-    /** 保存到本地存储的优化版本 */
-    const saveToLocalStorage = useCallback(() => {
-        if (char1 || char2) {
-            try {
-                localStorage.setItem("fusion_state", JSON.stringify({
-                    c1: char1?.id,
-                    c2: char2?.id
-                }));
-            } catch (e) {
-                // 忽略存储错误
-            }
-        }
-    }, [char1, char2]);
+    // ===============================
+    // 计算属性 - useMemo 优化
+    // ===============================
+    const isSelectionComplete = useMemo(() =>
+        !!char1 && !!char2,
+        [char1, char2]
+    );
 
-    /** 从本地存储加载 */
-    useEffect(() => {
-        const saved = localStorage.getItem("fusion_state");
-        if (saved) {
+    const hasQuotaAccessValue = useMemo(() =>
+        hasQuotaAccess(quota),
+        [quota]
+    );
+
+    const remainingDisplay = useMemo(() =>
+        getRemainingDisplay(quota),
+        [quota]
+    );
+
+    const shouldDisableButton = useMemo(() =>
+        !isSelectionComplete || isGenerating || !hasQuotaAccessValue,
+        [isSelectionComplete, isGenerating, hasQuotaAccessValue]
+    );
+
+    // ===============================
+    // 本地存储管理 - 优化：只在选择完成时保存
+    // ===============================
+    const saveToLocalStorage = useCallback(() => {
+        // ✅ 改进：只在选择完成时保存，减少无效写入
+        if (!isSelectionComplete) {
             try {
-                const { c1, c2 } = JSON.parse(saved);
-                if (c1) {
-                    const foundChar = OPTIMIZED_CHARACTERS.find(c => c.id === c1);
-                    if (foundChar) setChar1(foundChar);
-                }
-                if (c2) {
-                    const foundChar = OPTIMIZED_CHARACTERS.find(c => c.id === c2);
-                    if (foundChar) setChar2(foundChar);
-                }
-            } catch (e) {
-                console.error("Failed to load saved state");
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+            } catch {
+                // 忽略清除错误
             }
+            return;
+        }
+
+        try {
+            const state: LocalStorageState = {
+                c1: char1?.id,
+                c2: char2?.id,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+        } catch {
+            console.warn("Failed to save to localStorage");
+        }
+    }, [char1, char2, isSelectionComplete]);
+
+    const loadFromLocalStorage = useCallback((): void => {
+        try {
+            const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (!saved) return;
+
+            const { c1, c2, timestamp }: LocalStorageState = JSON.parse(saved);
+
+            // 检查是否过期
+            if (Date.now() - timestamp > STORAGE_EXPIRY) {
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+                return;
+            }
+
+            if (c1) {
+                const foundChar = DB_CHARACTERS.find(c => c.id === c1);
+                if (foundChar) setChar1(foundChar);
+            }
+
+            if (c2) {
+                const foundChar = DB_CHARACTERS.find(c => c.id === c2);
+                if (foundChar) setChar2(foundChar);
+            }
+        } catch {
+            console.warn("Failed to load from localStorage");
         }
     }, []);
 
-    /** 保存选择的角色 */
+    // ===============================
+    // 初始化加载
+    // ===============================
+    useEffect(() => {
+        loadFromLocalStorage();
+    }, [loadFromLocalStorage]);
+
+    // ===============================
+    // 自动保存 - 优化：只在选择完成时保存
+    // ===============================
     useEffect(() => {
         saveToLocalStorage();
     }, [saveToLocalStorage]);
 
-    /** 滚动到结果 - 优化版本 */
-    const scrollToResult = useCallback(() => {
-        if (resultRef.current && !isGenerating) {
-            requestAnimationFrame(() => {
+    // ===============================
+    // 滚动到结果
+    // ===============================
+    useEffect(() => {
+        if (result && !isGenerating && resultRef.current) {
+            const scrollTimeout = setTimeout(() => {
                 resultRef.current?.scrollIntoView({
                     behavior: 'smooth',
-                    block: 'nearest'
+                    block: 'center'
                 });
-            });
+            }, 300);
+
+            return () => clearTimeout(scrollTimeout);
         }
-    }, [isGenerating]);
+    }, [result, isGenerating]);
 
+    // ===============================
+    // 认证和配额检查
+    // ===============================
     useEffect(() => {
-        if (result && !isGenerating) {
-            scrollToResult();
-        }
-    }, [result, isGenerating, scrollToResult]);
+        let isMounted = true;
 
-    /** 认证和配额检查 - 优化版本 */
-    useEffect(() => {
-        let mounted = true;
-        let subscription: { unsubscribe: () => void } | undefined;
-
-        const checkUser = async () => {
+        const initializeAuth = async (): Promise<void> => {
             try {
                 const { data } = await supabase.auth.getUser();
-                if (mounted) {
-                    setUser(data?.user ?? null);
-                    setIsLoadingAuth(false);
-                }
-            } catch (error) {
-                if (mounted) {
-                    console.error('Auth check error:', error);
-                    setIsLoadingAuth(false);
-                }
-            }
-        };
+                if (!isMounted) return;
 
-        const fetchQuota = async () => {
-            try {
-                const response = await fetch('/api/get-quota');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (mounted) {
-                        setQuota(data.quota);
+                setUser(data?.user ?? null);
+                setIsLoadingAuth(false);
+
+                if (data?.user) {
+                    const response = await fetch('/api/get-quota');
+                    if (response.ok) {
+                        const quotaData = await response.json();
+                        if (isMounted) setQuota(quotaData.quota);
                     }
                 }
             } catch (error) {
-                console.error('Failed to fetch quota:', error);
+                if (isMounted) {
+                    setIsLoadingAuth(false);
+                    console.error("Auth initialization error:", error);
+                }
             }
         };
 
-        // 并行执行
-        Promise.all([checkUser(), fetchQuota()]);
+        initializeAuth();
 
-        const { data: authData } = supabase.auth.onAuthStateChange((event, session) => {
-            if (mounted) {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (event, session) => {
+                if (!isMounted) return;
+
                 if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
                     setUser(session?.user ?? null);
-                    fetchQuota();
+
+                    try {
+                        const response = await fetch('/api/get-quota');
+                        if (response.ok) {
+                            const quotaData = await response.json();
+                            setQuota(quotaData.quota);
+                        }
+                    } catch (error) {
+                        console.error("Failed to fetch quota:", error);
+                    }
                 } else if (event === 'SIGNED_OUT') {
                     setUser(null);
-                    setQuota(null);
+                    setQuota(DEFAULT_QUOTA);
                 }
             }
-        });
-        subscription = authData.subscription;
+        );
+
+        subscriptionRef.current = subscription;
 
         return () => {
-            mounted = false;
-            if (subscription) subscription.unsubscribe();
+            isMounted = false;
+            if (subscriptionRef.current) {
+                subscriptionRef.current.unsubscribe();
+            }
         };
     }, [supabase]);
 
-    /** 工具函数 */
-    const getRemainingDisplay = useCallback(() =>
-        quota?.isVIP ? "∞" : (quota ? quota.remaining : user ? "0" : "1"),
-        [quota, user]);
-
-    const hasQuotaAccess = useCallback(() =>
-        quota?.isVIP || (quota ? quota.remaining > 0 : !user),
-        [quota, user]);
-
-    const isSelectionComplete = useMemo(() => !!(char1 && char2), [char1, char2]);
-    const shouldDisableButton = useMemo(() =>
-        !isSelectionComplete || isGenerating,
-        [isSelectionComplete, isGenerating]);
-
-    /** 操作函数 */
-    const selectCharacter = useCallback((char: DBCharacter) => {
+    // ===============================
+    // 交互函数
+    // ===============================
+    const selectCharacter = useCallback((char: DBCharacter): void => {
         if (char1?.id === char.id || char2?.id === char.id) return;
 
         if (!char1) {
@@ -169,13 +326,15 @@ export function DBFusionStudio() {
             setChar2(char1);
             setChar1(char);
         }
+        setResult(null);
     }, [char1, char2]);
 
-    const randomize = useCallback(() => {
+    const randomize = useCallback((): void => {
         const [c1, c2] = getRandomCharacters(2);
         setChar1(c1);
         setChar2(c2);
         setResult(null);
+
         toast({
             title: "Random Pair Selected",
             description: `${c1.name} + ${c2.name}`,
@@ -183,23 +342,38 @@ export function DBFusionStudio() {
         });
     }, [toast]);
 
-    const clearSelection = useCallback(() => {
+    const clearSelection = useCallback((): void => {
         setChar1(undefined);
         setChar2(undefined);
         setResult(null);
-    }, []);
 
-    const generateFusion = useCallback(async () => {
-        if (!hasQuotaAccess()) {
+        try {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+        } catch {
+            console.warn("Failed to clear localStorage");
+        }
+
+        // ✅ 改进：提供视觉和屏幕阅读器反馈
+        toast({
+            title: "Selection Cleared",
+            description: "Ready to select new fighters",
+            duration: 1500
+        });
+    }, [toast]);
+
+    const generateFusion = useCallback(async (): Promise<void> => {
+        // 配额检查
+        if (!hasQuotaAccessValue) {
             if (!user) {
-                router.push(`/sign-in?redirect_to=${window.location.pathname}&reason=fusion_quota`);
+                router.push(`/sign-in?redirect_to=/dragon-ball&reason=fusion_quota`);
             } else {
-                router.push('/pricing?source=dragon_ball_fusion&reason=upgrade_for_more');
+                router.push('/pricing?source=dragon_ball_fusion');
             }
             return;
         }
 
-        if (!char1 || !char2) {
+        // 选择检查
+        if (!isSelectionComplete) {
             toast({
                 title: "Select Two Characters",
                 description: "Choose two fighters to fuse",
@@ -213,56 +387,36 @@ export function DBFusionStudio() {
         setResult(null);
 
         try {
-            const defaultStyle = DB_FUSION_STYLES[0];
-            const payload = {
-                prompt: "",
-                char1: char1.id,
-                char2: char2.id,
-                style: defaultStyle.id
-            };
-
             const response = await fetch('/api/generate-fusion', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({
+                    char1: char1!.id,
+                    char2: char2!.id,
+                    style: 'potara'
+                }),
             });
 
-            let data: any;
-            try {
-                data = await response.json();
-            } catch (e) {
-                data = {};
-            }
-
-            if (response.status === 429) {
-                toast({
-                    title: "Limit Reached",
-                    description: data.error || "Please try again later.",
-                    variant: "destructive",
-                    duration: 5000
-                });
-                return;
-            }
-
-            if (response.status === 402) {
-                toast({
-                    title: "Insufficient Credits",
-                    description: "Upgrade to continue.",
-                    variant: "destructive",
-                    duration: 5000
-                });
-                return;
-            }
+            const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data?.error || `Server error: ${response.status}`);
+                // ✅ 改进：更详细的错误信息处理
+                const errorMessage = data.error || data.message || `Server error: ${response.status}`;
+                throw new Error(errorMessage);
             }
 
-            if (data.quota) setQuota(data.quota);
+            // 更新配额
+            setQuota(prev => ({
+                ...prev,
+                used: prev.used + 1,
+                remaining: prev.isVIP ? prev.remaining : prev.remaining - 1
+            }));
+
+            // 设置结果
             setResult({
                 imageUrl: data.imageUrl,
-                char1,
-                char2
+                char1: char1!,
+                char2: char2!
             });
 
             toast({
@@ -273,55 +427,57 @@ export function DBFusionStudio() {
 
         } catch (error: any) {
             console.error("Fusion error:", error);
+
+            // ✅ 改进：安全的错误消息显示，区分不同类型
+            let errorDescription = "Please try again";
+            if (error?.message?.includes("timeout") || error?.message?.includes("time out")) {
+                errorDescription = "The AI service is taking too long. Please try again later.";
+            } else if (error?.message?.includes("rate limit") || error?.message?.includes("too many requests")) {
+                errorDescription = "Too many requests. Please wait a moment before trying again.";
+            } else if (error?.message) {
+                errorDescription = error.message;
+            }
+
             toast({
                 title: "Fusion Failed",
-                description: error.message || "Please try again",
+                description: errorDescription,
                 variant: "destructive",
-                duration: 4000
+                duration: 5000
             });
         } finally {
             setIsGenerating(false);
         }
-    }, [char1, char2, hasQuotaAccess, user, router, toast]);
+    }, [char1, char2, hasQuotaAccessValue, user, router, toast, isSelectionComplete]);
 
-    const downloadImage = useCallback(async () => {
+    const downloadImage = useCallback(async (): Promise<void> => {
         if (!result?.imageUrl) return;
 
         try {
-            const response = await fetch(result.imageUrl);
-            if (!response.ok) throw new Error('Failed to fetch image');
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `fusion-${result.char1.name}-${result.char2.name}-${Date.now()}.png`;
+            a.href = result.imageUrl;
+            a.download = `fusion-${result.char1.name}-${result.char2.name}-${Date.now()}.jpg`;
+            a.target = '_blank';
             document.body.appendChild(a);
             a.click();
-
-            // 清理
-            setTimeout(() => {
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            }, 100);
+            document.body.removeChild(a);
 
             toast({
                 title: "Download Started",
                 description: "Image saved to your device",
-                duration: 3000
+                duration: 2000
             });
-        } catch (error) {
+        } catch {
             // 备用方案：在新标签页打开
             window.open(result.imageUrl, '_blank');
             toast({
                 title: "Opening Image",
                 description: "Use browser menu to save image.",
-                duration: 3000
+                duration: 2000
             });
         }
     }, [result, toast]);
 
-    const shareResult = useCallback(async () => {
+    const shareResult = useCallback(async (): Promise<void> => {
         if (!result) return;
 
         const shareData = {
@@ -338,69 +494,80 @@ export function DBFusionStudio() {
                 toast({
                     title: "Link Copied!",
                     description: "Paste to share with friends",
-                    duration: 3000
+                    duration: 2000
                 });
             }
-        } catch (error) {
-            console.error("Share failed:", error);
+        } catch {
+            console.warn("Share failed");
         }
     }, [result, toast]);
 
-    // 渲染优化的角色选择网格
-    const renderCharacterGrid = useCallback(() => (
-        <div className="grid grid-cols-4 gap-3 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
-            {OPTIMIZED_CHARACTERS.map((character, index) => {
-                const isSelected1 = char1?.id === character.id;
-                const isSelected2 = char2?.id === character.id;
-                const isSelected = isSelected1 || isSelected2;
+    // ===============================
+    // 渲染函数 - 优化：使用提取的组件
+    // ===============================
+    const characterGrid = useMemo(() => {
+        return DB_CHARACTERS.map((character, index) => (
+            <CharacterButton
+                key={character.id}
+                character={character}
+                index={index}
+                isSelected1={char1?.id === character.id}
+                isSelected2={char2?.id === character.id}
+                onSelect={selectCharacter}
+            />
+        ));
+    }, [char1, char2, selectCharacter]);
 
-                return (
-                    <button
-                        key={character.id}
-                        onClick={() => selectCharacter(character)}
-                        className={`group relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 active:scale-95 touch-manipulation ${isSelected1
-                            ? 'border-orange-500 shadow-md ring-2 ring-orange-200 ring-offset-1 scale-105'
-                            : isSelected2
-                                ? 'border-blue-500 shadow-md ring-2 ring-blue-200 ring-offset-1 scale-105'
-                                : 'border-gray-200 hover:border-orange-300 hover:shadow-sm'
-                            }`}
-                        aria-label={`Select ${character.name}`}
-                        aria-pressed={isSelected}
+    // 步骤指示器
+    const steps = useMemo(() => (
+        <div className="flex items-center justify-center mb-6 space-x-1 sm:space-x-4 px-2">
+            {[
+                { key: 1, label: "Select P1", active: !char1, completed: !!char1 },
+                { key: 2, label: "Select P2", active: char1 && !char2, completed: !!char2 },
+                { key: 3, label: "Fuse", active: isSelectionComplete }
+            ].map((step) => (
+                <div key={step.key} className="flex items-center space-x-2">
+                    <div
+                        role="listitem"
+                        className={`
+                            flex items-center space-x-2 transition-colors
+                            ${step.active ? 'text-orange-600 font-bold' : 'text-gray-400'}
+                        `}
                     >
-                        <div className="relative w-full h-full bg-gray-100">
-                            <Image
-                                src={character.imageUrl}
-                                alt={character.name}
-                                fill
-                                sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 120px"
-                                priority={index < 4}
-                                loading={index < 4 ? "eager" : "lazy"}
-                                quality={85}
-                                unoptimized={true}
-                                className={`object-contain p-1 transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'
-                                    }`}
-                            />
-                            {isSelected && (
-                                <div className={`absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected1
-                                    ? 'bg-orange-500 text-white shadow-md'
-                                    : 'bg-blue-500 text-white shadow-md'
-                                    }`}>
-                                    {isSelected1 ? '1' : '2'}
-                                </div>
-                            )}
-                        </div>
-                    </button>
-                );
-            })}
+                        <span
+                            role="status"
+                            aria-label={step.active ? 'Current step' : step.completed ? 'Completed' : 'Pending'}
+                            className={`
+                                w-6 h-6 rounded-full flex items-center justify-center text-xs
+                                ${step.active ? 'bg-orange-600 text-white' :
+                                    step.completed ? 'bg-green-500 text-white' :
+                                        'bg-gray-200 text-gray-500'}
+                            `}
+                        >
+                            {step.completed ? '✓' : step.key}
+                        </span>
+                        <span className="text-xs sm:text-sm">{step.label}</span>
+                    </div>
+                    {step.key < 3 && <div className="w-4 sm:w-8 h-px bg-gray-200" />}
+                </div>
+            ))}
         </div>
-    ), [char1, char2, selectCharacter]);
+    ), [char1, char2, isSelectionComplete]);
 
+    // ===============================
+    // 主渲染
+    // ===============================
     return (
-        <div id="fusion-studio" className="bg-gradient-to-b from-orange-50/30 to-white p-4 pb-8 rounded-3xl min-h-[600px]">
-            {/* Header */}
+        <div
+            id="fusion-studio"
+            className="bg-gradient-to-b from-orange-50/30 to-white p-4 pb-8 rounded-3xl"
+            role="region"
+            aria-label="Dragon Ball Fusion Studio"
+        >
+            {/* 头部 */}
             <header className="flex justify-between items-center mb-6">
                 <div>
-                    <h2 className="text-2xl font-black text-orange-600 tracking-tight">
+                    <h2 className="text-2xl font-bold text-gray-900">
                         Dragon Ball Fusion Studio
                     </h2>
                     <p className="text-sm text-gray-500 mt-1">
@@ -408,107 +575,119 @@ export function DBFusionStudio() {
                     </p>
                 </div>
                 <Badge
-                    variant={hasQuotaAccess() ? "default" : "destructive"}
-                    className="text-sm px-3 py-1.5 min-w-[80px] justify-center"
+                    variant={hasQuotaAccessValue ? "default" : "destructive"}
+                    className="text-sm px-3 py-1.5 min-w-[80px] justify-center font-semibold"
+                    aria-label={`${remainingDisplay} attempts remaining`}
                 >
-                    {quota?.isVIP ? "VIP" : `${getRemainingDisplay()} Left`}
+                    {remainingDisplay} Left
                 </Badge>
             </header>
 
             {/* 步骤指示器 */}
-            <div className="flex items-center justify-center mb-6 space-x-1 sm:space-x-4 px-2">
-                <div className={`flex items-center space-x-2 transition-colors ${!char1 ? 'text-orange-600 font-bold' : 'text-gray-400'}`}>
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${!char1 ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-500'}`}>1</span>
-                    <span className="text-xs sm:text-sm">Select P1</span>
-                </div>
-                <div className="w-4 sm:w-8 h-px bg-gray-200" />
-                <div className={`flex items-center space-x-2 transition-colors ${char1 && !char2 ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${char1 && !char2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>2</span>
-                    <span className="text-xs sm:text-sm">Select P2</span>
-                </div>
-                <div className="w-4 sm:w-8 h-px bg-gray-200" />
-                <div className={`flex items-center space-x-2 transition-colors ${isSelectionComplete ? 'text-purple-600 font-bold' : 'text-gray-400'}`}>
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${isSelectionComplete ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-500'}`}>3</span>
-                    <span className="text-xs sm:text-sm">Fuse</span>
-                </div>
-            </div>
+            {steps}
 
-            {/* 上半部分：角色选择 */}
-            <Card className="border-0 shadow-md mb-6">
+            {/* 角色选择区域 */}
+            <Card className="border-0 shadow-sm mb-6">
                 <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-sm font-semibold text-gray-700">
+                        <h3 className="text-sm font-semibold text-gray-700">
                             Choose Fighters
-                        </h2>
+                        </h3>
                         <Button
+                            type="button"
                             variant="ghost"
                             size="sm"
                             onClick={randomize}
                             className="h-7 px-2 text-xs text-gray-600 hover:text-orange-600"
+                            title="Select random character pair"
                         >
                             <RefreshCw className="w-3 h-3 mr-1" />
                             Random
                         </Button>
                     </div>
-                    {renderCharacterGrid()}
+                    <div
+                        className="grid grid-cols-4 gap-3 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar"
+                        aria-live="polite"
+                    >
+                        {characterGrid}
+                    </div>
                 </CardContent>
             </Card>
 
-            {/* 下半部分：当前选择 + 生成按钮 */}
-            <Card className="border-0 shadow-md mb-6 bg-white/90 backdrop-blur-sm">
+            {/* 融合区域 */}
+            <Card className="border-0 shadow-sm bg-white/90 backdrop-blur-sm mb-6">
                 <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-sm font-semibold text-gray-700">
+                        <h3 className="text-sm font-semibold text-gray-700">
                             {isSelectionComplete ? "Selected Fusion" : "Select 2 Fighters"}
-                        </h2>
+                        </h3>
                         {(char1 || char2) && (
                             <Button
+                                type="button"
                                 variant="ghost"
                                 size="sm"
                                 onClick={clearSelection}
                                 className="h-7 px-2 text-xs text-gray-500 hover:text-destructive"
+                                title="Clear current selection"
                             >
                                 Clear
                             </Button>
                         )}
                     </div>
 
-                    <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4">
-                        <CharacterSlot char={char1} position={1} />
+                    <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6">
+                        <CharacterSlot char={char1} position={1} onClear={clearSelection} />
                         <div className="flex flex-col items-center gap-1">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center shadow-sm">
+                            <div
+                                className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center shadow-sm"
+                                aria-hidden="true"
+                            >
                                 <span className="text-xl font-bold text-orange-500">+</span>
                             </div>
                             <span className="text-[10px] text-orange-400 font-medium">FUSE</span>
                         </div>
-                        <CharacterSlot char={char2} position={2} />
+                        <CharacterSlot char={char2} position={2} onClear={clearSelection} />
                     </div>
 
                     <Button
+                        type="button"
                         onClick={generateFusion}
                         disabled={shouldDisableButton}
                         size="lg"
-                        className={`w-full py-6 text-xl font-black uppercase tracking-wide shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${isGenerating
-                            ? 'bg-gray-200 text-gray-500'
-                            : (!hasQuotaAccess()
-                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                                : 'bg-gradient-to-r from-orange-600 via-orange-500 to-yellow-500 hover:shadow-2xl text-white')
-                            }`}
+                        className={`
+                            w-full py-6 text-xl font-black uppercase tracking-wide shadow-xl
+                            transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]
+                            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                            ${isGenerating
+                                ? 'bg-gray-200 text-gray-500'
+                                : !hasQuotaAccessValue
+                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                                    : 'bg-gradient-to-r from-orange-600 via-orange-500 to-yellow-500 text-white hover:shadow-2xl'
+                            }
+                        `}
+                        aria-label={
+                            isGenerating ? "Generating fusion..." :
+                                !hasQuotaAccessValue ? (user ? "Upgrade for more attempts" : "Login for energy") :
+                                    !isSelectionComplete ? "Select 2 fighters to continue" :
+                                        "Create fusion"
+                        }
+                        title={isGenerating ? "Please wait while we generate your fusion" : undefined}
                     >
                         {isGenerating ? (
                             <span className="flex items-center gap-3">
-                                <Sparkles className="w-6 h-6 animate-spin" />
-                                FUSING...
+                                <Sparkles className="w-6 h-6 animate-spin" aria-hidden="true" />
+                                <span aria-live="polite">FUSING...</span>
                             </span>
                         ) : !isSelectionComplete ? (
                             <span className="flex items-center gap-2">
-                                🔒 SELECT 2 FIGHTERS
+                                <span aria-hidden="true">🔒</span>
+                                <span>SELECT 2 FIGHTERS</span>
                             </span>
-                        ) : !hasQuotaAccess() ? (
-                            user ? "UPGRADE TO VIP" : "LOGIN FOR ENERGY"
+                        ) : !hasQuotaAccessValue ? (
+                            user ? "UPGRADE FOR MORE" : "LOGIN FOR ENERGY"
                         ) : (
                             <span className="flex items-center gap-3">
-                                <Sparkles className="w-6 h-6" />
+                                <Sparkles className="w-6 h-6" aria-hidden="true" />
                                 FUU-SION-HA!
                             </span>
                         )}
@@ -516,13 +695,24 @@ export function DBFusionStudio() {
                 </CardContent>
             </Card>
 
-            {/* Loading State */}
+            {/* 加载状态 */}
             {isGenerating && (
-                <Card className="border-0 shadow-md mb-6 animate-pulse">
-                    <CardContent className="h-[400px] flex flex-col items-center justify-center p-5 space-y-4 bg-gray-50/50 rounded-xl">
-                        <Sparkles className="w-12 h-12 text-orange-400 animate-spin" />
+                <Card
+                    className="border-0 shadow-md mb-6 animate-pulse"
+                    aria-live="polite"
+                    aria-busy="true"
+                    role="status"
+                >
+                    <CardContent className="h-[300px] flex flex-col items-center justify-center p-5 space-y-4 bg-gray-50/50 rounded-xl">
+                        <Sparkles
+                            className="w-12 h-12 text-orange-400 animate-spin"
+                            aria-label="Generating fusion animation"
+                        />
                         <p className="text-gray-500 font-medium">Channeling Ki...</p>
                         <p className="text-sm text-gray-400">This may take a moment</p>
+                        <div className="sr-only">
+                            Generating fusion between {char1?.name} and {char2?.name}. Please wait.
+                        </div>
                     </CardContent>
                 </Card>
             )}
@@ -531,8 +721,8 @@ export function DBFusionStudio() {
             {result && (
                 <Card
                     ref={resultRef}
-                    id="fusion-result"
                     className="border-0 shadow-xl overflow-hidden mb-6 animate-in fade-in slide-in-from-bottom-8 duration-500"
+                    aria-label="Fusion result"
                 >
                     <CardContent className="p-0">
                         <div className="relative aspect-square w-full bg-gradient-to-br from-gray-50 to-gray-100">
@@ -544,33 +734,45 @@ export function DBFusionStudio() {
                                 sizes="(max-width: 768px) 100vw, 800px"
                                 quality={90}
                                 priority
-                                unoptimized
+                                unoptimized={true}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
                         </div>
                         <div className="p-5 space-y-4">
                             <div>
-                                <h2 className="text-lg font-bold text-gray-900">
+                                <h3 className="text-lg font-bold text-gray-900">
                                     {result.char1.name} × {result.char2.name}
-                                </h2>
+                                </h3>
                                 <p className="text-sm text-gray-500 mt-1">
                                     Fusion Complete
                                 </p>
                             </div>
                             <div className="grid grid-cols-3 gap-2">
                                 <Button
+                                    type="button"
                                     onClick={downloadImage}
                                     variant="default"
                                     className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                                    title="Download fusion image"
                                 >
                                     <Download className="w-4 h-4 mr-2" />
                                     Save
                                 </Button>
-                                <Button onClick={shareResult} variant="outline">
+                                <Button
+                                    type="button"
+                                    onClick={shareResult}
+                                    variant="outline"
+                                    title="Share fusion result"
+                                >
                                     <Share2 className="w-4 h-4 mr-2" />
                                     Share
                                 </Button>
-                                <Button onClick={clearSelection} variant="outline">
+                                <Button
+                                    type="button"
+                                    onClick={clearSelection}
+                                    variant="outline"
+                                    title="Create new fusion"
+                                >
                                     <RefreshCw className="w-4 h-4 mr-2" />
                                     New
                                 </Button>
@@ -580,7 +782,7 @@ export function DBFusionStudio() {
                 </Card>
             )}
 
-            {/* Footer */}
+            {/* 底部说明 */}
             <div className="mt-8 text-center space-y-1">
                 <p className="text-xs text-gray-500">
                     Daily free attempts reset at midnight. Log in for more.
@@ -593,19 +795,39 @@ export function DBFusionStudio() {
     );
 }
 
-/** 优化的角色槽位组件 */
-const CharacterSlot = ({ char, position }: { char?: DBCharacter; position: number }) => {
-    const colors = useMemo(() => ({
-        1: { border: 'border-orange-500', bg: 'bg-orange-500' },
-        2: { border: 'border-blue-500', bg: 'bg-blue-500' }
-    }), []);
+// ===============================
+// CharacterSlot 组件
+// ===============================
+interface CharacterSlotProps {
+    char?: DBCharacter;
+    position: 1 | 2;
+    onClear?: () => void;
+}
 
-    const color = colors[position as keyof typeof colors];
+const CharacterSlot = ({ char, position, onClear }: CharacterSlotProps) => {
+    const color = position === 1
+        ? { border: 'border-orange-500', bg: 'bg-orange-500' }
+        : { border: 'border-blue-500', bg: 'bg-blue-500' };
+
+    // ✅ 改进：屏幕阅读器提示
+    const [isCleared, setIsCleared] = useState(false);
+
+    const handleClear = () => {
+        setIsCleared(true);
+        setTimeout(() => setIsCleared(false), 3000); // 3秒后重置
+        if (onClear) onClear();
+    };
 
     return (
         <div className="flex flex-col items-center">
-            <div className={`relative w-24 h-24 rounded-xl overflow-hidden border-4 shadow-lg ${char ? color.border : 'border-gray-200'
-                } bg-gray-100`}>
+            <div
+                className={`
+                    relative w-24 h-24 rounded-xl overflow-hidden border-4 shadow-lg
+                    ${char ? color.border : 'border-gray-200'} bg-gray-100
+                `}
+                role="img"
+                aria-label={char ? `${char.name} character` : `Empty slot ${position}`}
+            >
                 {char ? (
                     <Image
                         src={char.imageUrl}
@@ -622,11 +844,32 @@ const CharacterSlot = ({ char, position }: { char?: DBCharacter; position: numbe
                         <span className="text-2xl font-black text-gray-300">?</span>
                     </div>
                 )}
+                {char && onClear && (
+                    <button
+                        type="button"
+                        onClick={handleClear}
+                        className="absolute top-1 left-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                        aria-label={`Clear ${char.name}`}
+                        title={`Remove ${char.name}`}
+                    >
+                        ×
+                    </button>
+                )}
             </div>
-            <div className={`mt-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${char ? `${color.bg} text-white` : 'bg-gray-100 text-gray-400'
-                }`}>
+            <div
+                className={`
+                    mt-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase
+                    ${char ? `${color.bg} text-white` : 'bg-gray-100 text-gray-400'}
+                `}
+                aria-label={char ? `Selected: ${char.name}` : `Slot ${position}`}
+            >
                 {char ? char.name : `SLOT ${position}`}
             </div>
+            {isCleared && (
+                <div className="sr-only" aria-live="polite">
+                    Slot {position} cleared
+                </div>
+            )}
         </div>
     );
 };
