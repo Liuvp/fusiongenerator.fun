@@ -92,7 +92,7 @@ const CharacterButton = ({
             <div className="relative w-full h-full bg-gray-100 flex items-center justify-center p-1">
                 <Image
                     src={character.thumbnailUrl}
-                    alt={character.name}
+                    alt={`Dragon Ball character ${character.name}`}
                     width={50}
                     height={100}
                     priority={index < 8}
@@ -600,7 +600,7 @@ export function DBFusionStudio() {
                             className="h-7 px-2 text-xs text-gray-600 hover:text-orange-600"
                             title="Select random character pair"
                         >
-                            <RefreshCw className="w-3 h-3 mr-1" />
+                            <RefreshCw className="w-3 h-3 mr-1" aria-hidden="true" focusable="false" />
                             Random
                         </Button>
                     </div>
@@ -641,7 +641,7 @@ export function DBFusionStudio() {
                                 className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center shadow-sm"
                                 aria-hidden="true"
                             >
-                                <span className="text-xl font-bold text-orange-500">+</span>
+                                <span className="text-xl font-bold text-orange-500" aria-hidden="true">+</span>
                             </div>
                             <span className="text-[10px] text-orange-400 font-medium">FUSE</span>
                         </div>
@@ -674,7 +674,7 @@ export function DBFusionStudio() {
                     >
                         {isGenerating ? (
                             <span className="flex items-center gap-3">
-                                <Sparkles className="w-6 h-6 animate-spin" aria-hidden="true" />
+                                <Sparkles className="w-6 h-6 animate-spin" aria-hidden="true" focusable="false" />
                                 <span aria-live="polite">FUSING...</span>
                             </span>
                         ) : !isSelectionComplete ? (
@@ -686,7 +686,7 @@ export function DBFusionStudio() {
                             user ? "UPGRADE FOR MORE" : "LOGIN FOR ENERGY"
                         ) : (
                             <span className="flex items-center gap-3">
-                                <Sparkles className="w-6 h-6" aria-hidden="true" />
+                                <Sparkles className="w-6 h-6" aria-hidden="true" focusable="false" />
                                 FUU-SION-HA!
                             </span>
                         )}
@@ -705,7 +705,8 @@ export function DBFusionStudio() {
                     <CardContent className="h-[300px] flex flex-col items-center justify-center p-5 space-y-4 bg-gray-50/50 rounded-xl">
                         <Sparkles
                             className="w-12 h-12 text-orange-400 animate-spin"
-                            aria-label="Generating fusion animation"
+                            aria-hidden="true"
+                            focusable="false"
                         />
                         <p className="text-gray-500 font-medium">Channeling Ki...</p>
                         <p className="text-sm text-gray-400">This may take a moment</p>
@@ -754,7 +755,7 @@ export function DBFusionStudio() {
                                     className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
                                     title="Download fusion image"
                                 >
-                                    <Download className="w-4 h-4 mr-2" />
+                                    <Download className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
                                     Save
                                 </Button>
                                 <Button
@@ -763,7 +764,7 @@ export function DBFusionStudio() {
                                     variant="outline"
                                     title="Share fusion result"
                                 >
-                                    <Share2 className="w-4 h-4 mr-2" />
+                                    <Share2 className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
                                     Share
                                 </Button>
                                 <Button
@@ -772,7 +773,7 @@ export function DBFusionStudio() {
                                     variant="outline"
                                     title="Create new fusion"
                                 >
-                                    <RefreshCw className="w-4 h-4 mr-2" />
+                                    <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
                                     New
                                 </Button>
                             </div>

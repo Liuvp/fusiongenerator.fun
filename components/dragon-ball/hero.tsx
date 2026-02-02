@@ -8,10 +8,11 @@ export function DBHero() {
         <section
             className="grid gap-8 md:grid-cols-2 items-center"
             aria-labelledby="dragon-ball-fusion-title"
+            role="region"
         >
             <div className="space-y-6">
                 <div className="inline-flex items-center rounded-full px-3 py-1 text-sm bg-primary/10 text-primary">
-                    <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
+                    <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" />
                     Dragon Ball Fusion Studio
                 </div>
                 <h1
@@ -27,10 +28,14 @@ export function DBHero() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                     <Button asChild className="h-10 px-4 py-2">
-                        <Link href="#fusion-studio">Start Fusing</Link>
+                        <Link href="#fusion-studio" aria-label="Start Dragon Ball fusion generator">
+                            Start Fusing
+                        </Link>
                     </Button>
                     <Button asChild variant="outline" className="h-10 px-4 py-2">
-                        <Link href="/gallery">View Gallery</Link>
+                        <Link href="/gallery" aria-label="View Dragon Ball fusion gallery">
+                            View Gallery
+                        </Link>
                     </Button>
                 </div>
             </div>

@@ -66,9 +66,9 @@ export function DBFAQ() {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
             />
 
-            <section className="space-y-6">
+            <section className="space-y-6" aria-labelledby="faq-title">
                 <header className="space-y-2 border-l-4 border-orange-500 pl-4">
-                    <h2 className="text-2xl font-bold text-gray-900">
+                    <h2 id="faq-title" className="text-2xl font-bold text-gray-900">
                         Dragon Ball Fusion Generator FAQ
                     </h2>
                     <p className="text-muted-foreground text-base">
@@ -77,24 +77,26 @@ export function DBFAQ() {
                 </header>
 
                 <Card className="border-2 shadow-sm bg-gradient-to-b from-white to-gray-50/30">
-                    <CardContent className="p-6 space-y-8">
-                        {faqSchema.mainEntity.map((item, index) => (
-                            <div key={index} className="space-y-3 group">
-                                <h3 className="font-bold text-lg text-gray-900 group-hover:text-orange-600 transition-colors flex items-start gap-2">
-                                    <span className="text-orange-500 font-black">Q:</span>
-                                    {item.name}
-                                </h3>
-                                <div className="flex gap-2 pl-6">
-                                    <span className="text-blue-500 font-black flex-shrink-0">A:</span>
-                                    <p className="text-sm text-muted-foreground leading-relaxed">
-                                        {item.acceptedAnswer.text}
-                                    </p>
+                    <CardContent className="p-6">
+                        <dl className="space-y-8">
+                            {faqSchema.mainEntity.map((item, index) => (
+                                <div key={index} className="space-y-3 group">
+                                    <dt className="font-bold text-lg text-gray-900 group-hover:text-orange-600 transition-colors flex items-start gap-2">
+                                        <span className="text-orange-500 font-black" aria-hidden="true">Q:</span>
+                                        {item.name}
+                                    </dt>
+                                    <dd className="flex gap-2 pl-6">
+                                        <span className="text-blue-500 font-black flex-shrink-0" aria-hidden="true">A:</span>
+                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                            {item.acceptedAnswer.text}
+                                        </p>
+                                    </dd>
+                                    {index < faqSchema.mainEntity.length - 1 && (
+                                        <div className="h-px bg-gray-100 mt-6" aria-hidden="true" />
+                                    )}
                                 </div>
-                                {index < faqSchema.mainEntity.length - 1 && (
-                                    <div className="h-px bg-gray-100 mt-6" />
-                                )}
-                            </div>
-                        ))}
+                            ))}
+                        </dl>
                     </CardContent>
                 </Card>
             </section>
