@@ -596,7 +596,7 @@ export function DBFusionStudio() {
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={randomize}
+                            aria-label="Select two random Dragon Ball characters"
                             className="h-7 px-2 text-xs text-gray-600 hover:text-orange-600"
                             title="Select random character pair"
                         >
@@ -626,6 +626,7 @@ export function DBFusionStudio() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={clearSelection}
+                                aria-label="Clear current fighter selection"
                                 className="h-7 px-2 text-xs text-gray-500 hover:text-destructive"
                                 title="Clear current selection"
                             >
@@ -752,6 +753,7 @@ export function DBFusionStudio() {
                                     type="button"
                                     onClick={downloadImage}
                                     variant="default"
+                                    aria-label="Download fusion results as an image"
                                     className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
                                     title="Download fusion image"
                                 >
@@ -760,6 +762,7 @@ export function DBFusionStudio() {
                                 </Button>
                                 <Button
                                     type="button"
+                                    aria-label="Share this fusion with friends"
                                     onClick={shareResult}
                                     variant="outline"
                                     title="Share fusion result"
@@ -769,6 +772,7 @@ export function DBFusionStudio() {
                                 </Button>
                                 <Button
                                     type="button"
+                                    aria-label="Start a new Dragon Ball fusion"
                                     onClick={clearSelection}
                                     variant="outline"
                                     title="Create new fusion"

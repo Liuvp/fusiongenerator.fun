@@ -98,6 +98,7 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://www.clarity.ms" />
       </head>
       <body className="bg-background text-foreground">
+        <a href="#main-content" className="skip-link">Skip to main content</a>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

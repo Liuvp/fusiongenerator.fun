@@ -64,6 +64,10 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  .skip-link {
+    @apply absolute -top-12 left-0 bg-primary text-primary-foreground p-3 z-[100] transition-all focus:top-0;
+  }
 }
 
 /* Utility: Hide scrollbar while keeping scroll functionality */
