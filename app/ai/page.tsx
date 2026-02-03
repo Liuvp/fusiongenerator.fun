@@ -194,7 +194,7 @@ export default function AIFusionPage() {
                 id="ai-fusion-combined-schema"
                 type="application/ld+json"
                 strategy="afterInteractive"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([faqSchema, softwareAppJsonLd, breadcrumbJsonLd, howToJsonLd, webPageJsonLd]) }}
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([faqSchema, breadcrumbJsonLd, howToJsonLd, webPageJsonLd]) }}
             />
 
             <div id="main-content" className="min-h-screen bg-background">
