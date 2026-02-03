@@ -132,11 +132,11 @@ export default function UploadBox({
                         }
                     }}
                 >
-                    <input {...getInputProps()} />
+                    <input {...getInputProps()} aria-label={`Upload file for ${side === "left" ? "Image A" : "Image B"}`} />
                     <div
                         className={`aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all duration-300 ${isDragActive
-                                ? "border-primary bg-primary/10 scale-[1.02]"
-                                : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/50"
+                            ? "border-primary bg-primary/10 scale-[1.02]"
+                            : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/50"
                             }`}
                     >
                         <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3">
@@ -148,7 +148,7 @@ export default function UploadBox({
                         <p className="text-sm text-muted-foreground mt-1 text-center">
                             Click or drag to upload
                         </p>
-                        <p className="text-xs text-muted-foreground/70 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2 font-medium">
                             JPG, PNG, WebP (Max 5MB)
                         </p>
                     </div>

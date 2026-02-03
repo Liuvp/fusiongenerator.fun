@@ -154,10 +154,8 @@ export default function AIFusionPage() {
         description: "Master AI image fusion with our comprehensive tool. Create unique character combinations and artistic blends using advanced deep learning technology.",
         url: "https://fusiongenerator.fun/ai",
         mainEntity: {
-            "@type": "SoftwareApplication",
-            name: softwareAppJsonLd.name,
-            description: softwareAppJsonLd.description,
-            applicationCategory: softwareAppJsonLd.applicationCategory,
+            ...softwareAppJsonLd,
+            "@context": undefined // 嵌套对象不需要 context
         },
     };
 
@@ -282,7 +280,7 @@ export default function AIFusionPage() {
                                     </Card>
                                 ))}
                             </div>
-                            <p className="text-xs text-gray-400 text-center sm:hidden" aria-hidden="true">
+                            <p className="text-xs text-gray-500 text-center sm:hidden" aria-hidden="true">
                                 ← Swipe to see more →
                             </p>
                         </section>
@@ -308,7 +306,8 @@ export default function AIFusionPage() {
                                                         src={item.image}
                                                         alt={`AI Fusion Example: ${item.left} + ${item.right} in ${item.series} style. ${item.desc}`}
                                                         fill
-                                                        sizes="(max-width: 640px) 260px, (max-width: 1024px) 50vw, 400px"
+                                                        sizes="(max-width: 640px) 260px, (max-width: 1024px) 480px, 450px"
+                                                        quality={70}
                                                         loading="lazy"
                                                         className="object-cover group-hover:scale-110 transition-transform duration-700"
                                                     />
@@ -323,7 +322,7 @@ export default function AIFusionPage() {
                                     </Card>
                                 ))}
                             </div>
-                            <p className="text-xs text-gray-400 text-center sm:hidden" aria-hidden="true">
+                            <p className="text-xs text-gray-500 text-center sm:hidden" aria-hidden="true">
                                 ← Swipe to see more examples →
                             </p>
                         </section>
@@ -348,7 +347,7 @@ export default function AIFusionPage() {
                                                     {item.name}
                                                 </dt>
                                                 <dd className="flex gap-2 pl-6">
-                                                    <span className="text-secondary font-black flex-shrink-0" aria-hidden="true">A:</span>
+                                                    <span className="text-orange-600 font-black flex-shrink-0" aria-hidden="true">A:</span>
                                                     <p className="text-sm text-gray-600 leading-relaxed italic">
                                                         {item.acceptedAnswer.text}
                                                     </p>
