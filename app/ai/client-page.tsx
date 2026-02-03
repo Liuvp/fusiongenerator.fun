@@ -204,7 +204,7 @@ export default function AIFusionStudioPage() {
     return (
         <section
             id="fusion-studio"
-            className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-8"
+            className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-8 interactive-loaded"
             aria-labelledby="studio-title"
         >
             {/* Header */}

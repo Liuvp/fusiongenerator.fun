@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { useDropzone } from "react-dropzone";
 import { Upload, Trash2, RefreshCw, X } from "lucide-react";
+import StaticUploadBox from "./StaticUploadBox"; // 导入静态版本
+import { isClient } from "../utils/safeHydration"; // 导入安全检测
 
 /* ======================
    Types
@@ -24,16 +26,25 @@ interface UploadBoxProps {
     onUpload: (files: File[], side: Side) => void;
     onRemove: () => void;
     disabled?: boolean;
+    staticMode?: boolean; // 新增：静态模式
 }
 
-export default function UploadBox({ side, file, onUpload, onRemove, disabled }: UploadBoxProps) {
+export default function UploadBox({
+    side,
+    file,
+    onUpload,
+    onRemove,
+    disabled,
+    staticMode = false
+}: UploadBoxProps) {
     const [showActions, setShowActions] = useState(false);
-    const [mounted, setMounted] = useState(false);
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    // 🚨 关键修复：SSR时永远渲染静态版本
+    if (!isClient || staticMode) {
+        return <StaticUploadBox side={side} />;
+    }
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
         accept: {
             "image/jpeg": [],
@@ -42,52 +53,23 @@ export default function UploadBox({ side, file, onUpload, onRemove, disabled }: 
         },
         maxFiles: 1,
         maxSize: 5 * 1024 * 1024,
-        noClick: true, // Fix: disable default click to handle manually
+        noClick: true,
         noKeyboard: true,
         disabled: disabled,
         onDropAccepted: (files) => onUpload(files, side),
     });
 
-    // Toggle actions on mobile tap or open file dialog
     const handleTap = () => {
         if (file) {
             setShowActions(!showActions);
         } else {
-            open(); // Fix: manually trigger open if no file
+            open();
         }
     };
-
-    if (!mounted) {
-        // SSR / Initial Render Fallback - Static representation to prevent hydration mismatch
-        return (
-            <div className="relative w-full">
-                {file ? (
-                    <div className="relative aspect-square rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-background to-muted/30 overflow-hidden shadow-lg">
-                        <Image
-                            src={file.preview}
-                            alt={`Uploaded ${side === "left" ? "Image A" : "Image B"}`}
-                            fill
-                            className="object-contain p-3"
-                        />
-                    </div>
-                ) : (
-                    <div
-                        className="relative w-full rounded-2xl aspect-square border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center p-4 bg-muted/10 cursor-wait"
-                    >
-                        <Upload className="h-6 w-6 text-muted-foreground mb-3" />
-                        <p className="text-base font-semibold text-foreground/50">
-                            {side === "left" ? "Upload Image A" : "Upload Image B"}
-                        </p>
-                    </div>
-                )}
-            </div>
-        );
-    }
 
     return (
         <div className="relative w-full">
             {file ? (
-                // File Present State - No role="button" on container to avoid nested interactive elements
                 <div
                     className="relative w-full rounded-2xl transition-all duration-300"
                     onClick={handleTap}
@@ -100,12 +82,10 @@ export default function UploadBox({ side, file, onUpload, onRemove, disabled }: 
                             className="object-contain p-3"
                         />
 
-                        {/* Label Badge */}
                         <span className="absolute top-3 left-3 text-xs font-medium bg-primary text-primary-foreground px-2.5 py-1 rounded-full shadow-md">
                             {side === "left" ? "Image A" : "Image B"}
                         </span>
 
-                        {/* Action Overlay - Desktop hover + Mobile tap */}
                         <div
                             className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center gap-3 ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                                 }`}
@@ -138,7 +118,6 @@ export default function UploadBox({ side, file, onUpload, onRemove, disabled }: 
                     </div>
                 </div>
             ) : (
-                // Upload State - Single interactive element
                 <div
                     {...getRootProps()}
                     className={`relative w-full cursor-pointer group focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-2xl transition-all duration-300 ${disabled ? 'opacity-50 pointer-events-none' : ''
@@ -152,13 +131,12 @@ export default function UploadBox({ side, file, onUpload, onRemove, disabled }: 
                             handleTap();
                         }
                     }}
-                    suppressHydrationWarning
                 >
                     <input {...getInputProps()} />
                     <div
                         className={`aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all duration-300 ${isDragActive
-                            ? "border-primary bg-primary/10 scale-[1.02]"
-                            : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/50"
+                                ? "border-primary bg-primary/10 scale-[1.02]"
+                                : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/50"
                             }`}
                     >
                         <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3">
@@ -167,7 +145,7 @@ export default function UploadBox({ side, file, onUpload, onRemove, disabled }: 
                         <p className="text-base font-semibold text-foreground">
                             {side === "left" ? "Upload Image A" : "Upload Image B"}
                         </p>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-muted-foreground mt-1 text-center">
                             Click or drag to upload
                         </p>
                         <p className="text-xs text-muted-foreground/70 mt-2">
@@ -177,7 +155,6 @@ export default function UploadBox({ side, file, onUpload, onRemove, disabled }: 
                 </div>
             )}
 
-            {/* Mobile Close Actions Hint */}
             {file && showActions && (
                 <button
                     onClick={() => setShowActions(false)}
