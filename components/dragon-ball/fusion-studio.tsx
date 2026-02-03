@@ -95,9 +95,8 @@ const CharacterButton = ({
                     alt={`Dragon Ball character ${character.name}`}
                     width={50}
                     height={100}
-                    priority={index < 8}
-                    loading={index < 8 ? "eager" : "lazy"}
-                    sizes="100px"
+                    loading="lazy"
+                    sizes="48px"
                     className={`
                         object-contain transition-transform duration-300
                         ${isSelected ? 'scale-110' : 'group-hover:scale-110'}
