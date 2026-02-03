@@ -378,6 +378,7 @@ export default function AIFusionStudioPage() {
                                 sizes="(max-width: 640px) 100vw, 600px"
                                 quality={95}
                                 unoptimized
+                                decoding="async"
                                 className="object-contain p-2"
                                 priority
                             />

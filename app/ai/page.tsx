@@ -115,14 +115,12 @@ export default function AIFusionPage() {
         image: "https://fusiongenerator.fun/images/character-fusion-mashup-ai-generator.webp",
         author: { "@type": "Organization", name: "FusionGenerator", url: "https://fusiongenerator.fun" },
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock" },
-        interactionStatistic: { "@type": "InteractionCounter", interactionType: "https://schema.org/UseAction", userInteractionCount: 5800 },
         featureList: [
             "General-Purpose AI Image Fusion",
             "Photo & Illustration Merging",
             "Style-Aware Blending Technology",
             "Real-Time Processing"
         ],
-        aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", ratingCount: 120 },
     };
 
     const breadcrumbJsonLd = {
@@ -195,7 +193,7 @@ export default function AIFusionPage() {
             <Script
                 id="ai-fusion-combined-schema"
                 type="application/ld+json"
-                strategy="beforeInteractive"
+                strategy="afterInteractive"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify([faqSchema, softwareAppJsonLd, breadcrumbJsonLd, howToJsonLd, webPageJsonLd]) }}
             />
 
@@ -223,6 +221,7 @@ export default function AIFusionPage() {
                                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                                     priority
                                     fetchPriority="high"
+                                    decoding="async"
                                     quality={85}
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1024px"
                                 />
@@ -309,6 +308,7 @@ export default function AIFusionPage() {
                                                         sizes="(max-width: 640px) 260px, (max-width: 1024px) 480px, 450px"
                                                         quality={70}
                                                         loading="lazy"
+                                                        decoding="async"
                                                         className="object-cover group-hover:scale-110 transition-transform duration-700"
                                                     />
                                                 </div>

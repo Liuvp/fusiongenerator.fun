@@ -79,6 +79,7 @@ export default function UploadBox({
                             src={file.preview}
                             alt={`Uploaded ${side === "left" ? "Image A" : "Image B"}`}
                             fill
+                            decoding="async"
                             className="object-contain p-3"
                         />
 
