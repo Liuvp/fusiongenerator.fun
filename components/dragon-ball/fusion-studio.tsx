@@ -519,7 +519,11 @@ export function DBFusionStudio() {
 
     // 步骤指示器
     const steps = useMemo(() => (
-        <div className="flex items-center justify-center mb-6 space-x-1 sm:space-x-4 px-2">
+        <div
+            className="flex items-center justify-center mb-6 space-x-1 sm:space-x-4 px-2"
+            role="list"
+            aria-label="Fusion progress steps"
+        >
             {[
                 { key: 1, label: "Select P1", active: !char1, completed: !!char1 },
                 { key: 2, label: "Select P2", active: char1 && !char2, completed: !!char2 },
@@ -530,17 +534,17 @@ export function DBFusionStudio() {
                         role="listitem"
                         className={`
                             flex items-center space-x-2 transition-colors
-                            ${step.active ? 'text-orange-600 font-bold' : 'text-gray-400'}
+                            ${step.active ? 'text-orange-600 font-bold' : 'text-gray-500'}
                         `}
                     >
                         <span
-                            role="status"
+                            aria-current={step.active ? 'step' : undefined}
                             aria-label={step.active ? 'Current step' : step.completed ? 'Completed' : 'Pending'}
                             className={`
                                 w-6 h-6 rounded-full flex items-center justify-center text-xs
                                 ${step.active ? 'bg-orange-600 text-white' :
                                     step.completed ? 'bg-green-500 text-white' :
-                                        'bg-gray-200 text-gray-500'}
+                                        'bg-gray-200 text-gray-600'}
                             `}
                         >
                             {step.completed ? '✓' : step.key}
@@ -597,7 +601,7 @@ export function DBFusionStudio() {
                             variant="ghost"
                             size="sm"
                             aria-label="Select two random Dragon Ball characters"
-                            className="h-7 px-2 text-xs text-gray-600 hover:text-orange-600"
+                            className="h-7 px-2 text-xs text-gray-600 hover:text-orange-600 font-medium"
                             title="Select random character pair"
                         >
                             <RefreshCw className="w-3 h-3 mr-1" aria-hidden="true" focusable="false" />
@@ -709,8 +713,8 @@ export function DBFusionStudio() {
                             aria-hidden="true"
                             focusable="false"
                         />
-                        <p className="text-gray-500 font-medium">Channeling Ki...</p>
-                        <p className="text-sm text-gray-400">This may take a moment</p>
+                        <p className="text-gray-600 font-semibold">Channeling Ki...</p>
+                        <p className="text-sm text-gray-500 font-medium">This may take a moment</p>
                         <div className="sr-only">
                             Generating fusion between {char1?.name} and {char2?.name}. Please wait.
                         </div>

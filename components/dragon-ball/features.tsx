@@ -68,7 +68,7 @@ export function DBFeatures() {
                                 role="img"
                                 aria-label={feature.ariaLabel}
                             >
-                                <Icon className={`h-7 w-7 ${feature.color}`} />
+                                <Icon className={`h-7 w-7 ${feature.color}`} aria-hidden="true" focusable="false" />
                             </div>
                             <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
                                 {feature.title}

@@ -77,7 +77,7 @@ export function DBPopularFusions() {
                                     </h3>
                                     <div className="h-0.5 w-8 bg-blue-500/30" />
                                 </div>
-                                <div className="relative w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full overflow-hidden border shadow-inner group-hover:scale-110 transition-transform duration-500" role="img" aria-label={fusion.alt}>
+                                <div className="relative w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full overflow-hidden border shadow-inner group-hover:scale-110 transition-transform duration-500">
                                     <Image
                                         src={fusion.image}
                                         alt={fusion.alt}
