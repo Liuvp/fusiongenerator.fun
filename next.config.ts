@@ -113,6 +113,12 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js', 'date-fns'],
   },
 
+  // Configure compiler for modern browsers (works with .browserslistrc)
+  compiler: {
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+  },
+
   // Set browser targets to modern browsers (ES2020+) to reduce polyfills
   // This supports Chrome 90+, Safari 14+, Firefox 88+, Edge 90+ (last 2 years)
   transpilePackages: [],
