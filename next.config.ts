@@ -109,8 +109,36 @@ const nextConfig: NextConfig = {
 
   // Experimental features for performance
   experimental: {
-    optimizeCss: false, // Disabled due to HTML structure issues
+    optimizeCss: true, // Re-enabled for performance optimization
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js', 'date-fns'],
+  },
+
+  // Set browser targets to modern browsers (ES2020+) to reduce polyfills
+  // This supports Chrome 90+, Safari 14+, Firefox 88+, Edge 90+ (last 2 years)
+  transpilePackages: [],
+
+  // Configure cache headers for static assets
+  async headers() {
+    return [
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
   },
 
   // eslint: {
