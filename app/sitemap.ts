@@ -1,6 +1,10 @@
 import { MetadataRoute } from 'next'
 import { getLastModifiedDate } from '@/lib/sitemap-helper'
 
+// 重要：告诉 Next.js 每天重新生成一次 sitemap
+// 这样 Google 爬虫可以更及时地发现更新
+export const revalidate = 86400 // 24 小时 (单位: 秒)
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fusiongenerator.fun'
 
@@ -28,16 +32,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         { url: '/terms', file: 'app/terms/page.tsx', changeFrequency: 'yearly', priority: 0.3 },
     ]
 
-    // 并行获取所有文件的日期
-    const sitemapEntries = await Promise.all(routes.map(async (route) => {
-        const lastModified = await getLastModifiedDate(route.file);
-        return {
+    try {
+        // 并行获取所有文件的日期
+        const sitemapEntries = await Promise.all(routes.map(async (route) => {
+            const lastModified = await getLastModifiedDate(route.file);
+            return {
+                url: `${baseUrl}${route.url}`,
+                lastModified,
+                changeFrequency: route.changeFrequency as 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never',
+                priority: route.priority,
+            };
+        }));
+
+        return sitemapEntries;
+    } catch (error) {
+        console.error('Error generating sitemap:', error);
+        // 如果失败，至少返回基础页面
+        return routes.map(route => ({
             url: `${baseUrl}${route.url}`,
-            lastModified,
+            lastModified: new Date().toISOString().split('T')[0],
             changeFrequency: route.changeFrequency as 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never',
             priority: route.priority,
-        };
-    }));
-
-    return sitemapEntries;
+        }));
+    }
 }
