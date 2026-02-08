@@ -14,11 +14,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    // 添加 sitemap-index.xml 作为主索引，sitemap.xml 作为备用
-    // Google 会优先抓取索引文件
-    sitemap: [
-      `${baseUrl}/sitemap-index.xml`,
-      `${baseUrl}/sitemap.xml`,
-    ],
+    sitemap: `${baseUrl}/sitemap.xml`,
   }
 }
