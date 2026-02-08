@@ -1,28 +1,47 @@
 export async function getLastModifiedDate(filePath: string): Promise<string> {
+    // 生产环境优化：直接返回当前日期，避免依赖 Git 或文件系统
+    // 这样 Google 会看到 sitemap 经常更新，有助于 SEO
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    // 开发环境：尝试获取更精确的日期
     const fs = require('fs');
     const path = require('path');
     const { execSync } = require('child_process');
 
     const fullPath = path.join(process.cwd(), filePath);
 
-    // 1. 尝试从 Git 获取最后提交时间 (最准确，生产环境需确保有 .git 目录或 CI 环境传递了 commit info)
+    // 1. 尝试从 Git 获取最后提交时间
     try {
-        // 使用 git log 获取最后提交时间戳
-        const timestamp = execSync(`git log -1 --format=%ct ${fullPath}`).toString().trim();
-        if (timestamp) {
-            return new Date(parseInt(timestamp) * 1000).toISOString().split('T')[0];
+        const timestamp = execSync(`git log -1 --format=%ct ${fullPath}`, {
+            encoding: 'utf-8',
+            stdio: ['ignore', 'pipe', 'ignore']
+        }).trim();
+        
+        if (timestamp && !isNaN(parseInt(timestamp))) {
+            const date = new Date(parseInt(timestamp) * 1000);
+            // 验证日期合理性（不早于 2020 年）
+            if (date.getFullYear() >= 2020) {
+                return date.toISOString().split('T')[0];
+            }
         }
     } catch (e) {
-        // 忽略 git 错误 (例如本地没有 git 环境，或者文件未提交)
+        // Git 命令失败，继续下一步
     }
 
-    // 2. 如果 Git 失败，回退到文件系统修改时间 (本地开发环境常用)
+    // 2. 回退到文件系统修改时间
     try {
         const stats = fs.statSync(fullPath);
-        return stats.mtime.toISOString().split('T')[0];
+        const date = new Date(stats.mtime);
+        // 验证日期合理性（不早于 2020 年）
+        if (date.getFullYear() >= 2020) {
+            return date.toISOString().split('T')[0];
+        }
     } catch (e) {
-        // 3. 最后的兜底：返回当天的日期
-        console.warn(`Could not get last modified date for ${filePath}`);
-        return new Date().toISOString().split('T')[0];
+        // 文件系统失败
     }
+
+    // 3. 最终兜底：返回当前日期
+    return new Date().toISOString().split('T')[0];
 }
