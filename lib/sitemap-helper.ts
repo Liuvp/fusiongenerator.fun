@@ -1,8 +1,8 @@
 export async function getLastModifiedDate(filePath: string): Promise<string> {
-    // 生产环境优化：直接返回当前日期，避免依赖 Git 或文件系统
-    // 这样 Google 会看到 sitemap 经常更新，有助于 SEO
+    // 生产环境优化：使用固定的合理日期，避免日期频繁变化导致 Google 混淆
+    // 使用网站主要更新日期，而不是每次都返回当前日期
     if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
-        return new Date().toISOString().split('T')[0];
+        return '2026-02-01'; // 网站上线/最后重大更新日期
     }
 
     // 开发环境：尝试获取更精确的日期
@@ -18,7 +18,7 @@ export async function getLastModifiedDate(filePath: string): Promise<string> {
             encoding: 'utf-8',
             stdio: ['ignore', 'pipe', 'ignore']
         }).trim();
-        
+
         if (timestamp && !isNaN(parseInt(timestamp))) {
             const date = new Date(parseInt(timestamp) * 1000);
             // 验证日期合理性（不早于 2020 年）

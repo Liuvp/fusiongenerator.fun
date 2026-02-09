@@ -28,6 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         { url: '/pricing', file: 'app/pricing/page.tsx', changeFrequency: 'monthly', priority: 0.7 },
         { url: '/about', file: 'app/about/page.tsx', changeFrequency: 'monthly', priority: 0.7 },
         { url: '/contact', file: 'app/contact/page.tsx', changeFrequency: 'monthly', priority: 0.7 },
+        { url: '/site-map', file: 'app/site-map/page.tsx', changeFrequency: 'monthly', priority: 0.5 },
         { url: '/privacy', file: 'app/privacy/page.tsx', changeFrequency: 'yearly', priority: 0.3 },
         { url: '/terms', file: 'app/terms/page.tsx', changeFrequency: 'yearly', priority: 0.3 },
     ]
