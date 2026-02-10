@@ -44,10 +44,10 @@ export default function SitemapPage() {
                     {/* Header */}
                     <div className="mb-12 text-center">
                         <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-                            网站地图 / Sitemap
+                            Site Map
                         </h1>
                         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                            探索 Fusion Generator 的所有页面 - 从龙珠融合到宝可梦融合，以及更多内容
+                            Explore all pages on Fusion Generator - from Dragon Ball fusions to Pokemon fusions and more
                         </p>
                     </div>
 
@@ -55,7 +55,7 @@ export default function SitemapPage() {
                     <section className="mb-10">
                         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                             <span className="w-1.5 h-8 bg-gradient-to-b from-orange-500 to-purple-500 rounded-full"></span>
-                            核心功能页面
+                            Main Pages
                         </h2>
                         <div className="grid gap-4">
                             {sitemapData.main.map((page) => (
@@ -80,7 +80,7 @@ export default function SitemapPage() {
                     <section className="mb-10">
                         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                             <span className="w-1.5 h-8 bg-gradient-to-b from-blue-500 to-green-500 rounded-full"></span>
-                            博客与内容
+                            Blog & Content
                         </h2>
                         <div className="grid gap-4">
                             {sitemapData.content.map((page) => (
@@ -105,7 +105,7 @@ export default function SitemapPage() {
                     <section className="mb-10">
                         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                             <span className="w-1.5 h-8 bg-gradient-to-b from-green-500 to-teal-500 rounded-full"></span>
-                            公司信息
+                            Company Info
                         </h2>
                         <div className="grid gap-4">
                             {sitemapData.info.map((page) => (
@@ -130,7 +130,7 @@ export default function SitemapPage() {
                     <section className="mb-10">
                         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                             <span className="w-1.5 h-8 bg-gradient-to-b from-gray-500 to-gray-700 rounded-full"></span>
-                            法律条款
+                            Legal
                         </h2>
                         <div className="grid gap-4">
                             {sitemapData.legal.map((page) => (
@@ -153,9 +153,9 @@ export default function SitemapPage() {
 
                     {/* XML Sitemap Link */}
                     <div className="mt-12 p-6 rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 border border-purple-200 dark:border-purple-800">
-                        <h3 className="text-lg font-semibold mb-3">🤖 搜索引擎专用</h3>
+                        <h3 className="text-lg font-semibold mb-3">🤖 For Search Engines</h3>
                         <p className="text-sm text-muted-foreground mb-4">
-                            适合搜索引擎爬虫的 XML 格式网站地图：
+                            XML sitemap for search engine crawlers:
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3">
                             <a
