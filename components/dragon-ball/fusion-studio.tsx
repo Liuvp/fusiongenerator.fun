@@ -47,8 +47,23 @@ interface LocalStorageState {
 const getRemainingDisplay = (quota: Quota): string =>
     quota.isVIP ? "∞" : quota.remaining.toString();
 
-const hasQuotaAccess = (quota: Quota): boolean =>
-    quota.isVIP || quota.remaining > 0;
+const hasQuotaAccess = (quota: Quota, user: User | null): boolean => {
+    // VIP 用户永远有访问权限
+    if (quota.isVIP) return true;
+
+    // 已认证用户检查配额
+    if (user && quota) {
+        return quota.remaining > 0;
+    }
+
+    // 未登录用户：检查是否还有免费额度
+    if (!user && quota) {
+        return quota.remaining > 0;
+    }
+
+    // 未登录且配额未加载：允许尝试（会在 API 层面检查）
+    return true;
+};
 
 // ===============================
 // CharacterButton 组件 - 提取出来减少主组件复杂度
@@ -148,8 +163,8 @@ export function DBFusionStudio() {
     );
 
     const hasQuotaAccessValue = useMemo(() =>
-        hasQuotaAccess(quota),
-        [quota]
+        hasQuotaAccess(quota, user),
+        [quota, user]
     );
 
     const remainingDisplay = useMemo(() =>
@@ -362,10 +377,23 @@ export function DBFusionStudio() {
     const generateFusion = useCallback(async (): Promise<void> => {
         // 配额检查
         if (!hasQuotaAccessValue) {
+            // 区分未登录和已登录用户，提供更清晰的提示
             if (!user) {
-                router.push(`/sign-in?redirect_to=/dragon-ball&reason=fusion_quota`);
+                toast({
+                    title: "Free Quota Used",
+                    description: "Sign in to get more fusion credits!",
+                    variant: "default",
+                    duration: 3000
+                });
+                setTimeout(() => router.push(`/sign-in?redirect_to=/dragon-ball&reason=fusion_quota`), 2000);
             } else {
-                router.push('/pricing?source=dragon_ball_fusion');
+                toast({
+                    title: "Quota Exceeded",
+                    description: "Upgrade to VIP for unlimited fusions!",
+                    variant: "destructive",
+                    duration: 3000
+                });
+                setTimeout(() => router.push('/pricing?source=dragon_ball_fusion'), 2000);
             }
             return;
         }
@@ -599,6 +627,7 @@ export function DBFusionStudio() {
                             type="button"
                             variant="ghost"
                             size="sm"
+                            onClick={randomize}
                             aria-label="Select two random Dragon Ball characters"
                             className="h-7 px-2 text-xs text-gray-600 hover:text-orange-600 font-medium"
                             title="Select random character pair"

@@ -15,6 +15,7 @@ const PokeFusionStudio = dynamicImport(
 );
 import { PokePopularFusions } from "@/components/pokemon/popular-fusions";
 import { PokeCTA } from "@/components/pokemon/cta";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 // Force static generation to ensure meta tags are in <head>
 export const dynamic = 'force-static';
@@ -158,7 +159,9 @@ export default function PokemonPage() {
               </div>
             </section>
 
-            <PokeFusionStudio />
+            <ErrorBoundary>
+              <PokeFusionStudio />
+            </ErrorBoundary>
             <PokeHowToUse />
             <PokePopularFusions />
             <PokeFeatures />

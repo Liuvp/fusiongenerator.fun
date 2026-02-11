@@ -17,6 +17,7 @@ import { DBFeatures } from "@/components/dragon-ball/features";
 import { DBPopularFusions } from "@/components/dragon-ball/popular-fusions";
 import { DBFAQ } from "@/components/dragon-ball/faq";
 import { DBCTA } from "@/components/dragon-ball/cta";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 // ===============================
 // 动态导入：非关键交互组件
@@ -201,7 +202,9 @@ export default function DragonBallPage() {
         <div className="container px-4 md:px-6 py-10 md:py-12">
           <div className="max-w-5xl mx-auto space-y-12 md:space-y-16">
             <DBHero />
-            <DBFusionStudio />
+            <ErrorBoundary>
+              <DBFusionStudio />
+            </ErrorBoundary>
             <DBHowToUse />
             <DBPopularFusions />
             <DBFeatures />

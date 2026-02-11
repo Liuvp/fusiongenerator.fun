@@ -124,7 +124,24 @@ export function PokeFusionStudio() {
 
     /** Helpers */
     const getRemainingDisplay = () => quota?.isVIP ? "∞" : (quota ? quota.remaining : user ? "0" : "1");
-    const hasQuotaAccess = () => quota?.isVIP || (quota ? quota.remaining > 0 : !user);
+    const hasQuotaAccess = () => {
+        // VIP 用户永远有访问权限
+        if (quota?.isVIP) return true;
+
+        // 已认证用户检查配额
+        if (user && quota) {
+            return quota.remaining > 0;
+        }
+
+        // 未登录用户：检查是否还有免费额度
+        // 如果 quota 已加载且 remaining = 0，说明用完了
+        if (!user && quota) {
+            return quota.remaining > 0;
+        }
+
+        // 未登录且配额未加载：允许尝试（会在 API 层面检查）
+        return true;
+    };
     const isSelectionComplete = !!(pokemon1 && pokemon2);
     const shouldDisableButton = !isSelectionComplete || isGenerating;
 
@@ -176,7 +193,22 @@ export function PokeFusionStudio() {
 
     const generateFusion = async () => {
         if (!hasQuotaAccess()) {
-            router.push(user ? '/pricing?reason=quota' : '/sign-in?reason=fusion');
+            // 区分未登录和已登录用户，提供更清晰的提示
+            if (!user) {
+                toast({
+                    title: "Free Quota Used",
+                    description: "Sign in to get more fusion credits!",
+                    variant: "default",
+                });
+                setTimeout(() => router.push('/sign-in?reason=fusion'), 2000);
+            } else {
+                toast({
+                    title: "Quota Exceeded",
+                    description: "Upgrade to VIP for unlimited fusions!",
+                    variant: "destructive",
+                });
+                setTimeout(() => router.push('/pricing?reason=quota'), 2000);
+            }
             return;
         }
 
