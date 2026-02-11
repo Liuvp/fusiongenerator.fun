@@ -17,7 +17,7 @@ import { User } from "@supabase/supabase-js";
 // ===============================
 const LOCAL_STORAGE_KEY = "db_fusion_studio_state";
 const STORAGE_EXPIRY = 24 * 60 * 60 * 1000; // 24小时
-const DEFAULT_QUOTA = { used: 0, remaining: 3, limit: 3, isVIP: false };
+const DEFAULT_QUOTA = { used: 0, remaining: 1, limit: 1, isVIP: false }; // 统一免费额度为 1 次
 
 // ===============================
 // 类型定义
