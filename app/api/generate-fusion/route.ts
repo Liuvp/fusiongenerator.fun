@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
                     // Auto-create with 1 Credit
                     const { data: newCustomer, error: createError } = await supabase
                         .from("customers")
-                        .insert([{ user_id: user.id, credits: 1 }])
+                        .insert([{ user_id: user.id, credits: 1 }])  // ✅ 统一为 1 次免费额度
                         .select("credits, id")
                         .single();
                     if (!createError && newCustomer) customerProfile = newCustomer;
