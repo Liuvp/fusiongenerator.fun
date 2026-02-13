@@ -14,7 +14,7 @@ const pageUrl = `${baseUrl}/dragon-ball`;
 import { DBHero } from "@/components/dragon-ball/hero";
 import { DBHowToUse } from "@/components/dragon-ball/how-to-use";
 import { DBFeatures } from "@/components/dragon-ball/features";
-import { DBPopularFusions } from "@/components/dragon-ball/popular-fusions";
+// DBPopularFusions is now dynamically imported
 import { DBFAQ } from "@/components/dragon-ball/faq";
 import { DBCTA } from "@/components/dragon-ball/cta";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -26,6 +26,13 @@ const DBFusionStudio = nextDynamic(
   () => import("@/components/dragon-ball/fusion-studio").then(mod => mod.DBFusionStudio),
   {
     loading: () => <FusionStudioSkeleton />
+  }
+);
+
+const DBPopularFusions = nextDynamic(
+  () => import("@/components/dragon-ball/popular-fusions").then(mod => mod.DBPopularFusions),
+  {
+    loading: () => <PopularFusionsSkeleton />
   }
 );
 

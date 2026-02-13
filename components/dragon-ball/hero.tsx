@@ -47,7 +47,7 @@ export function DBHero() {
                     height={499}
                     priority
                     fetchPriority="high"
-                    sizes="(max-width: 768px) 100vw, 665px"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 665px"
                     className="w-full h-auto"
                 />
             </div>
