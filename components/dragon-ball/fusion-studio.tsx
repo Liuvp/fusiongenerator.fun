@@ -173,8 +173,8 @@ export function DBFusionStudio() {
     );
 
     const shouldDisableButton = useMemo(() =>
-        !isSelectionComplete || isGenerating || !hasQuotaAccessValue,
-        [isSelectionComplete, isGenerating, hasQuotaAccessValue]
+        isGenerating,
+        [isGenerating]
     );
 
     // ===============================

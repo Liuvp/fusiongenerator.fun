@@ -61,7 +61,17 @@ export default function AIFusionStudioPage() {
     const canGenerate = !!leftFile && !!rightFile && !isGenerating;
 
     const startGenerate = async () => {
-        if (!canGenerate) return;
+        if (!canGenerate) {
+            if (!leftFile || !rightFile) {
+                // Simplified error handling - just shaking or basic alert if needed, 
+                // but better to show a toast. Since we don't have toast imported, 
+                // we will rely on the button text update or add a temporary error state.
+                setError("Please upload both images first");
+                // Clear error after 3 seconds
+                setTimeout(() => setError(null), 3000);
+            }
+            return;
+        }
 
         setIsGenerating(true);
         setProgress(0);
@@ -293,7 +303,7 @@ export default function AIFusionStudioPage() {
                 </div>
 
                 <button
-                    disabled={!canGenerate}
+                    disabled={isGenerating}
                     onClick={startGenerate}
                     className={`w-full rounded-2xl py-4 text-lg font-bold flex items-center justify-center gap-3 transition-all duration-300 min-h-[56px] shadow-lg ${canGenerate
                         ? "bg-gradient-to-r from-primary via-secondary to-primary bg-[length:200%_100%] hover:bg-[position:100%_0] text-white shadow-primary/25"

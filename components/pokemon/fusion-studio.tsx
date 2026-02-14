@@ -143,7 +143,7 @@ export function PokeFusionStudio() {
         return true;
     };
     const isSelectionComplete = !!(pokemon1 && pokemon2);
-    const shouldDisableButton = !isSelectionComplete || isGenerating;
+    const shouldDisableButton = isGenerating;
 
     /** Handlers */
     const selectPokemon = (p: Pokemon) => {
