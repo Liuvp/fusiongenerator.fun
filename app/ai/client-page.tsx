@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Sparkles, Dice6, RefreshCw, Download, Share2 } from "lucide-react";
 import UploadBox, { UploadedFile, Side } from "./components/UploadBox";
@@ -15,6 +16,7 @@ function revokeFile(file: UploadedFile | null) {
  ====================== */
 export default function AIFusionStudioPage() {
     const supabase = createClient();
+    const router = useRouter();
     const [leftFile, setLeftFile] = useState<UploadedFile | null>(null);
     const [rightFile, setRightFile] = useState<UploadedFile | null>(null);
 
@@ -113,27 +115,23 @@ export default function AIFusionStudioPage() {
             clearInterval(progressTimer);
             setProgress(100);
 
-            if (res.status === 402) {
-                const errorMsg = data.error || "Insufficient credits";
-                setError(errorMsg);
-
-                // Redirect logic
-                setTimeout(() => {
-                    if (data.isLimitReached) {
-                        // Free trial ended -> Login/Register
-                        window.location.href = "/login?source=ai_studio&reason=free_limit";
-                    } else {
-                        // Insufficient credits -> Pricing
-                        window.location.href = "/pricing?source=ai_studio&reason=insufficient_credits";
-                    }
-                }, 2000);
-
-                throw new Error(errorMsg);
-            }
-
             if (!res.ok) {
                 const errorMsg = data.error || "Generation failed, please try again";
                 setError(errorMsg);
+
+                // Handle Limit Reached / Payment Required
+                if (res.status === 402 || res.status === 429 || errorMsg.toLowerCase().includes("limit reached")) {
+                    setTimeout(() => {
+                        if (data.isLimitReached || errorMsg.toLowerCase().includes("free trial")) {
+                            // Free trial ended -> Sign In
+                            router.push("/sign-in?source=ai_studio&reason=free_limit");
+                        } else {
+                            // Insufficient credits -> Pricing
+                            router.push("/pricing?source=ai_studio&reason=insufficient_credits");
+                        }
+                    }, 2000);
+                }
+
                 throw new Error(errorMsg);
             }
 

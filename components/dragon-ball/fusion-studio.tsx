@@ -106,16 +106,16 @@ const CharacterButton = ({
         >
             <div className="relative w-full h-full bg-gray-100 flex items-center justify-center p-1">
                 <Image
-                    src={character.thumbnailUrl}
+                    src={character.imageUrl}
                     alt={`Dragon Ball character ${character.name}`}
-                    width={50}
-                    height={100}
-                    loading="lazy"
-                    sizes="48px"
+                    fill
+                    sizes="(max-width: 768px) 33vw, (max-width: 1200px) 15vw, 150px"
                     className={`
-                        object-contain transition-transform duration-300
+                        object-contain p-1 transition-transform duration-300
                         ${isSelected ? 'scale-110' : 'group-hover:scale-110'}
                     `}
+                    priority={index < 8} // Prioritize above-the-fold characters
+                    unoptimized={true} // Avoid blurry downscaling if Next.js image optimization is aggressive
                 />
                 {isSelected && (
                     <div className={`
@@ -428,15 +428,42 @@ export function DBFusionStudio() {
             if (!response.ok) {
                 // ✅ 改进：更详细的错误信息处理
                 const errorMessage = data.error || data.message || `Server error: ${response.status}`;
+
+                // === 新增：自动跳转逻辑 ===
+                // 处理配额不足或限制到达的情况
+                if (response.status === 402 || response.status === 429 || errorMessage.toLowerCase().includes("limit reached")) {
+                    toast({
+                        title: "Limit Reached",
+                        description: errorMessage,
+                        variant: "destructive",
+                        duration: 3000
+                    });
+
+                    // 延迟跳转，给用户时间看 Toast
+                    setTimeout(() => {
+                        if (!user) {
+                            router.push('/sign-in?redirect_to=/dragon-ball&reason=quota_limit');
+                        } else {
+                            router.push('/pricing?source=dragon_ball_fusion');
+                        }
+                    }, 2000);
+
+                    return; // 中断后续逻辑
+                }
+
                 throw new Error(errorMessage);
             }
 
-            // 更新配额
-            setQuota(prev => ({
-                ...prev,
-                used: prev.used + 1,
-                remaining: prev.isVIP ? prev.remaining : prev.remaining - 1
-            }));
+            // 更新配额：优先使用后端返回的最新状态
+            if (data.quota) {
+                setQuota(data.quota);
+            } else {
+                setQuota(prev => ({
+                    ...prev,
+                    used: prev.used + 1,
+                    remaining: prev.isVIP ? prev.remaining : Math.max(0, prev.remaining - 1)
+                }));
+            }
 
             // 设置结果
             setResult({

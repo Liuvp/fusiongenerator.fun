@@ -227,7 +227,11 @@ export function PokeFusionStudio() {
             if (!res.ok) {
                 if (res.status === 429 || res.status === 402) {
                     toast({ title: "Limit Reached", description: data.error, variant: "destructive" });
-                    if (res.status === 429 && !user) setTimeout(() => router.push('/sign-in'), 2000);
+
+                    setTimeout(() => {
+                        if (!user) router.push('/sign-in?reason=pokemon_limit');
+                        else router.push('/pricing?source=pokemon_limit');
+                    }, 2000);
                     return;
                 }
                 throw new Error(data.error);
