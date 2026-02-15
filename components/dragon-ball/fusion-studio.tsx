@@ -159,6 +159,7 @@ export function DBFusionStudio() {
     // State for interactive feedback
     // ===============================
     const [showAuthOptions, setShowAuthOptions] = useState(false);
+    const [isShaking, setIsShaking] = useState(false);
 
     // 检查是否选完
     const isSelectionComplete = useMemo(() => !!(char1 && char2), [char1, char2]);
@@ -390,6 +391,9 @@ export function DBFusionStudio() {
     const generateFusion = useCallback(async (): Promise<void> => {
         // 配额检查
         if (!hasQuotaAccessValue) {
+            setIsShaking(true);
+            setTimeout(() => setIsShaking(false), 500);
+
             // 区分未登录和已登录用户，提供更清晰的提示
             if (!user) {
                 toast({
@@ -413,6 +417,9 @@ export function DBFusionStudio() {
 
         // 选择检查
         if (!isSelectionComplete) {
+            setIsShaking(true);
+            setTimeout(() => setIsShaking(false), 500);
+
             toast({
                 title: "Select Two Characters",
                 description: "Choose two fighters to fuse",
@@ -724,17 +731,20 @@ export function DBFusionStudio() {
                     <Button
                         type="button"
                         onClick={generateFusion}
-                        disabled={shouldDisableButton}
+                        disabled={isGenerating} // Only disable when actually generating to allow clicks for feedback
                         size="lg"
                         className={`
                             w-full py-6 text-xl font-black uppercase tracking-wide shadow-xl
                             transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]
                             disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                            ${isShaking ? 'animate-shake ring-2 ring-red-500 ring-offset-2' : ''}
                             ${isGenerating
                                 ? 'bg-gray-200 text-gray-500'
-                                : !hasQuotaAccessValue
-                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                                    : 'bg-gradient-to-r from-orange-600 via-orange-500 to-yellow-500 text-white hover:shadow-2xl'
+                                : !isSelectionComplete
+                                    ? 'bg-gray-300 text-gray-500 cursor-help hover:bg-gray-400' // Visual indication of inactive state
+                                    : !hasQuotaAccessValue
+                                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                                        : 'bg-gradient-to-r from-orange-600 via-orange-500 to-yellow-500 text-white hover:shadow-2xl'
                             }
                         `}
                         aria-label={
