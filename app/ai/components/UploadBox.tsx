@@ -88,7 +88,9 @@ export default function UploadBox({
                         </span>
 
                         <div
-                            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center gap-3 ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-300 flex flex-col items-center justify-center gap-3 ${showActions
+                                ? 'opacity-100 pointer-events-auto'
+                                : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto'
                                 }`}
                         >
                             <button

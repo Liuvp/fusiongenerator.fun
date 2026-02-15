@@ -275,10 +275,10 @@ export default function AIFusionStudioPage() {
                         <button
                             onClick={surpriseMe}
                             disabled={isGenerating}
-                            className="text-sm flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors disabled:opacity-50 ml-auto min-h-[44px] px-2"
+                            className="text-sm flex items-center gap-1.5 text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 ml-auto min-h-[44px] px-3 font-medium"
                             aria-label="Generate random prompt"
                         >
-                            <Dice6 size={16} aria-hidden="true" />
+                            <Dice6 size={18} aria-hidden="true" />
                             Surprise Me
                         </button>
                     </div>
@@ -288,7 +288,7 @@ export default function AIFusionStudioPage() {
                         onChange={(e) => setPrompt(e.target.value)}
                         disabled={isGenerating}
                         placeholder="e.g. Cyberpunk style, Cinematic lighting..."
-                        className="w-full rounded-xl border-2 border-border bg-background px-4 py-3 text-base focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all disabled:opacity-50 min-h-[48px]"
+                        className="w-full rounded-xl border-2 border-border bg-background px-4 py-3 text-base focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
                     />
                 </div>
             </div>
@@ -301,13 +301,14 @@ export default function AIFusionStudioPage() {
                 </div>
 
                 <button
-                    disabled={isGenerating}
+                    disabled={!canGenerate}
                     onClick={startGenerate}
                     className={`w-full rounded-2xl py-4 text-lg font-bold flex items-center justify-center gap-3 transition-all duration-300 min-h-[56px] shadow-lg ${canGenerate
-                        ? "bg-gradient-to-r from-primary via-secondary to-primary bg-[length:200%_100%] hover:bg-[position:100%_0] text-white shadow-primary/25"
-                        : "bg-muted text-muted-foreground cursor-not-allowed shadow-none"
+                        ? "bg-gradient-to-r from-primary via-secondary to-primary bg-[length:200%_100%] hover:bg-[position:100%_0] active:scale-[0.98] text-white shadow-primary/25 cursor-pointer"
+                        : "bg-muted text-muted-foreground cursor-not-allowed shadow-none opacity-70"
                         }`}
                     aria-busy={isGenerating}
+                    aria-disabled={!canGenerate}
                     aria-label={isGenerating ? "Generating..." : "Generate AI Fusion"}
                 >
                     {isGenerating ? (
