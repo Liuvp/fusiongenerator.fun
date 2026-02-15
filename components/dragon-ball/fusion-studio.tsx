@@ -329,14 +329,26 @@ export function DBFusionStudio() {
     // 交互函数
     // ===============================
     const selectCharacter = useCallback((char: DBCharacter): void => {
-        if (char1?.id === char.id || char2?.id === char.id) return;
+        console.log("Selecting:", char.name, "Current:", { c1: char1?.name, c2: char2?.name });
+
+        // 允许反选：点击已选中的角色取消选中
+        if (char1?.id === char.id) {
+            setChar1(undefined);
+            setResult(null);
+            return;
+        }
+        if (char2?.id === char.id) {
+            setChar2(undefined);
+            setResult(null);
+            return;
+        }
 
         if (!char1) {
             setChar1(char);
         } else if (!char2) {
             setChar2(char);
         } else {
-            // 交换选择
+            // 队列逻辑：旧的 char1 移到 char2，新角色占据 char1
             setChar2(char1);
             setChar1(char);
         }
