@@ -755,19 +755,27 @@ export function DBFusionStudio() {
 
                     {/* 未登录用户引导：配额不足时显示 */}
                     {showAuthOptions && !user && (
-                        <div className="mt-4 grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2">
-                            <Button asChild variant="outline" className="w-full border-blue-200 hover:bg-blue-50 text-blue-700">
-                                <Link href="/sign-in?redirect_to=/dragon-ball&reason=quota_limit&source=dragon_ball_fusion">
-                                    Sign In
-                                </Link>
-                            </Button>
-                            <Button asChild className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600">
-                                <Link href="/sign-up?redirect_to=/dragon-ball&reason=quota_limit&source=dragon_ball_fusion">
-                                    Sign Up Free
-                                </Link>
-                            </Button>
-                            <p className="col-span-2 text-center text-xs text-gray-400 mt-1">
-                                Create an account to continue generating fusions!
+                        <div className="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-xl animate-in fade-in slide-in-from-top-2">
+                            <div className="text-center mb-4 space-y-1">
+                                <h4 className="font-bold text-gray-800">Need more Fusion Energy?</h4>
+                                <p className="text-xs text-gray-600">
+                                    Join thousands of Dragon Ball fans creating daily fusions!
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button asChild variant="outline" className="w-full bg-white hover:bg-gray-50 text-gray-700 border-gray-200">
+                                    <Link href="/sign-in?redirect_to=/dragon-ball&reason=quota_limit&source=dragon_ball_fusion">
+                                        Log In
+                                    </Link>
+                                </Button>
+                                <Button asChild className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-600 border-0">
+                                    <Link href="/sign-up?redirect_to=/dragon-ball&reason=quota_limit&source=dragon_ball_fusion">
+                                        Sign Up Free
+                                    </Link>
+                                </Button>
+                            </div>
+                            <p className="text-center text-[10px] text-gray-400 mt-3">
+                                ✨ Get 5 daily credits + High-res downloads
                             </p>
                         </div>
                     )}
