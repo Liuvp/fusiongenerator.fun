@@ -156,8 +156,8 @@ export function DBFusionStudio() {
     const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
     // ===============================
-    // 计算属性 - useMemo 优化
-    // ===============================    // State for interactive feedback
+    // State for interactive feedback
+    // ===============================
     const [showAuthOptions, setShowAuthOptions] = useState(false);
 
     // 检查是否选完
