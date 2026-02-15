@@ -188,146 +188,132 @@ export default function GalleryPage() {
     }
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] w-full">
+        <>
             <Script id="gallery-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
             <Script id="gallery-faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-            <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
-                <div className="animate-fade-in-up text-center">
-                    <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Fusion Gallery - Dragon Ball & Pokemon Character Fusions</h1>
-                    <p className="mt-2 text-muted-foreground">Browse our collection of amazing Dragon Ball and Pokemon character fusions. Get inspired by community creations and start your own fusion journey.</p>
-                    <div className="mt-4 flex items-center justify-center gap-3">
-                        <Button asChild variant="default">
-                            <Link href="/ai">Try the Generator</Link>
-                        </Button>
-                        <Button asChild variant="outline">
-                            <Link href="/pricing">View Pricing</Link>
-                        </Button>
-                    </div>
-                </div>
 
-                {user && (
-                    <div className="animate-fade-in-up animation-delay-200 mt-10">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-bold">My Saved Fusions</h2>
-                            <div className="flex items-center gap-2">
-                                <Button variant="outline" onClick={loadMy} disabled={loadingMy}>Refresh</Button>
-                            </div>
-                        </div>
-                        <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {loadingMy && (
-                                <div className="text-sm text-muted-foreground">Loading...</div>
-                            )}
-                            {!loadingMy && myItems.length === 0 && (
-                                <div className="text-sm text-muted-foreground">No saved fusions yet.</div>
-                            )}
-                            {myItems.map((item) => (
-                                <Card key={item.id} className="group overflow-hidden">
-                                    <CardHeader className="pb-2">
-                                        <CardTitle className="flex items-center justify-between text-base">
-                                            <span>{item.name}</span>
-                                            <span className="text-xs font-medium text-muted-foreground">{item.form || ""}</span>
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
-                                            <Image src={item.url} alt={item.name} fill className="object-cover" />
-                                        </div>
-                                        <div className="mt-3 flex items-center gap-2">
-                                            <Button asChild size="sm">
-                                                <a href={item.url} target="_blank" rel="noreferrer">Open</a>
-                                            </Button>
-                                            <Button size="sm" variant="outline" onClick={async () => {
-                                                try {
-                                                    const res = await fetch("/api/gallery/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: item.path }) })
-                                                    const data = await res.json()
-                                                    if (!res.ok) throw new Error(data.error || "Delete failed")
-                                                    await loadMy()
-                                                } catch { }
-                                            }}>Delete</Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+            {user && (
+                <div className="animate-fade-in-up animation-delay-200 mt-10">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-bold">My Saved Fusions</h2>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" onClick={loadMy} disabled={loadingMy}>Refresh</Button>
                         </div>
                     </div>
-                )}
-
-                <div className="mt-8 flex justify-center">
-                    <Tabs defaultValue="all" onValueChange={(v) => setFilter(v)}>
-                        <TabsList aria-label="Filter gallery by series">
-                            <TabsTrigger value="all">All Characters</TabsTrigger>
-                            <TabsTrigger value="dragon-ball">Dragon Ball</TabsTrigger>
-                            <TabsTrigger value="pokemon">Pokémon</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-                </div>
-
-                <section className="mb-6">
-                    <h2 className="text-2xl font-bold mb-4">Featured Character Fusions</h2>
-                    <p className="text-muted-foreground">Discover amazing <strong>Dragon Ball fusions</strong> and creative <strong>Pokemon fusions</strong> created by our community. Each fusion combines unique traits and abilities to create entirely new characters.</p>
-                </section>
-
-                <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {filtered.map((item, idx) => (
-                        <div key={item.id}>
-                            <Card
-                                className="group cursor-pointer overflow-hidden focus-within:ring-2 focus-within:ring-primary h-full"
-                                onClick={() => setSelected(item)}
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault()
-                                        setSelected(item)
-                                    }
-                                }}
-                            >
+                    <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {loadingMy && (
+                            <div className="text-sm text-muted-foreground">Loading...</div>
+                        )}
+                        {!loadingMy && myItems.length === 0 && (
+                            <div className="text-sm text-muted-foreground">No saved fusions yet.</div>
+                        )}
+                        {myItems.map((item) => (
+                            <Card key={item.id} className="group overflow-hidden">
                                 <CardHeader className="pb-2">
                                     <CardTitle className="flex items-center justify-between text-base">
                                         <span>{item.name}</span>
-                                        <span className="text-xs font-medium text-muted-foreground capitalize">
-                                            {item.series.replace("-", " ")}
-                                        </span>
+                                        <span className="text-xs font-medium text-muted-foreground">{item.form || ""}</span>
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
-                                        <Image
-                                            src={item.image}
-                                            alt={getSeoImageName(item)}
-                                            fill
-                                            className="object-contain p-6 transition-transform duration-300 group-hover:scale-[1.03]"
-                                            priority={idx < 4}
-                                            loading={idx < 4 ? "eager" : "lazy"}
-                                        />
+                                        <Image src={item.url} alt={item.name} fill className="object-cover" />
                                     </div>
-                                    <div className="mt-3 text-xs text-muted-foreground truncate">{getSeoImageName(item)}</div>
+                                    <div className="mt-3 flex items-center gap-2">
+                                        <Button asChild size="sm">
+                                            <a href={item.url} target="_blank" rel="noreferrer">Open</a>
+                                        </Button>
+                                        <Button size="sm" variant="outline" onClick={async () => {
+                                            try {
+                                                const res = await fetch("/api/gallery/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: item.path }) })
+                                                const data = await res.json()
+                                                if (!res.ok) throw new Error(data.error || "Delete failed")
+                                                await loadMy()
+                                            } catch { }
+                                        }}>Delete</Button>
+                                    </div>
                                 </CardContent>
                             </Card>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="mt-12 bg-muted rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4">About Our Fusion Gallery</h2>
-                    <div className="grid gap-6 md:grid-cols-2">
-                        <div>
-                            <h3 className="font-semibold mb-2">Dragon Ball Fusions</h3>
-                            <p className="text-sm text-muted-foreground">Explore unique character combinations from the Dragon Ball universe. See how Goku, Vegeta, Piccolo, and other characters blend together to create powerful new warriors.</p>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold mb-2">Pokemon Fusions</h3>
-                            <p className="text-sm text-muted-foreground">Discover creative Pokemon hybrids that combine types, abilities, and appearances. From Charizard blends to psychic Pokemon fusions, the possibilities are endless.</p>
-                        </div>
+                        ))}
                     </div>
                 </div>
+            )}
 
-                <div className="mt-10 text-center">
-                    <p className="text-sm text-muted-foreground">Want more? Generate your own unique fusion.</p>
-                    <div className="mt-3">
-                        <Button asChild>
-                            <Link href="/ai">Create Your Own Fusion</Link>
-                        </Button>
+            <div className="mt-8 flex justify-center">
+                <Tabs defaultValue="all" onValueChange={(v) => setFilter(v)}>
+                    <TabsList aria-label="Filter gallery by series">
+                        <TabsTrigger value="all">All Characters</TabsTrigger>
+                        <TabsTrigger value="dragon-ball">Dragon Ball</TabsTrigger>
+                        <TabsTrigger value="pokemon">Pokémon</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            </div>
+
+            <section className="mb-6 mt-8">
+                <h2 className="text-2xl font-bold mb-4">Featured Character Fusions</h2>
+                <p className="text-muted-foreground">Discover amazing <strong>Dragon Ball fusions</strong> and creative <strong>Pokemon fusions</strong> created by our community. Each fusion combines unique traits and abilities to create entirely new characters.</p>
+            </section>
+
+            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {filtered.map((item, idx) => (
+                    <div key={item.id}>
+                        <Card
+                            className="group cursor-pointer overflow-hidden focus-within:ring-2 focus-within:ring-primary h-full"
+                            onClick={() => setSelected(item)}
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    setSelected(item)
+                                }
+                            }}
+                        >
+                            <CardHeader className="pb-2">
+                                <CardTitle className="flex items-center justify-between text-base">
+                                    <span>{item.name}</span>
+                                    <span className="text-xs font-medium text-muted-foreground capitalize">
+                                        {item.series.replace("-", " ")}
+                                    </span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+                                    <Image
+                                        src={item.image}
+                                        alt={getSeoImageName(item)}
+                                        fill
+                                        className="object-contain p-6 transition-transform duration-300 group-hover:scale-[1.03]"
+                                        priority={idx < 4}
+                                        loading={idx < 4 ? "eager" : "lazy"}
+                                    />
+                                </div>
+                                <div className="mt-3 text-xs text-muted-foreground truncate">{getSeoImageName(item)}</div>
+                            </CardContent>
+                        </Card>
                     </div>
+                ))}
+            </div>
+
+            <div className="mt-12 bg-muted rounded-lg p-6">
+                <h2 className="text-xl font-bold mb-4">About Our Fusion Gallery</h2>
+                <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                        <h3 className="font-semibold mb-2">Dragon Ball Fusions</h3>
+                        <p className="text-sm text-muted-foreground">Explore unique character combinations from the Dragon Ball universe. See how Goku, Vegeta, Piccolo, and other characters blend together to create powerful new warriors.</p>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold mb-2">Pokemon Fusions</h3>
+                        <p className="text-sm text-muted-foreground">Discover creative Pokemon hybrids that combine types, abilities, and appearances. From Charizard blends to psychic Pokemon fusions, the possibilities are endless.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-10 text-center">
+                <p className="text-sm text-muted-foreground">Want more? Generate your own unique fusion.</p>
+                <div className="mt-3">
+                    <Button asChild>
+                        <Link href="/ai">Create Your Own Fusion</Link>
+                    </Button>
                 </div>
             </div>
 
@@ -376,6 +362,6 @@ export default function GalleryPage() {
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     )
 }

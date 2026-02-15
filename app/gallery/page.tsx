@@ -1,4 +1,6 @@
 import { Metadata } from "next";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import GalleryPage from "./client-page";
 
 // Force static generation to ensure meta tags are in <head>
@@ -35,5 +37,26 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <GalleryPage />;
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
+      <div className="text-center mb-10 animate-fade-in-up">
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+          Fusion Gallery - Dragon Ball & Pokemon Character Fusions
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Browse our collection of amazing Dragon Ball and Pokemon character fusions. Get inspired by community creations and start your own fusion journey.
+        </p>
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <Button asChild variant="default">
+            <Link href="/ai">Try the Generator</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/pricing">View Pricing</Link>
+          </Button>
+        </div>
+      </div>
+
+      <GalleryPage />
+    </div>
+  );
 }
