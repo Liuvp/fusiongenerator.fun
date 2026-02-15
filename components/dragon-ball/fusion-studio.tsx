@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -156,11 +157,11 @@ export function DBFusionStudio() {
 
     // ===============================
     // 计算属性 - useMemo 优化
-    // ===============================
-    const isSelectionComplete = useMemo(() =>
-        !!char1 && !!char2,
-        [char1, char2]
-    );
+    // ===============================    // State for interactive feedback
+    const [showAuthOptions, setShowAuthOptions] = useState(false);
+
+    // 检查是否选完
+    const isSelectionComplete = useMemo(() => !!(char1 && char2), [char1, char2]);
 
     const hasQuotaAccessValue = useMemo(() =>
         hasQuotaAccess(quota, user),
@@ -385,7 +386,7 @@ export function DBFusionStudio() {
                     variant: "default",
                     duration: 3000
                 });
-                setTimeout(() => router.push(`/sign-in?redirect_to=/dragon-ball&reason=fusion_quota`), 2000);
+                setShowAuthOptions(true);
             } else {
                 toast({
                     title: "Quota Exceeded",
@@ -442,11 +443,11 @@ export function DBFusionStudio() {
                     // 延迟跳转，给用户时间看 Toast
                     setTimeout(() => {
                         if (!user) {
-                            router.push('/sign-in?redirect_to=/dragon-ball&reason=quota_limit');
+                            setShowAuthOptions(true);
                         } else {
                             router.push('/pricing?source=dragon_ball_fusion');
                         }
-                    }, 2000);
+                    }, 500); //稍微快一点显示按钮，或者直接显示？如果是按钮显示，不需要timeout其实。保留一点延迟稍微自然点，或者直接删掉timeout。这里改为直接显示更好。
 
                     return; // 中断后续逻辑
                 }
@@ -751,6 +752,25 @@ export function DBFusionStudio() {
                             </span>
                         )}
                     </Button>
+
+                    {/* 未登录用户引导：配额不足时显示 */}
+                    {showAuthOptions && !user && (
+                        <div className="mt-4 grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2">
+                            <Button asChild variant="outline" className="w-full border-blue-200 hover:bg-blue-50 text-blue-700">
+                                <Link href="/sign-in?redirect_to=/dragon-ball&reason=quota_limit&source=dragon_ball_fusion">
+                                    Sign In
+                                </Link>
+                            </Button>
+                            <Button asChild className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600">
+                                <Link href="/sign-up?redirect_to=/dragon-ball&reason=quota_limit&source=dragon_ball_fusion">
+                                    Sign Up Free
+                                </Link>
+                            </Button>
+                            <p className="col-span-2 text-center text-xs text-gray-400 mt-1">
+                                Create an account to continue generating fusions!
+                            </p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -847,9 +867,6 @@ export function DBFusionStudio() {
 
             {/* 底部说明 */}
             <div className="mt-8 text-center space-y-1">
-                <p className="text-xs text-gray-500">
-                    Daily free attempts reset at midnight. Log in for more.
-                </p>
                 <p className="text-xs text-gray-400">
                     Fusion results are AI-generated for entertainment. Not official Dragon Ball content.
                 </p>
