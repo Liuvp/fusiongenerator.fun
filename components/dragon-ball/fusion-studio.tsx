@@ -786,9 +786,6 @@ export function DBFusionStudio() {
                                     </Link>
                                 </Button>
                             </div>
-                            <p className="text-center text-[10px] text-gray-400 mt-3">
-                                ✨ Get 5 daily credits + High-res downloads
-                            </p>
                         </div>
                     )}
                 </CardContent>
