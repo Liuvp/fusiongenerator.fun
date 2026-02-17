@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Sparkles, Zap, Check } from "lucide-react";
+import { Sparkles, Zap, Check, Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 export default function ClientPage({ searchParams, redirectTo }: { searchParams: Message, redirectTo?: string }) {
+    const [showPassword, setShowPassword] = useState(false);
     return (
         <>
             <div className="flex flex-col space-y-2 text-center">
@@ -70,16 +72,30 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            name="password"
-                            type="password"
-                            placeholder="••••••••"
-                            autoComplete="new-password"
-                            required
-                            minLength={6}
-                        />
+                        <div className="relative">
+                            <Input
+                                id="password"
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                autoComplete="new-password"
+                                required
+                                minLength={6}
+                                className="pr-10 h-11"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="h-4 w-4" />
+                                ) : (
+                                    <Eye className="h-4 w-4" />
+                                )}
+                            </button>
+                        </div>
                         <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
                     </div>
                     <SubmitButton

@@ -786,12 +786,12 @@ export function DBFusionStudio() {
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <Button asChild variant="outline" className="w-full bg-white hover:bg-gray-50 text-gray-700 border-gray-200">
-                                    <Link href="/sign-in?redirect_to=/dragon-ball&reason=quota_limit&source=dragon_ball_fusion">
+                                    <Link href={`/sign-in?redirect_to=${encodeURIComponent('/dragon-ball#fusion-studio')}&reason=quota_limit&source=dragon_ball_fusion`}>
                                         Log In
                                     </Link>
                                 </Button>
                                 <Button asChild className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-600 border-0">
-                                    <Link href="/sign-up?redirect_to=/dragon-ball&reason=quota_limit&source=dragon_ball_fusion">
+                                    <Link href={`/sign-up?redirect_to=${encodeURIComponent('/dragon-ball#fusion-studio')}&reason=quota_limit&source=dragon_ball_fusion`}>
                                         Sign Up Free
                                     </Link>
                                 </Button>

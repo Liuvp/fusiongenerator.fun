@@ -123,8 +123,9 @@ export default function AIFusionStudioPage() {
                 if (res.status === 402 || res.status === 429 || errorMsg.toLowerCase().includes("limit reached")) {
                     setTimeout(() => {
                         if (data.isLimitReached || errorMsg.toLowerCase().includes("free trial")) {
-                            // Free trial ended -> Sign In
-                            router.push("/sign-in?source=ai_studio&reason=free_limit");
+                            // Free trial ended -> Sign In with redirect
+                            const loginUrl = `/sign-in?redirect_to=${encodeURIComponent('/ai#fusion-studio')}&source=ai_studio&reason=free_limit`;
+                            router.push(loginUrl);
                         } else {
                             // Insufficient credits -> Pricing
                             router.push("/pricing?source=ai_studio&reason=insufficient_credits");

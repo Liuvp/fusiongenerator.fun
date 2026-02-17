@@ -196,11 +196,10 @@ export function PokeFusionStudio() {
             // 区分未登录和已登录用户，提供更清晰的提示
             if (!user) {
                 toast({
-                    title: "Free Quota Used",
-                    description: "Sign in to get more fusion credits!",
                     variant: "default",
                 });
-                setTimeout(() => router.push('/sign-in?reason=fusion'), 2000);
+                const loginUrl = `/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_fusion`;
+                setTimeout(() => router.push(loginUrl), 1500);
             } else {
                 toast({
                     title: "Quota Exceeded",
@@ -229,9 +228,13 @@ export function PokeFusionStudio() {
                     toast({ title: "Limit Reached", description: data.error, variant: "destructive" });
 
                     setTimeout(() => {
-                        if (!user) router.push('/sign-in?reason=pokemon_limit');
-                        else router.push('/pricing?source=pokemon_limit');
-                    }, 2000);
+                        if (!user) {
+                            const loginUrl = `/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_limit`;
+                            router.push(loginUrl);
+                        } else {
+                            router.push('/pricing?source=pokemon_limit');
+                        }
+                    }, 1500);
                     return;
                 }
                 throw new Error(data.error);
