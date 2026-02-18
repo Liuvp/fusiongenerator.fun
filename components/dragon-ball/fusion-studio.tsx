@@ -147,8 +147,8 @@ export function DBFusionStudio() {
     // ===============================
     // 状态管理
     // ===============================
-    const [char1, setChar1] = useState<DBCharacter>();
-    const [char2, setChar2] = useState<DBCharacter>();
+    const [char1, setChar1] = useState<DBCharacter | undefined>(DB_CHARACTERS.find(c => c.id === 'goku'));
+    const [char2, setChar2] = useState<DBCharacter | undefined>(DB_CHARACTERS.find(c => c.id === 'vegeta'));
     const [isGenerating, setIsGenerating] = useState(false);
     const [result, setResult] = useState<FusionResult | null>(null);
     const [quota, setQuota] = useState<Quota>(DEFAULT_QUOTA);
@@ -715,7 +715,7 @@ export function DBFusionStudio() {
                     </div>
 
                     <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6">
-                        <CharacterSlot char={char1} position={1} onClear={clearSelection} />
+                        <CharacterSlot char={char1} position={1} onClear={clearSelection} priority={true} />
                         <div className="flex flex-col items-center gap-1">
                             <div
                                 className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center shadow-sm"
@@ -725,7 +725,7 @@ export function DBFusionStudio() {
                             </div>
                             <span className="text-[10px] text-orange-400 font-medium">FUSE</span>
                         </div>
-                        <CharacterSlot char={char2} position={2} onClear={clearSelection} />
+                        <CharacterSlot char={char2} position={2} onClear={clearSelection} priority={true} />
                     </div>
 
                     <Button
@@ -909,9 +909,10 @@ interface CharacterSlotProps {
     char?: DBCharacter;
     position: 1 | 2;
     onClear?: () => void;
+    priority?: boolean;
 }
 
-const CharacterSlot = ({ char, position, onClear }: CharacterSlotProps) => {
+const CharacterSlot = ({ char, position, onClear, priority = false }: CharacterSlotProps) => {
     const color = position === 1
         ? { border: 'border-orange-500', bg: 'bg-orange-500' }
         : { border: 'border-blue-500', bg: 'bg-blue-500' };
@@ -943,7 +944,7 @@ const CharacterSlot = ({ char, position, onClear }: CharacterSlotProps) => {
                         className="object-contain p-1"
                         sizes="96px"
                         quality={85}
-                        priority={position === 1}
+                        priority={priority}
                         unoptimized={true}
                     />
                 ) : (
