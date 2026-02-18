@@ -250,12 +250,20 @@ ${finalPrompt} ${watermarkInstruction}`;
                 // VIP Quota handled by check function limit in this simplified version
             } else if (customerProfile) {
                 const COST_PER_GEN = 1;
-                const { error: updateError } = await supabase
+                // Use Service Role Client for deduction to bypass RLS policies
+                const { createServiceRoleClient } = await import('@/utils/supabase/service-role');
+                const adminClient = createServiceRoleClient();
+
+                const { error: updateError } = await adminClient
                     .from("customers")
                     .update({ credits: customerProfile.credits - COST_PER_GEN })
-                    .eq("id", customerProfile.id);
+                    .eq("id", customerProfile.id); // Securely target by ID we verified earlier
 
-                if (!updateError) remainingQuota = customerProfile.credits - COST_PER_GEN;
+                if (updateError) {
+                    console.error("CRITICAL: Failed to deduct credit for user", user.id, updateError);
+                } else {
+                    remainingQuota = customerProfile.credits - COST_PER_GEN;
+                }
             }
         }
 

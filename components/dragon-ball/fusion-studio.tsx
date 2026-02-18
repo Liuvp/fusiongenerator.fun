@@ -410,7 +410,7 @@ export function DBFusionStudio() {
                     variant: "destructive",
                     duration: 3000
                 });
-                setTimeout(() => router.push('/pricing?source=dragon_ball_fusion'), 2000);
+                setShowAuthOptions(true);
             }
             return;
         }
@@ -463,10 +463,12 @@ export function DBFusionStudio() {
                     setTimeout(() => {
                         if (!user) {
                             setShowAuthOptions(true);
+                            setShowAuthOptions(true);
                         } else {
-                            router.push('/pricing?source=dragon_ball_fusion');
+                            setShowAuthOptions(true);
+                            // router.push('/pricing?source=dragon_ball_fusion'); // Optional: redirect or just show options
                         }
-                    }, 500); //稍微快一点显示按钮，或者直接显示？如果是按钮显示，不需要timeout其实。保留一点延迟稍微自然点，或者直接删掉timeout。这里改为直接显示更好。
+                    }, 500);
 
                     return; // 中断后续逻辑
                 }
@@ -798,99 +800,120 @@ export function DBFusionStudio() {
                             </div>
                         </div>
                     )}
+
+                    {/* 已登录用户引导：配额不足时显示 */}
+                    {showAuthOptions && user && !hasQuotaAccessValue && (
+                        <div className="mt-6 p-4 bg-purple-50 border border-purple-100 rounded-xl animate-in fade-in slide-in-from-top-2">
+                            <div className="text-center mb-4 space-y-1">
+                                <h4 className="font-bold text-gray-800">Fusion Energy Depleted!</h4>
+                                <p className="text-xs text-gray-600">
+                                    Become a Super Saiyan (VIP) for unlimited generations.
+                                </p>
+                            </div>
+                            <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-blue-700 border-0">
+                                <Link href="/pricing?source=dragon_ball_fusion_quota">
+                                    Upgrade to VIP 🚀
+                                </Link>
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
             {/* 加载状态 */}
-            {isGenerating && (
-                <Card
-                    className="border-0 shadow-md mb-6 animate-pulse"
-                    aria-live="polite"
-                    aria-busy="true"
-                    role="status"
-                >
-                    <CardContent className="h-[300px] flex flex-col items-center justify-center p-5 space-y-4 bg-gray-50/50 rounded-xl">
-                        <Sparkles
-                            className="w-12 h-12 text-orange-400 animate-spin"
-                            aria-hidden="true"
-                            focusable="false"
-                        />
-                        <p className="text-gray-600 font-semibold">Channeling Ki...</p>
-                        <p className="text-sm text-gray-500 font-medium">This may take a moment</p>
-                        <div className="sr-only">
-                            Generating fusion between {char1?.name} and {char2?.name}. Please wait.
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            {
+                isGenerating && (
+                    <Card
+                        className="border-0 shadow-md mb-6 animate-pulse"
+                        aria-live="polite"
+                        aria-busy="true"
+                        role="status"
+                    >
+                        <CardContent className="h-[300px] flex flex-col items-center justify-center p-5 space-y-4 bg-gray-50/50 rounded-xl">
+                            <Sparkles
+                                className="w-12 h-12 text-orange-400 animate-spin"
+                                aria-hidden="true"
+                                focusable="false"
+                            />
+                            <p className="text-gray-600 font-semibold">Channeling Ki...</p>
+                            <p className="text-sm text-gray-500 font-medium">This may take a moment</p>
+                            <div className="sr-only">
+                                Generating fusion between {char1?.name} and {char2?.name}. Please wait.
+                            </div>
+                        </CardContent>
+                    </Card>
+                )
+            }
 
             {/* 结果显示 */}
-            {result && (
-                <Card
-                    ref={resultRef}
-                    className="border-0 shadow-xl overflow-hidden mb-6 animate-in fade-in slide-in-from-bottom-8 duration-500"
-                    aria-label="Fusion result"
-                >
-                    <CardContent className="p-0">
-                        <div className="relative aspect-square w-full bg-gradient-to-br from-gray-50 to-gray-100">
-                            <Image
-                                src={result.imageUrl}
-                                alt={`${result.char1.name} fused with ${result.char2.name}`}
-                                fill
-                                className="object-contain p-4"
-                                sizes="(max-width: 768px) 100vw, 800px"
-                                quality={90}
-                                priority
-                                unoptimized={true}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
-                        </div>
-                        <div className="p-5 space-y-4">
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900">
-                                    {result.char1.name} × {result.char2.name}
-                                </h3>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Fusion Complete
-                                </p>
+            {
+                result && (
+                    <Card
+                        ref={resultRef}
+                        className="border-0 shadow-xl overflow-hidden mb-6 animate-in fade-in slide-in-from-bottom-8 duration-500"
+                        aria-label="Fusion result"
+                    >
+                        <CardContent className="p-0">
+                            <div className="relative aspect-square w-full bg-gradient-to-br from-gray-50 to-gray-100">
+                                <Image
+                                    src={result.imageUrl}
+                                    alt={`${result.char1.name} fused with ${result.char2.name}`}
+                                    fill
+                                    className="object-contain p-4"
+                                    sizes="(max-width: 768px) 100vw, 800px"
+                                    quality={90}
+                                    priority
+                                    unoptimized={true}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
                             </div>
-                            <div className="grid grid-cols-3 gap-2">
-                                <Button
-                                    type="button"
-                                    onClick={downloadImage}
-                                    variant="default"
-                                    aria-label="Download fusion results as an image"
-                                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
-                                    title="Download fusion image"
-                                >
-                                    <Download className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                    Save
-                                </Button>
-                                <Button
-                                    type="button"
-                                    aria-label="Share this fusion with friends"
-                                    onClick={shareResult}
-                                    variant="outline"
-                                    title="Share fusion result"
-                                >
-                                    <Share2 className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                    Share
-                                </Button>
-                                <Button
-                                    type="button"
-                                    aria-label="Start a new Dragon Ball fusion"
-                                    onClick={clearSelection}
-                                    variant="outline"
-                                    title="Create new fusion"
-                                >
-                                    <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                    New
-                                </Button>
+                            <div className="p-5 space-y-4">
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">
+                                        {result.char1.name} × {result.char2.name}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Fusion Complete
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <Button
+                                        type="button"
+                                        onClick={downloadImage}
+                                        variant="default"
+                                        aria-label="Download fusion results as an image"
+                                        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                                        title="Download fusion image"
+                                    >
+                                        <Download className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
+                                        Save
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        aria-label="Share this fusion with friends"
+                                        onClick={shareResult}
+                                        variant="outline"
+                                        title="Share fusion result"
+                                    >
+                                        <Share2 className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
+                                        Share
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        aria-label="Start a new Dragon Ball fusion"
+                                        onClick={clearSelection}
+                                        variant="outline"
+                                        title="Create new fusion"
+                                    >
+                                        <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
+                                        New
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+                        </CardContent>
+                    </Card>
+                )
+            }
 
             {/* 底部说明 */}
             <div className="mt-8 text-center space-y-1">
@@ -898,7 +921,7 @@ export function DBFusionStudio() {
                     Fusion results are AI-generated for entertainment. Not official Dragon Ball content.
                 </p>
             </div>
-        </div>
+        </div >
     );
 }
 
