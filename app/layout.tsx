@@ -7,40 +7,8 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { createClient } from "@/utils/supabase/server";
 import { Toaster } from "@/components/ui/toaster";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
-
-/* =========================
-   Site URL Configuration
-   ========================= */
-function getSiteUrl(): string {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-
-  // Fallback to hardcoded domain if env var is missing
-  if (!raw) {
-    return "https://fusiongenerator.fun";
-  }
-
-  let url = raw;
-
-  // Ensure protocol
-  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    url = `https://${url}`;
-  }
-
-  // Remove trailing slash
-  if (url.endsWith("/")) {
-    url = url.slice(0, -1);
-  }
-
-  // Validate URL format
-  try {
-    new URL(url);
-    return url;
-  } catch {
-    console.warn(`Invalid NEXT_PUBLIC_SITE_URL: ${raw}, falling back to default.`);
-    return "https://fusiongenerator.fun";
-  }
-}
 
 const baseUrl = getSiteUrl();
 
@@ -60,7 +28,7 @@ export const metadata: Metadata = {
     description:
       "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
     type: "website",
-    url: "https://fusiongenerator.fun/",
+    url: `${baseUrl}/`,
     locale: "en_US",
   },
   twitter: {

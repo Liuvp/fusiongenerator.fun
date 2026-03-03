@@ -4,6 +4,9 @@ import Link from 'next/link'
 export const metadata: Metadata = {
     title: 'Sitemap – Fusion Generator',
     description: 'Complete sitemap of all pages on Fusion Generator - Dragon Ball fusions, Pokemon fusions, AI fusion tools, blog articles, and more.',
+    alternates: {
+        canonical: '/site-map',
+    },
     robots: {
         index: true,
         follow: true,
@@ -21,6 +24,7 @@ const sitemapData = {
     ],
     content: [
         { url: '/blog', title: 'Blog', description: 'Guides, tips, and news about character fusion' },
+        { url: '/blog/pokemon-infinite-fusion-guide', title: 'Pokemon Infinite Fusion Guide', description: 'Complete guide to Pokemon Infinite Fusion and how to use it' },
         { url: '/blog/top-dragon-ball-fusions', title: 'Top Dragon Ball Fusions', description: 'Best Dragon Ball character fusion combinations' },
         { url: '/blog/pokemon-fusion-technology', title: 'Pokemon Fusion Technology', description: 'How AI Pokemon fusion works' },
         { url: '/blog/fusion-design-tips', title: 'Fusion Design Tips', description: 'Expert tips for creating great character fusions' },

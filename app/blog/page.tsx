@@ -36,7 +36,7 @@ export const metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://fusiongenerator.fun/images/blog/blog-og-image.jpg',
+        url: 'https://fusiongenerator.fun/images/blog/blog-og-image.png',
         width: 1200,
         height: 630,
         alt: 'Fusion Generator Blog - Character Fusion Guides & Tips',
@@ -47,11 +47,8 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Fusion Generator Blog - Expert Fusion Guides 2026',
     description: 'Professional guides for Dragon Ball and Pokémon character fusion. Learn AI techniques and design tips.',
-    images: ['https://fusiongenerator.fun/images/blog/blog-og-image.jpg'],
+    images: ['https://fusiongenerator.fun/images/blog/blog-og-image.png'],
     creator: '@FusionGenerator',
-  },
-  verification: {
-    google: 'your-google-verification-code',
   },
 }
 

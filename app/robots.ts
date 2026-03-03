@@ -1,14 +1,8 @@
 import type { MetadataRoute } from "next"
-
-const getBaseUrl = () => {
-  if (process.env.BASE_URL) {
-    return `https://${process.env.BASE_URL.replace(/^https?:\/\//, "").replace(/\/$/, "")}`
-  }
-  return "https://fusiongenerator.fun"
-}
+import { getSiteUrl } from "@/lib/site-url"
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = getBaseUrl()
+  const baseUrl = getSiteUrl()
   return {
     rules: {
       userAgent: '*',
