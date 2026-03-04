@@ -22,6 +22,20 @@ import { SettingsPanel } from "./studio/settings-panel";
 const OPTIMIZED_POKEMON = POKEMON_DATABASE;
 
 type AuthGateReason = "guest_quota_used" | "member_quota_exceeded" | "api_limit_reached";
+type StudioEventPayload = Record<string, string | number | boolean | null | undefined>;
+
+const trackStudioEvent = (eventName: string, payload: StudioEventPayload = {}): void => {
+    if (typeof window === "undefined") return;
+
+    try {
+        const globalWindow = window as Window & { gtag?: (...args: unknown[]) => void };
+        if (typeof globalWindow.gtag === "function") {
+            globalWindow.gtag("event", eventName, payload);
+        }
+    } catch (error) {
+        console.warn("Failed to track Pokemon studio event:", error);
+    }
+};
 
 export function PokeFusionStudio() {
     const { toast } = useToast();
@@ -155,7 +169,13 @@ export function PokeFusionStudio() {
     const openAuthGate = useCallback((reason: AuthGateReason) => {
         setAuthGateReason(reason);
         setShowAuthOptions(true);
-    }, []);
+        trackStudioEvent("pokemon_auth_gate_open", {
+            reason,
+            is_logged_in: Boolean(user),
+            remaining_quota: quota?.remaining ?? null,
+            is_vip: Boolean(quota?.isVIP),
+        });
+    }, [quota?.isVIP, quota?.remaining, user]);
 
     useEffect(() => {
         if (hasQuotaAccessValue) {
@@ -203,6 +223,11 @@ export function PokeFusionStudio() {
 
         // Clicking an already selected Pokemon should produce a visible state change.
         if (isSelectedAsP1 || isSelectedAsP2) {
+            trackStudioEvent("pokemon_select", {
+                action: "deselect",
+                slot: isSelectedAsP1 ? 1 : 2,
+                pokemon_id: p.id,
+            });
             if (isSelectedAsP1) {
                 if (pokemon2) {
                     setPokemon1(pokemon2);
@@ -217,6 +242,12 @@ export function PokeFusionStudio() {
             setPromptSource("auto");
             return;
         }
+
+        trackStudioEvent("pokemon_select", {
+            action: "select",
+            pokemon_id: p.id,
+            selected_count_before: Number(Boolean(pokemon1)) + Number(Boolean(pokemon2)),
+        });
 
         if (!pokemon1) setPokemon1(p);
         else if (!pokemon2) setPokemon2(p);
@@ -263,12 +294,25 @@ export function PokeFusionStudio() {
     };
 
     const generateFusion = async () => {
+        trackStudioEvent("pokemon_generate_click", {
+            selected_count: selectedCount,
+            is_selection_complete: isSelectionComplete,
+            has_quota_access: hasQuotaAccessValue,
+            is_logged_in: Boolean(user),
+            remaining_quota: quota?.remaining ?? null,
+            is_vip: Boolean(quota?.isVIP),
+        });
+
         if (!isSelectionComplete) {
             setIsActionHintActive(true);
             setTimeout(() => setIsActionHintActive(false), 600);
             toast({
                 title: "Select 2 Pokemon first",
                 description: `Current selection: ${selectedCount}/2`,
+            });
+            trackStudioEvent("pokemon_generate_blocked", {
+                reason: "incomplete_selection",
+                selected_count: selectedCount,
             });
             return;
         }
@@ -283,6 +327,10 @@ export function PokeFusionStudio() {
                     description: "Sign in to unlock more fusion credits.",
                 });
                 openAuthGate("guest_quota_used");
+                trackStudioEvent("pokemon_generate_blocked", {
+                    reason: "guest_quota_used",
+                    remaining_quota: quota?.remaining ?? 0,
+                });
             } else {
                 toast({
                     title: "Quota Exceeded",
@@ -290,6 +338,10 @@ export function PokeFusionStudio() {
                     variant: "destructive",
                 });
                 openAuthGate("member_quota_exceeded");
+                trackStudioEvent("pokemon_generate_blocked", {
+                    reason: "member_quota_exceeded",
+                    remaining_quota: quota?.remaining ?? 0,
+                });
             }
             return;
         }
@@ -311,6 +363,10 @@ export function PokeFusionStudio() {
                 if (res.status === 429 || res.status === 402) {
                     toast({ title: "Limit Reached", description: data.error, variant: "destructive" });
                     openAuthGate(user ? "member_quota_exceeded" : "api_limit_reached");
+                    trackStudioEvent("pokemon_generate_fail", {
+                        status: res.status,
+                        reason: user ? "member_quota_exceeded" : "api_limit_reached",
+                    });
                     return;
                 }
                 throw new Error(data.error);
@@ -320,9 +376,19 @@ export function PokeFusionStudio() {
             if (pokemon1 && pokemon2) {
                 setResult({ imageUrl: data.imageUrl, pokemon1, pokemon2, style });
                 toast({ title: "Started!", description: "Creating your fusion..." });
+                trackStudioEvent("pokemon_generate_success", {
+                    pokemon_1: pokemon1.id,
+                    pokemon_2: pokemon2.id,
+                    style: style.id,
+                    remaining_quota: data?.quota?.remaining ?? quota?.remaining ?? null,
+                });
             }
         } catch (error: any) {
             toast({ title: "Failed", description: error.message, variant: "destructive" });
+            trackStudioEvent("pokemon_generate_fail", {
+                status: 0,
+                reason: "runtime_error",
+            });
         } finally {
             setIsGenerating(false);
         }

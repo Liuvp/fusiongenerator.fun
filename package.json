@@ -6,7 +6,8 @@
     "start": "next start",
     "clarity:fetch": "node clarity-fetch-metrics.js",
     "clarity:analyze": "node clarity-analyze.js",
-    "clarity:run": "node clarity-fetch-metrics.js --softFail=true && node clarity-analyze.js"
+    "clarity:run": "node clarity-fetch-metrics.js --softFail=true && node clarity-analyze.js",
+    "clarity:daily": "node clarity-daily-snapshot.js"
   },
   "dependencies": {
     "@fal-ai/serverless-client": "^0.14.3",
