@@ -103,9 +103,12 @@ export function PokePopularFusions() {
                 {/* 融合展示网格 */}
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     {fusions.map((fusion, index) => (
-                        <div
+                        <Link
                             key={index}
-                            className="group block h-full"
+                            href="#fusion-studio"
+                            className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                            aria-label={`Use ${fusion.left} and ${fusion.right} in Fusion Studio`}
+                            title={`Use ${fusion.left} + ${fusion.right} in Fusion Studio`}
                         >
                             <Card className="h-full border-2 hover:border-blue-500/50 hover:shadow-lg transition-all duration-300 group-hover:scale-[1.02]">
                                 <CardContent className="p-5 space-y-4 h-full flex flex-col">
@@ -159,10 +162,13 @@ export function PokePopularFusions() {
                                         <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed flex-1">
                                             {fusion.desc}
                                         </p>
+                                        <p className="text-xs font-semibold text-blue-600">
+                                            Use this combo in Studio -&gt;
+                                        </p>
                                     </div>
                                 </CardContent>
                             </Card>
-                        </div>
+                        </Link>
                     ))}
                 </div>
 

@@ -8,6 +8,10 @@
                     "value": "application/xml; charset=utf-8"
                 },
                 {
+                    "key": "X-Robots-Tag",
+                    "value": "noindex, follow"
+                },
+                {
                     "key": "Cache-Control",
                     "value": "public, max-age=0, s-maxage=300"
                 },
@@ -18,12 +22,21 @@
             ]
         },
         {
-            "source": "/:path*",
+            "source": "/robots.txt",
             "headers": [
                 {
-                    "key": "X-Robots-Tag",
-                    "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+                    "key": "Content-Type",
+                    "value": "text/plain; charset=utf-8"
                 },
+                {
+                    "key": "X-Robots-Tag",
+                    "value": "noindex, follow"
+                }
+            ]
+        },
+        {
+            "source": "/:path*",
+            "headers": [
                 {
                     "key": "X-Frame-Options",
                     "value": "SAMEORIGIN"

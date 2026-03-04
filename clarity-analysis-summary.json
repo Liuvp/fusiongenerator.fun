@@ -1,0 +1,51 @@
+{
+  "generatedAtUtc": "2026-03-04T01:32:31.760Z",
+  "inputPath": "E:\\github\\fusiongenerator.fun\\clarity-live-insights.json",
+  "topN": 10,
+  "minSessions": 1,
+  "excludeAssets": true,
+  "totalUrls": 4,
+  "rawTotalUrls": 4,
+  "rows": [
+    {
+      "rank": 1,
+      "url": "https://fusiongenerator.fun/pokemon",
+      "sessions": 1,
+      "issueRatePct": 400,
+      "priorityScore": 100,
+      "dominantIssue": "deadClicks",
+      "breakdownHint": "Device=PC (issueRate 400%, sessions 1)",
+      "action": "Dead clicks are high. Audit elements that look clickable but are not, and add clearer click feedback."
+    },
+    {
+      "rank": 2,
+      "url": "https://fusiongenerator.fun/blog",
+      "sessions": 1,
+      "issueRatePct": 0,
+      "priorityScore": 0,
+      "dominantIssue": null,
+      "breakdownHint": "Device=PC (issueRate 0%, sessions 1)",
+      "action": "Prioritize small iterations: improve above-the-fold clarity, click feedback, and key-path visibility."
+    },
+    {
+      "rank": 3,
+      "url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+      "sessions": 1,
+      "issueRatePct": 0,
+      "priorityScore": 0,
+      "dominantIssue": null,
+      "breakdownHint": "Device=PC (issueRate 0%, sessions 1)",
+      "action": "Scroll depth is low. Move primary value props and CTA above the fold and reduce first-screen clutter."
+    },
+    {
+      "rank": 4,
+      "url": "https://fusiongenerator.fun/",
+      "sessions": 1,
+      "issueRatePct": 0,
+      "priorityScore": 0,
+      "dominantIssue": null,
+      "breakdownHint": "Device=PC (issueRate 0%, sessions 1)",
+      "action": "Scroll depth is low. Move primary value props and CTA above the fold and reduce first-screen clutter."
+    }
+  ]
+}

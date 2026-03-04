@@ -1,0 +1,412 @@
+[
+  {
+    "metricName": "DeadClickCount",
+    "information": [
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 100,
+        "sessionsWithoutMetricPercentage": 0,
+        "pagesViews": "2",
+        "subTotal": "4",
+        "Url": "https://fusiongenerator.fun/pokemon",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/images/blog/blog-og-image.jpg",
+        "OS": "Windows"
+      }
+    ]
+  },
+  {
+    "metricName": "ExcessiveScroll",
+    "information": [
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/pokemon",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/images/blog/blog-og-image.jpg",
+        "OS": "Windows"
+      }
+    ]
+  },
+  {
+    "metricName": "RageClickCount",
+    "information": [
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/pokemon",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/images/blog/blog-og-image.jpg",
+        "OS": "Windows"
+      }
+    ]
+  },
+  {
+    "metricName": "QuickbackClick",
+    "information": [
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/pokemon",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/images/blog/blog-og-image.jpg",
+        "OS": "Windows"
+      }
+    ]
+  },
+  {
+    "metricName": "ScriptErrorCount",
+    "information": [
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/pokemon",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/images/blog/blog-og-image.jpg",
+        "OS": "Windows"
+      }
+    ]
+  },
+  {
+    "metricName": "ErrorClickCount",
+    "information": [
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/pokemon",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+        "OS": "Windows"
+      },
+      {
+        "sessionsCount": "1",
+        "sessionsWithMetricPercentage": 0,
+        "sessionsWithoutMetricPercentage": 100,
+        "pagesViews": "0",
+        "subTotal": "0",
+        "Url": "https://fusiongenerator.fun/images/blog/blog-og-image.jpg",
+        "OS": "Windows"
+      }
+    ]
+  },
+  {
+    "metricName": "ScrollDepth",
+    "information": [
+      {
+        "averageScrollDepth": 18,
+        "Url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+        "OS": "Windows"
+      },
+      {
+        "averageScrollDepth": 87,
+        "Url": "https://fusiongenerator.fun/images/blog/blog-og-image.jpg",
+        "OS": "Windows"
+      },
+      {
+        "averageScrollDepth": 27,
+        "Url": "https://fusiongenerator.fun/",
+        "OS": "Windows"
+      },
+      {
+        "averageScrollDepth": 18,
+        "Url": "https://fusiongenerator.fun/pokemon",
+        "OS": "Windows"
+      },
+      {
+        "averageScrollDepth": 64.67,
+        "Url": "https://fusiongenerator.fun/blog",
+        "OS": "Windows"
+      }
+    ]
+  },
+  {
+    "metricName": "Traffic",
+    "information": [
+      {
+        "totalSessionCount": "1",
+        "totalBotSessionCount": "0",
+        "distinctUserCount": "1",
+        "pagesPerSessionPercentage": 1,
+        "Url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+        "OS": "Windows"
+      },
+      {
+        "totalSessionCount": "1",
+        "totalBotSessionCount": "0",
+        "distinctUserCount": "1",
+        "pagesPerSessionPercentage": 1,
+        "Url": "https://fusiongenerator.fun/images/blog/blog-og-image.jpg",
+        "OS": "Windows"
+      },
+      {
+        "totalSessionCount": "1",
+        "totalBotSessionCount": "2",
+        "distinctUserCount": "3",
+        "pagesPerSessionPercentage": 1,
+        "Url": "https://fusiongenerator.fun/",
+        "OS": "Windows"
+      },
+      {
+        "totalSessionCount": "1",
+        "totalBotSessionCount": "0",
+        "distinctUserCount": "1",
+        "pagesPerSessionPercentage": 2,
+        "Url": "https://fusiongenerator.fun/pokemon",
+        "OS": "Windows"
+      },
+      {
+        "totalSessionCount": "1",
+        "totalBotSessionCount": "0",
+        "distinctUserCount": "1",
+        "pagesPerSessionPercentage": 3,
+        "Url": "https://fusiongenerator.fun/blog",
+        "OS": "Windows"
+      }
+    ]
+  },
+  {
+    "metricName": "EngagementTime",
+    "information": [
+      {
+        "totalTime": "808",
+        "activeTime": "41",
+        "Url": "https://fusiongenerator.fun/pokemon",
+        "OS": "Windows"
+      },
+      {
+        "totalTime": "618",
+        "activeTime": "7",
+        "Url": "https://fusiongenerator.fun/blog",
+        "OS": "Windows"
+      },
+      {
+        "totalTime": "18",
+        "activeTime": "3",
+        "Url": "https://fusiongenerator.fun/",
+        "OS": "Windows"
+      },
+      {
+        "totalTime": "5",
+        "activeTime": "5",
+        "Url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+        "OS": "Windows"
+      },
+      {
+        "totalTime": "3",
+        "activeTime": "3",
+        "Url": "https://fusiongenerator.fun/images/blog/blog-og-image.jpg",
+        "OS": "Windows"
+      }
+    ]
+  }
+]

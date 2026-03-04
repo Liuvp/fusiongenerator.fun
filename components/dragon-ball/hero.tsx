@@ -29,15 +29,18 @@ export function DBHero() {
                 <div className="flex flex-wrap gap-3">
                     <Button asChild className="h-10 px-4 py-2">
                         <Link href="#fusion-studio" aria-label="Start Dragon Ball fusion generator">
-                            Start Fusing
+                            Start Free Fusion
                         </Link>
                     </Button>
                     <Button asChild variant="outline" className="h-10 px-4 py-2">
                         <Link href="/gallery" aria-label="View Dragon Ball fusion gallery">
-                            View Gallery
+                            View Examples
                         </Link>
                     </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                    1) Pick two fighters 2) Generate your fusion 3) Save or share.
+                </p>
             </div>
             <div className="relative w-full flex items-center justify-center">
                 <Image

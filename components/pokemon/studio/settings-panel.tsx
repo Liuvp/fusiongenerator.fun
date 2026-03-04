@@ -29,7 +29,20 @@ export function SettingsPanel({ style, setStyle, prompt, setPrompt, setPromptSou
                         className="grid grid-cols-2 sm:grid-cols-3 gap-2"
                     >
                         {FUSION_STYLES.map(s => (
-                            <div key={s.id} className={`flex items-center space-x-2 border rounded p-2 cursor-pointer bg-white transition-all ${style.id === s.id ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/50' : 'hover:border-blue-200'}`}>
+                            <div
+                                key={s.id}
+                                role="button"
+                                tabIndex={0}
+                                aria-pressed={style.id === s.id}
+                                onClick={() => setStyle(s)}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter" || event.key === " ") {
+                                        event.preventDefault();
+                                        setStyle(s);
+                                    }
+                                }}
+                                className={`flex items-center space-x-2 border rounded p-2 cursor-pointer bg-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${style.id === s.id ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/50' : 'hover:border-blue-200'}`}
+                            >
                                 <RadioGroupItem value={s.id} id={s.id} />
                                 <Label htmlFor={s.id} className="text-xs cursor-pointer flex-1 user-select-none">{s.name}</Label>
                             </div>

@@ -1,0 +1,58 @@
+[
+  {
+    "url": "https://fusiongenerator.fun/pokemon",
+    "rageClicks": 0,
+    "deadClicks": 4,
+    "quickbackClicks": 0,
+    "scriptErrors": 0,
+    "errorClicks": 0,
+    "issueCount": 4,
+    "issueRatePct": 400,
+    "priorityScore": 100,
+    "dominantIssue": "deadClicks",
+    "breakdownHint": "Device=PC (issueRate 400%, sessions 1)",
+    "suggestion": "Dead clicks are high. Audit elements that look clickable but are not, and add clearer click feedback."
+  },
+  {
+    "url": "https://fusiongenerator.fun/blog",
+    "rageClicks": 0,
+    "deadClicks": 0,
+    "quickbackClicks": 0,
+    "scriptErrors": 0,
+    "errorClicks": 0,
+    "issueCount": 0,
+    "issueRatePct": 0,
+    "priorityScore": 0,
+    "dominantIssue": null,
+    "breakdownHint": "Device=PC (issueRate 0%, sessions 1)",
+    "suggestion": "Prioritize small iterations: improve above-the-fold clarity, click feedback, and key-path visibility."
+  },
+  {
+    "url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+    "rageClicks": 0,
+    "deadClicks": 0,
+    "quickbackClicks": 0,
+    "scriptErrors": 0,
+    "errorClicks": 0,
+    "issueCount": 0,
+    "issueRatePct": 0,
+    "priorityScore": 0,
+    "dominantIssue": null,
+    "breakdownHint": "Device=PC (issueRate 0%, sessions 1)",
+    "suggestion": "Scroll depth is low. Move primary value props and CTA above the fold and reduce first-screen clutter."
+  },
+  {
+    "url": "https://fusiongenerator.fun/",
+    "rageClicks": 0,
+    "deadClicks": 0,
+    "quickbackClicks": 0,
+    "scriptErrors": 0,
+    "errorClicks": 0,
+    "issueCount": 0,
+    "issueRatePct": 0,
+    "priorityScore": 0,
+    "dominantIssue": null,
+    "breakdownHint": "Device=PC (issueRate 0%, sessions 1)",
+    "suggestion": "Scroll depth is low. Move primary value props and CTA above the fold and reduce first-screen clutter."
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "url": "https://fusiongenerator.fun/pokemon",
+    "sessions": 1,
+    "sessionSharePct": 25,
+    "engagementTime": 808,
+    "scrollDepth": 18
+  },
+  {
+    "url": "https://fusiongenerator.fun/blog",
+    "sessions": 1,
+    "sessionSharePct": 25,
+    "engagementTime": 618,
+    "scrollDepth": 64.67
+  },
+  {
+    "url": "https://fusiongenerator.fun/blog/pokemon-fusion-technology",
+    "sessions": 1,
+    "sessionSharePct": 25,
+    "engagementTime": 5,
+    "scrollDepth": 18
+  },
+  {
+    "url": "https://fusiongenerator.fun/",
+    "sessions": 1,
+    "sessionSharePct": 25,
+    "engagementTime": 18,
+    "scrollDepth": 27
+  }
+]

@@ -17,18 +17,12 @@ import { DBFeatures } from "@/components/dragon-ball/features";
 // DBPopularFusions is now dynamically imported
 import { DBFAQ } from "@/components/dragon-ball/faq";
 import { DBCTA } from "@/components/dragon-ball/cta";
+import { DBFusionStudioClient } from "@/components/dragon-ball/fusion-studio-client";
 import { ErrorBoundary } from "@/components/error-boundary";
 
 // ===============================
 // 动态导入：非关键交互组件
 // ===============================
-const DBFusionStudio = nextDynamic(
-  () => import("@/components/dragon-ball/fusion-studio").then(mod => mod.DBFusionStudio),
-  {
-    loading: () => <FusionStudioSkeleton />
-  }
-);
-
 const DBPopularFusions = nextDynamic(
   () => import("@/components/dragon-ball/popular-fusions").then(mod => mod.DBPopularFusions),
   {
@@ -210,7 +204,7 @@ export default function DragonBallPage() {
           <div className="max-w-5xl mx-auto space-y-12 md:space-y-16">
             <DBHero />
             <ErrorBoundary>
-              <DBFusionStudio />
+              <DBFusionStudioClient />
             </ErrorBoundary>
             <DBHowToUse />
             <DBPopularFusions />

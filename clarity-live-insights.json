@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "endpoint": "https://www.clarity.ms/export-data/api/v1/project-live-insights",
+    "fetchedAtUtc": "2026-03-03T08:27:43.811Z",
+    "numOfDays": 1,
+    "quotaReminder": "Clarity API quota is 10 requests per project per day (UTC).",
+    "plannedRequests": 6,
+    "successCount": 0,
+    "failedCount": 6
+  },
+  "queries": [
+    {
+      "id": "by_url",
+      "dimensions": [
+        "URL"
+      ],
+      "status": "error",
+      "error": "HTTP 429: {\"raw\":\"Exceeded daily limit\"}"
+    },
+    {
+      "id": "by_url_device",
+      "dimensions": [
+        "URL",
+        "Device"
+      ],
+      "status": "error",
+      "error": "HTTP 429: {\"raw\":\"Exceeded daily limit\"}"
+    },
+    {
+      "id": "by_url_os",
+      "dimensions": [
+        "URL",
+        "OS"
+      ],
+      "status": "error",
+      "error": "HTTP 429: {\"raw\":\"Exceeded daily limit\"}"
+    },
+    {
+      "id": "by_url_browser",
+      "dimensions": [
+        "URL",
+        "Browser"
+      ],
+      "status": "error",
+      "error": "HTTP 429: {\"raw\":\"Exceeded daily limit\"}"
+    },
+    {
+      "id": "by_url_source",
+      "dimensions": [
+        "URL",
+        "Source"
+      ],
+      "status": "error",
+      "error": "HTTP 429: {\"raw\":\"Exceeded daily limit\"}"
+    },
+    {
+      "id": "by_url_channel",
+      "dimensions": [
+        "URL",
+        "Channel"
+      ],
+      "status": "error",
+      "error": "HTTP 429: {\"raw\":\"Exceeded daily limit\"}"
+    }
+  ]
+}

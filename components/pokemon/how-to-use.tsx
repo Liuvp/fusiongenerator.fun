@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CheckCircle } from "lucide-react";
 
 export function PokeHowToUse() {
@@ -34,8 +35,14 @@ export function PokeHowToUse() {
             </div>
 
             <div className="grid gap-8 md:grid-cols-3">
-                {steps.map((step, index) => (
-                    <div key={index} className="group relative">
+                {steps.map((step) => (
+                    <Link
+                        key={step.number}
+                        href="#fusion-studio"
+                        className="group relative block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        aria-label={`Go to Fusion Studio from step ${step.number}`}
+                        title={`Go to Fusion Studio from step ${step.number}`}
+                    >
                         {/* 步骤编号装饰 */}
                         <div className="absolute -top-4 -left-4 w-16 h-16 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl -z-10 group-hover:scale-110 transition-transform duration-300" />
 
@@ -63,8 +70,11 @@ export function PokeHowToUse() {
                                     ))}
                                 </ul>
                             </div>
+                            <p className="mt-4 text-xs font-semibold text-blue-600">
+                                Go to Fusion Studio -&gt;
+                            </p>
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
 

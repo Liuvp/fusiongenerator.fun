@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -41,6 +40,26 @@ interface LocalStorageState {
     c2?: string;
     timestamp: number;
 }
+
+type AuthGateReason = "guest_quota_used" | "member_quota_exceeded" | "api_limit_reached";
+
+type StudioEventPayload = Record<string, string | number | boolean | null | undefined>;
+
+const trackStudioEvent = (eventName: string, payload: StudioEventPayload = {}): void => {
+    if (typeof window === "undefined") return;
+
+    try {
+        const globalWindow = window as Window & {
+            gtag?: (...args: unknown[]) => void;
+        };
+
+        if (typeof globalWindow.gtag === "function") {
+            globalWindow.gtag("event", eventName, payload);
+        }
+    } catch (error) {
+        console.warn("Failed to track studio event:", error);
+    }
+};
 
 // ===============================
 // 工具函数
@@ -136,7 +155,6 @@ const CharacterButton = ({
 // 主组件
 // ===============================
 export function DBFusionStudio() {
-    const router = useRouter();
     const { toast } = useToast();
     const resultRef = useRef<HTMLDivElement>(null);
 
@@ -174,10 +192,58 @@ export function DBFusionStudio() {
         [quota]
     );
 
-    const shouldDisableButton = useMemo(() =>
-        isGenerating,
-        [isGenerating]
+    const selectedCount = useMemo(
+        () => Number(Boolean(char1)) + Number(Boolean(char2)),
+        [char1, char2]
     );
+
+    const quotaStatusCopy = useMemo(() => {
+        if (isLoadingAuth) {
+            return {
+                title: "Checking your fusion energy...",
+                description: "Preparing your account and free quota details."
+            };
+        }
+
+        if (quota.isVIP) {
+            return {
+                title: "VIP unlocked: unlimited fusions",
+                description: "Generate as many Dragon Ball fusions as you want."
+            };
+        }
+
+        if (hasQuotaAccessValue) {
+            return user
+                ? {
+                    title: `${quota.remaining} fusion credit${quota.remaining === 1 ? "" : "s"} remaining`,
+                    description: "Use a credit to generate one fusion."
+                }
+                : {
+                    title: `${quota.remaining} free fusion${quota.remaining === 1 ? "" : "s"} left`,
+                    description: "Sign in to unlock more credits when your free quota runs out."
+                };
+        }
+
+        return user
+            ? {
+                title: "No credits left",
+                description: "Upgrade to VIP for unlimited Dragon Ball fusions."
+            }
+            : {
+                title: "Free quota used",
+                description: "Sign in to continue generating fusions."
+            };
+    }, [hasQuotaAccessValue, isLoadingAuth, quota.isVIP, quota.remaining, user]);
+
+    const openAuthGate = useCallback((reason: AuthGateReason): void => {
+        setShowAuthOptions(true);
+        trackStudioEvent("db_auth_modal_show", {
+            reason,
+            is_logged_in: Boolean(user),
+            remaining_quota: quota.remaining,
+            is_vip: quota.isVIP,
+        });
+    }, [quota.isVIP, quota.remaining, user]);
 
     // ===============================
     // 本地存储管理 - 优化：只在选择完成时保存
@@ -330,19 +396,38 @@ export function DBFusionStudio() {
     // 交互函数
     // ===============================
     const selectCharacter = useCallback((char: DBCharacter): void => {
+        const selectedBefore = Number(Boolean(char1)) + Number(Boolean(char2));
         console.log("Selecting:", char.name, "Current:", { c1: char1?.name, c2: char2?.name });
 
         // 允许反选：点击已选中的角色取消选中
         if (char1?.id === char.id) {
+            trackStudioEvent("db_select_char", {
+                action: "deselect",
+                slot: 1,
+                char_id: char.id,
+                selected_count_before: selectedBefore,
+            });
             setChar1(undefined);
             setResult(null);
             return;
         }
         if (char2?.id === char.id) {
+            trackStudioEvent("db_select_char", {
+                action: "deselect",
+                slot: 2,
+                char_id: char.id,
+                selected_count_before: selectedBefore,
+            });
             setChar2(undefined);
             setResult(null);
             return;
         }
+
+        trackStudioEvent("db_select_char", {
+            action: "select",
+            char_id: char.id,
+            selected_count_before: selectedBefore,
+        });
 
         if (!char1) {
             setChar1(char);
@@ -389,6 +474,14 @@ export function DBFusionStudio() {
     }, [toast]);
 
     const generateFusion = useCallback(async (): Promise<void> => {
+        trackStudioEvent("db_generate_click", {
+            selected_count: selectedCount,
+            is_selection_complete: isSelectionComplete,
+            has_quota_access: hasQuotaAccessValue,
+            is_logged_in: Boolean(user),
+            remaining_quota: quota.remaining,
+            is_vip: quota.isVIP,
+        });
         // 配额检查
         if (!hasQuotaAccessValue) {
             setIsShaking(true);
@@ -402,7 +495,7 @@ export function DBFusionStudio() {
                     variant: "default",
                     duration: 3000
                 });
-                setShowAuthOptions(true);
+                openAuthGate("guest_quota_used");
             } else {
                 toast({
                     title: "Quota Exceeded",
@@ -410,8 +503,13 @@ export function DBFusionStudio() {
                     variant: "destructive",
                     duration: 3000
                 });
-                setShowAuthOptions(true);
+                openAuthGate("member_quota_exceeded");
             }
+            trackStudioEvent("db_generate_fail", {
+                reason: "quota_blocked_before_request",
+                is_logged_in: Boolean(user),
+                remaining_quota: quota.remaining,
+            });
             return;
         }
 
@@ -425,6 +523,10 @@ export function DBFusionStudio() {
                 description: "Choose two fighters to fuse",
                 variant: "destructive",
                 duration: 3000
+            });
+            trackStudioEvent("db_generate_fail", {
+                reason: "selection_incomplete",
+                selected_count: selectedCount,
             });
             return;
         }
@@ -443,32 +545,44 @@ export function DBFusionStudio() {
                 }),
             });
 
-            const data = await response.json();
+            let data: Record<string, unknown> = {};
+            try {
+                data = await response.json();
+            } catch {
+                data = {};
+            }
 
             if (!response.ok) {
                 // ✅ 改进：更详细的错误信息处理
-                const errorMessage = data.error || data.message || `Server error: ${response.status}`;
+                const errorMessage = String(data.error || data.message || `Server error: ${response.status}`);
+                const normalizedError = errorMessage.toLowerCase();
 
                 // === 新增：自动跳转逻辑 ===
                 // 处理配额不足或限制到达的情况
-                if (response.status === 402 || response.status === 429 || errorMessage.toLowerCase().includes("limit reached")) {
+                if (
+                    response.status === 402
+                    || response.status === 429
+                    || normalizedError.includes("limit reached")
+                    || normalizedError.includes("quota")
+                    || normalizedError.includes("credit")
+                ) {
                     toast({
                         title: "Limit Reached",
-                        description: errorMessage,
+                        description: user
+                            ? "Upgrade to VIP for unlimited fusions."
+                            : "Sign in to unlock more fusion credits.",
                         variant: "destructive",
                         duration: 3000
                     });
 
                     // 延迟跳转，给用户时间看 Toast
-                    setTimeout(() => {
-                        if (!user) {
-                            setShowAuthOptions(true);
-                            setShowAuthOptions(true);
-                        } else {
-                            setShowAuthOptions(true);
-                            // router.push('/pricing?source=dragon_ball_fusion'); // Optional: redirect or just show options
-                        }
-                    }, 500);
+                    trackStudioEvent("db_generate_fail", {
+                        reason: "api_limit_reached",
+                        status_code: response.status,
+                        is_logged_in: Boolean(user),
+                        remaining_quota: quota.remaining,
+                    });
+                    openAuthGate(user ? "member_quota_exceeded" : "api_limit_reached");
 
                     return; // 中断后续逻辑
                 }
@@ -477,8 +591,12 @@ export function DBFusionStudio() {
             }
 
             // 更新配额：优先使用后端返回的最新状态
+            if (!data.imageUrl || typeof data.imageUrl !== "string") {
+                throw new Error("Fusion image was not returned by the server.");
+            }
+
             if (data.quota) {
-                setQuota(data.quota);
+                setQuota(data.quota as Quota);
             } else {
                 setQuota(prev => ({
                     ...prev,
@@ -500,17 +618,27 @@ export function DBFusionStudio() {
                 duration: 3000
             });
 
-        } catch (error: any) {
+            trackStudioEvent("db_generate_success", {
+                char1_id: char1!.id,
+                char2_id: char2!.id,
+                is_logged_in: Boolean(user),
+                remaining_quota: data.quota && typeof data.quota === "object" && "remaining" in data.quota
+                    ? Number((data.quota as Quota).remaining)
+                    : Math.max(0, quota.remaining - 1),
+            });
+
+        } catch (error: unknown) {
             console.error("Fusion error:", error);
 
             // ✅ 改进：安全的错误消息显示，区分不同类型
+            const errorMessage = error instanceof Error ? error.message : "";
             let errorDescription = "Please try again";
-            if (error?.message?.includes("timeout") || error?.message?.includes("time out")) {
+            if (errorMessage.includes("timeout") || errorMessage.includes("time out")) {
                 errorDescription = "The AI service is taking too long. Please try again later.";
-            } else if (error?.message?.includes("rate limit") || error?.message?.includes("too many requests")) {
+            } else if (errorMessage.includes("rate limit") || errorMessage.includes("too many requests")) {
                 errorDescription = "Too many requests. Please wait a moment before trying again.";
-            } else if (error?.message) {
-                errorDescription = error.message;
+            } else if (errorMessage) {
+                errorDescription = errorMessage;
             }
 
             toast({
@@ -519,10 +647,27 @@ export function DBFusionStudio() {
                 variant: "destructive",
                 duration: 5000
             });
+            trackStudioEvent("db_generate_fail", {
+                reason: "runtime_error",
+                message: errorDescription,
+                is_logged_in: Boolean(user),
+                remaining_quota: quota.remaining,
+            });
         } finally {
             setIsGenerating(false);
         }
-    }, [char1, char2, hasQuotaAccessValue, user, router, toast, isSelectionComplete]);
+    }, [
+        char1,
+        char2,
+        hasQuotaAccessValue,
+        isSelectionComplete,
+        openAuthGate,
+        quota.isVIP,
+        quota.remaining,
+        selectedCount,
+        toast,
+        user,
+    ]);
 
     const downloadImage = useCallback(async (): Promise<void> => {
         if (!result?.imageUrl) return;
@@ -601,9 +746,9 @@ export function DBFusionStudio() {
             aria-label="Fusion progress steps"
         >
             {[
-                { key: 1, label: "Select P1", active: !char1, completed: !!char1 },
-                { key: 2, label: "Select P2", active: char1 && !char2, completed: !!char2 },
-                { key: 3, label: "Fuse", active: isSelectionComplete }
+                { key: 1, label: "Pick 1st", active: !char1, completed: !!char1 },
+                { key: 2, label: "Pick 2nd", active: char1 && !char2, completed: !!char2 },
+                { key: 3, label: "Generate", active: isSelectionComplete }
             ].map((step) => (
                 <div key={step.key} className="flex items-center space-x-2">
                     <div
@@ -623,7 +768,7 @@ export function DBFusionStudio() {
                                         'bg-gray-200 text-gray-600'}
                             `}
                         >
-                            {step.completed ? '✓' : step.key}
+                            {step.completed ? "OK" : step.key}
                         </span>
                         <span className="text-xs sm:text-sm">{step.label}</span>
                     </div>
@@ -698,9 +843,14 @@ export function DBFusionStudio() {
             <Card className="border-0 shadow-sm bg-white/90 backdrop-blur-sm mb-6">
                 <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-gray-700">
-                            {isSelectionComplete ? "Selected Fusion" : "Select 2 Fighters"}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-semibold text-gray-700">
+                                {isSelectionComplete ? "Selected Fusion" : "Select 2 Fighters"}
+                            </h3>
+                            <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-600">
+                                {selectedCount}/2 selected
+                            </span>
+                        </div>
                         {(char1 || char2) && (
                             <Button
                                 type="button"
@@ -728,6 +878,17 @@ export function DBFusionStudio() {
                             <span className="text-[10px] text-orange-400 font-medium">FUSE</span>
                         </div>
                         <CharacterSlot char={char2} position={2} onClear={clearSelection} priority={true} />
+                    </div>
+
+                    <div
+                        className={`mb-4 rounded-xl border px-3 py-2 text-xs ${
+                            hasQuotaAccessValue
+                                ? "border-orange-100 bg-orange-50/60 text-orange-700"
+                                : "border-red-100 bg-red-50 text-red-700"
+                        }`}
+                    >
+                        <p className="font-semibold">{quotaStatusCopy.title}</p>
+                        <p className="mt-1">{quotaStatusCopy.description}</p>
                     </div>
 
                     <Button
@@ -764,11 +925,11 @@ export function DBFusionStudio() {
                             </span>
                         ) : !isSelectionComplete ? (
                             <span className="flex items-center gap-2">
-                                <span aria-hidden="true">🔒</span>
-                                <span>SELECT 2 FIGHTERS</span>
+                                <span aria-hidden="true">LOCK</span>
+                                <span>SELECT 2 FIGHTERS ({selectedCount}/2)</span>
                             </span>
                         ) : !hasQuotaAccessValue ? (
-                            user ? "UPGRADE FOR MORE" : "LOGIN FOR ENERGY"
+                            user ? "UPGRADE TO CONTINUE" : "LOGIN TO CONTINUE"
                         ) : (
                             <span className="flex items-center gap-3">
                                 <Sparkles className="w-6 h-6" aria-hidden="true" focusable="false" />

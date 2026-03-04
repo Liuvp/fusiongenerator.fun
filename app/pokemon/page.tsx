@@ -22,16 +22,16 @@ export const dynamic = 'force-static';
 export const revalidate = 3600; // Revalidate every hour
 
 export const metadata: Metadata = {
-  title: "Pokemon Fusion Generator | AI Pokemon Fusion Online",
+  title: "Pokemon Fusion Generator (Gen 1-9) | Free Online AI Tool",
   description:
-    "Instantly create infinite Pokemon fusions! Mix Pikachu, Charizard, Mewtwo, and more to discover new species. Free, fun, and easy-to-use Pokemon fusion generator.",
+    "Use our free online Pokemon Fusion Generator to combine any two Pokemon in seconds. Supports Gen 1-9 styles, no download, and instant AI fusion results.",
   alternates: {
     canonical: "https://fusiongenerator.fun/pokemon",
   },
   openGraph: {
-    title: "Pokemon Fusion Generator | AI Pokemon Fusion Online",
+    title: "Pokemon Fusion Generator (Gen 1-9) | Free Online AI Tool",
     description:
-      "Instantly create infinite Pokemon fusions! Mix Pikachu, Charizard, Mewtwo, and more to discover new species. Free, fun, and easy-to-use Pokemon fusion generator.",
+      "Use our free online Pokemon Fusion Generator to combine any two Pokemon in seconds. Supports Gen 1-9 styles, no download, and instant AI fusion results.",
     url: "https://fusiongenerator.fun/pokemon",
     type: "website",
     images: [
@@ -39,14 +39,14 @@ export const metadata: Metadata = {
         url: "/images/pokemon-character-fusion-generator-preview.webp",
         width: 1200,
         height: 630,
-        alt: "Pokemon Fusion Generator Preview - Pikachu and Charizard Hybrid",
+        alt: "Pokemon fusion generator result: Pikachu + Charizard (Gen 1-9 style)",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pokemon Fusion Generator | AI Pokemon Fusion Online",
-    description: "Instantly create infinite Pokemon fusions! Mix Pikachu, Charizard, Mewtwo, and more to discover new species.",
+    title: "Pokemon Fusion Generator (Gen 1-9) | Free Online AI Tool",
+    description: "Free online Pokemon fusion tool for Gen 1-9 inspired hybrids. No download required.",
     images: ["/images/pokemon-character-fusion-generator-preview.webp"],
   },
 };
@@ -56,7 +56,7 @@ export default function PokemonPage() {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Pokemon Fusion Generator",
-    "description": "Create infinite Pokemon fusions using AI. Mix Pikachu, Charizard, and iconic species across generations.",
+    "description": "Create Pokemon fusions online for free using AI. Combine any two Pokemon with Gen 1-9 inspired styles and instant results.",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
     "url": "https://fusiongenerator.fun/pokemon",
@@ -78,10 +78,10 @@ export default function PokemonPage() {
       "userInteractionCount": "2500"
     },
     "featureList": [
-      "Supports Iconic Pokémon",
-      "Infinite Fusion Combinations",
-      "High-Resolution Image Generation",
-      "Custom and Shiny Styles"
+      "Free online Pokemon fusion generation",
+      "Gen 1-9 inspired fusion styles",
+      "No download required",
+      "High-resolution image output"
     ]
   };
 
@@ -120,26 +120,25 @@ export default function PokemonPage() {
 
             {/* SEO Intro Section */}
             <section className="prose prose-lg prose-neutral max-w-none mx-auto">
-              <h2 className="text-2xl font-bold text-center mb-6">Create AI Pokemon Fusions Online</h2>
+              <h2 className="text-2xl font-bold text-center mb-6">Free Online Pokemon Fusion Generator (Gen 1-9)</h2>
 
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
                   <p className="text-lg">
-                    Our <strong>Pokemon Fusion Generator</strong> is an AI-powered tool that lets you
-                    combine any two Pokémon to create unique fusion characters. Using advanced{" "}
-                    <strong>Pokemon fusion AI</strong>, you can instantly generate new hybrid Pokémon
-                    designs online.
+                    Create unique Pokemon fusions online for free. Our <strong>Pokemon Fusion Generator</strong> lets
+                    you combine any two Pokemon and instantly generate a new hybrid design in your browser. No
+                    download is required, and results are ready in seconds.
                   </p>
                   <p className="mt-4">
-                    Popularized by fan projects like <strong>Pokémon Infinite Fusion</strong>, our
-                    AI-based Pokemon fusion generator allows infinite creative combinations.
+                    If you searched for a <strong>Pokemon combiner</strong>, <strong>Pokemon merger</strong>, or
+                    <strong> Pokemon fusion AI</strong>, this tool gives you all three in one simple workflow.
                   </p>
                 </div>
 
                 <div>
                   <p className="text-lg">
-                    Mix Pokémon from <strong>classic and modern generations</strong>, including Pikachu, Charizard,
-                    and Mewtwo. The AI intelligently blends:
+                    Generate fusions with <strong>Gen 1-9 inspired styles</strong>, including fan-favorites like
+                    Pikachu, Charizard, and Mewtwo. The AI intelligently blends:
                   </p>
                   <ul className="mt-4 space-y-2">
                     <li className="flex items-center gap-2">
@@ -156,6 +155,17 @@ export default function PokemonPage() {
                     </li>
                   </ul>
                 </div>
+              </div>
+
+              <div className="mt-8 rounded-xl border border-border p-6 bg-muted/20">
+                <h3 className="text-xl font-semibold mb-3">
+                  Pokemon Combiner, Merger, or Fusion Generator - What&apos;s the Difference?
+                </h3>
+                <p className="text-base m-0">
+                  A basic Pokemon combiner or merger usually overlays features, while an AI Pokemon Fusion Generator
+                  creates cleaner hybrids with better style blending, colors, and structure. This page is optimized for
+                  combine, merge, and fusion intents while keeping results fast and high quality.
+                </p>
               </div>
             </section>
 

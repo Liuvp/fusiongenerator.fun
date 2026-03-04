@@ -147,13 +147,33 @@ export function PokeFusionStudio() {
 
     /** Handlers */
     const selectPokemon = (p: Pokemon) => {
-        if (pokemon1?.id === p.id || pokemon2?.id === p.id) return;
+        const isSelectedAsP1 = pokemon1?.id === p.id;
+        const isSelectedAsP2 = pokemon2?.id === p.id;
+
+        // Clicking an already selected Pokemon should produce a visible state change.
+        if (isSelectedAsP1 || isSelectedAsP2) {
+            if (isSelectedAsP1) {
+                if (pokemon2) {
+                    setPokemon1(pokemon2);
+                    setPokemon2(undefined);
+                } else {
+                    setPokemon1(undefined);
+                }
+            } else {
+                setPokemon2(undefined);
+            }
+            setResult(null);
+            setPromptSource("auto");
+            return;
+        }
+
         if (!pokemon1) setPokemon1(p);
         else if (!pokemon2) setPokemon2(p);
         else {
             setPokemon2(pokemon1);
             setPokemon1(p);
         }
+        setResult(null);
         setPromptSource("auto");
     };
 
@@ -301,7 +321,10 @@ export function PokeFusionStudio() {
             <Card className="border-0 shadow-md mb-6">
                 <CardContent className="p-5">
                     <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
-                        <h2 className="text-sm font-semibold text-gray-700">Choose Pokemon</h2>
+                        <div>
+                            <h2 className="text-sm font-semibold text-gray-700">Choose Pokemon</h2>
+                            <p className="text-[11px] text-gray-500">Tip: Click a selected Pokemon again to remove it.</p>
+                        </div>
                         <div className="flex gap-2">
                             <Button variant="outline" size="sm" onClick={loadDemoFusion} className="h-8 px-3 text-xs border-dashed border-blue-300 text-blue-600 hover:bg-blue-50">
                                 <Sparkles className="w-3 h-3 mr-1.5" /> Try Example
