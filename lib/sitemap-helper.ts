@@ -1,47 +1,73 @@
+import { execFileSync } from "child_process";
+import { stat } from "fs/promises";
+import path from "path";
+
+const MIN_VALID_YEAR = 2020;
+const lastModifiedCache = new Map<string, string>();
+
+function toIsoDate(date: Date): string | null {
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  if (date.getUTCFullYear() < MIN_VALID_YEAR) {
+    return null;
+  }
+
+  return date.toISOString().split("T")[0];
+}
+
+function getGitLastModified(fullPath: string): string | null {
+  try {
+    const timestamp = execFileSync(
+      "git",
+      ["log", "-1", "--format=%ct", "--", fullPath],
+      {
+        encoding: "utf-8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }
+    ).trim();
+
+    const seconds = Number.parseInt(timestamp, 10);
+    if (!Number.isFinite(seconds)) {
+      return null;
+    }
+
+    return toIsoDate(new Date(seconds * 1000));
+  } catch {
+    return null;
+  }
+}
+
+async function getFileSystemLastModified(fullPath: string): Promise<string | null> {
+  try {
+    const fileStat = await stat(fullPath);
+    return toIsoDate(fileStat.mtime);
+  } catch {
+    return null;
+  }
+}
+
 export async function getLastModifiedDate(filePath: string): Promise<string> {
-    // 生产环境优化：使用固定的合理日期，避免日期频繁变化导致 Google 混淆
-    // 使用网站主要更新日期，而不是每次都返回当前日期
-    if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
-        return '2026-02-01'; // 网站上线/最后重大更新日期
-    }
+  const fullPath = path.join(process.cwd(), filePath);
+  const cached = lastModifiedCache.get(fullPath);
+  if (cached) {
+    return cached;
+  }
 
-    // 开发环境：尝试获取更精确的日期
-    const fs = require('fs');
-    const path = require('path');
-    const { execSync } = require('child_process');
+  const fromGit = getGitLastModified(fullPath);
+  if (fromGit) {
+    lastModifiedCache.set(fullPath, fromGit);
+    return fromGit;
+  }
 
-    const fullPath = path.join(process.cwd(), filePath);
+  const fromFileSystem = await getFileSystemLastModified(fullPath);
+  if (fromFileSystem) {
+    lastModifiedCache.set(fullPath, fromFileSystem);
+    return fromFileSystem;
+  }
 
-    // 1. 尝试从 Git 获取最后提交时间
-    try {
-        const timestamp = execSync(`git log -1 --format=%ct ${fullPath}`, {
-            encoding: 'utf-8',
-            stdio: ['ignore', 'pipe', 'ignore']
-        }).trim();
-
-        if (timestamp && !isNaN(parseInt(timestamp))) {
-            const date = new Date(parseInt(timestamp) * 1000);
-            // 验证日期合理性（不早于 2020 年）
-            if (date.getFullYear() >= 2020) {
-                return date.toISOString().split('T')[0];
-            }
-        }
-    } catch (e) {
-        // Git 命令失败，继续下一步
-    }
-
-    // 2. 回退到文件系统修改时间
-    try {
-        const stats = fs.statSync(fullPath);
-        const date = new Date(stats.mtime);
-        // 验证日期合理性（不早于 2020 年）
-        if (date.getFullYear() >= 2020) {
-            return date.toISOString().split('T')[0];
-        }
-    } catch (e) {
-        // 文件系统失败
-    }
-
-    // 3. 最终兜底：返回当前日期
-    return new Date().toISOString().split('T')[0];
+  const fallbackDate = new Date().toISOString().split("T")[0];
+  lastModifiedCache.set(fullPath, fallbackDate);
+  return fallbackDate;
 }
