@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,9 +21,10 @@ import { SettingsPanel } from "./studio/settings-panel";
 // Using the optimized data directly
 const OPTIMIZED_POKEMON = POKEMON_DATABASE;
 
+type AuthGateReason = "guest_quota_used" | "member_quota_exceeded" | "api_limit_reached";
+
 export function PokeFusionStudio() {
     const { toast } = useToast();
-    const router = useRouter();
     const supabase = useMemo(() => createClient(), []);
     const resultRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +39,9 @@ export function PokeFusionStudio() {
     const [quota, setQuota] = useState<{ used: number; remaining: number; limit: number; isVIP: boolean } | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [showSettings, setShowSettings] = useState(false);
+    const [showAuthOptions, setShowAuthOptions] = useState(false);
+    const [authGateReason, setAuthGateReason] = useState<AuthGateReason | null>(null);
+    const [isActionHintActive, setIsActionHintActive] = useState(false);
 
     /** Local Storage Logic */
     const saveToLocalStorage = useCallback(() => {
@@ -143,7 +147,54 @@ export function PokeFusionStudio() {
         return true;
     };
     const isSelectionComplete = !!(pokemon1 && pokemon2);
+    const selectedCount = Number(Boolean(pokemon1)) + Number(Boolean(pokemon2));
+    const hasQuotaAccessValue = hasQuotaAccess();
+    const shouldShowAuthOptions = !hasQuotaAccessValue || showAuthOptions;
     const shouldDisableButton = isGenerating;
+
+    const openAuthGate = useCallback((reason: AuthGateReason) => {
+        setAuthGateReason(reason);
+        setShowAuthOptions(true);
+    }, []);
+
+    useEffect(() => {
+        if (hasQuotaAccessValue) {
+            setShowAuthOptions(false);
+            setAuthGateReason(null);
+        }
+    }, [hasQuotaAccessValue]);
+
+    const quotaStatusCopy = useMemo(() => {
+        if (quota?.isVIP) {
+            return {
+                title: "VIP access unlocked",
+                description: "You can generate unlimited Pokemon fusions."
+            };
+        }
+
+        const remaining = quota?.remaining ?? (user ? 0 : 1);
+        if (hasQuotaAccessValue) {
+            return user
+                ? {
+                    title: `${remaining} credit${remaining === 1 ? "" : "s"} remaining`,
+                    description: "Each generation uses one credit."
+                }
+                : {
+                    title: `${remaining} free fusion${remaining === 1 ? "" : "s"} left`,
+                    description: "Sign in to unlock more credits after free quota."
+                };
+        }
+
+        return user
+            ? {
+                title: "No credits left",
+                description: "Upgrade to VIP for unlimited Pokemon fusions."
+            }
+            : {
+                title: "Free quota used",
+                description: "Sign in or sign up to keep generating."
+            };
+    }, [hasQuotaAccessValue, quota?.isVIP, quota?.remaining, user]);
 
     /** Handlers */
     const selectPokemon = (p: Pokemon) => {
@@ -212,25 +263,38 @@ export function PokeFusionStudio() {
     };
 
     const generateFusion = async () => {
-        if (!hasQuotaAccess()) {
-            // 区分未登录和已登录用户，提供更清晰的提示
+        if (!isSelectionComplete) {
+            setIsActionHintActive(true);
+            setTimeout(() => setIsActionHintActive(false), 600);
+            toast({
+                title: "Select 2 Pokemon first",
+                description: `Current selection: ${selectedCount}/2`,
+            });
+            return;
+        }
+
+        if (!hasQuotaAccessValue) {
+            setIsActionHintActive(true);
+            setTimeout(() => setIsActionHintActive(false), 600);
+
             if (!user) {
                 toast({
-                    variant: "default",
+                    title: "Free quota used",
+                    description: "Sign in to unlock more fusion credits.",
                 });
-                const loginUrl = `/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_fusion`;
-                setTimeout(() => router.push(loginUrl), 1500);
+                openAuthGate("guest_quota_used");
             } else {
                 toast({
                     title: "Quota Exceeded",
                     description: "Upgrade to VIP for unlimited fusions!",
                     variant: "destructive",
                 });
-                setTimeout(() => router.push('/pricing?reason=quota'), 2000);
+                openAuthGate("member_quota_exceeded");
             }
             return;
         }
 
+        setShowAuthOptions(false);
         setIsGenerating(true);
         setResult(null);
 
@@ -246,15 +310,7 @@ export function PokeFusionStudio() {
             if (!res.ok) {
                 if (res.status === 429 || res.status === 402) {
                     toast({ title: "Limit Reached", description: data.error, variant: "destructive" });
-
-                    setTimeout(() => {
-                        if (!user) {
-                            const loginUrl = `/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_limit`;
-                            router.push(loginUrl);
-                        } else {
-                            router.push('/pricing?source=pokemon_limit');
-                        }
-                    }, 1500);
+                    openAuthGate(user ? "member_quota_exceeded" : "api_limit_reached");
                     return;
                 }
                 throw new Error(data.error);
@@ -370,15 +426,63 @@ export function PokeFusionStudio() {
                         <CharacterSlot char={pokemon2} position={2} />
                     </div>
 
-                    <Button onClick={generateFusion} disabled={shouldDisableButton} size="lg" className="w-full py-6 text-xl font-black uppercase shadow-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    <div className={`mb-4 rounded-xl border px-3 py-2 text-xs ${hasQuotaAccessValue ? 'border-blue-100 bg-blue-50 text-blue-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
+                        <p className="font-semibold">{quotaStatusCopy.title}</p>
+                        <p className="mt-1">{quotaStatusCopy.description}</p>
+                    </div>
+
+                    <Button onClick={generateFusion} disabled={shouldDisableButton} size="lg" className={`w-full py-6 text-xl font-black uppercase shadow-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] ${isActionHintActive ? 'ring-2 ring-red-400 ring-offset-2' : ''} ${!isSelectionComplete ? 'bg-gray-400 hover:bg-gray-500' : !hasQuotaAccessValue ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700' : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}>
                         {isGenerating ? (
                             <span className="flex items-center gap-2"><Sparkles className="w-5 h-5 animate-spin" /> Generating...</span>
                         ) : !isSelectionComplete ? (
-                            "Select 2 Pokemon"
+                            `Select 2 Pokemon (${selectedCount}/2)`
+                        ) : !hasQuotaAccessValue ? (
+                            user ? "Upgrade to Continue" : "Login to Continue"
                         ) : (
                             <span className="flex items-center gap-2"><Sparkles className="w-5 h-5" /> Fuse Pokemon!</span>
                         )}
                     </Button>
+
+                    {shouldShowAuthOptions && !user && !hasQuotaAccessValue && (
+                        <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-in fade-in slide-in-from-top-2">
+                            <div className="text-center mb-4 space-y-1">
+                                <h4 className="font-bold text-gray-800">Keep your fusion session going</h4>
+                                <p className="text-xs text-gray-600">
+                                    {authGateReason === "api_limit_reached"
+                                        ? "Please sign in to continue when free quota is exhausted."
+                                        : "Sign in to unlock account credits and continue generating."}
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button asChild variant="outline" className="w-full bg-white hover:bg-gray-50 text-gray-700 border-gray-200">
+                                    <Link href={`/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}>
+                                        Log In
+                                    </Link>
+                                </Button>
+                                <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 border-0">
+                                    <Link href={`/sign-up?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}>
+                                        Sign Up Free
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {shouldShowAuthOptions && user && !hasQuotaAccessValue && (
+                        <div className="mt-6 p-4 bg-purple-50 border border-purple-100 rounded-xl animate-in fade-in slide-in-from-top-2">
+                            <div className="text-center mb-4 space-y-1">
+                                <h4 className="font-bold text-gray-800">Need more fusion credits?</h4>
+                                <p className="text-xs text-gray-600">
+                                    Upgrade to VIP to remove limits and generate unlimited Pokemon fusions.
+                                </p>
+                            </div>
+                            <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-indigo-700 border-0">
+                                <Link href="/pricing?source=pokemon_fusion_quota">
+                                    Upgrade to VIP
+                                </Link>
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 

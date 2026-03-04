@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     index: false,
     follow: false,
   },
+  alternates: {
+    canonical: "/dashboard/reset-password",
+  },
 };
 
 export default async function ResetPassword(props: {

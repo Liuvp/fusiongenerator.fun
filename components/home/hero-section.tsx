@@ -27,11 +27,14 @@ export function HeroSection() {
                                     </span>
                                 </div>
                             </Link>
+                            <p className="mt-3 text-sm text-purple-100">
+                                No account required for your first free fusion.
+                            </p>
                         </div>
                     </div>
 
                     <div className="w-full md:w-1/2">
-                        <div className="relative">
+                        <Link href="/ai" className="relative block cursor-pointer" aria-label="Start creating an AI fusion now">
                             <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg blur-lg opacity-75 animate-pulse"></div>
                             <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
                                 <Image
@@ -46,7 +49,7 @@ export function HeroSection() {
                                     sizes="(max-width: 768px) 100vw, 600px"
                                 />
                             </div>
-                        </div>
+                        </Link>
                     </div>
                 </div>
             </div>

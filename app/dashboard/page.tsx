@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     index: false,
     follow: false,
   },
+  alternates: {
+    canonical: "/dashboard",
+  },
 };
 
 interface DashboardPageProps {
