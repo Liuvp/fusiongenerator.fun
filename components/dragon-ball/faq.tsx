@@ -35,7 +35,7 @@ export function DBFAQ() {
                 "name": "How is this different from other Dragon Ball fusion generators?",
                 "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Unlike basic image mashups, our generator uses advanced AI optimized for Dragon Ball's specific art style—focusing on canonical hair geometry, aura physics, and outfit blending rather than just overlapping sprites."
+                    "text": "Unlike basic image mashups, our generator uses advanced AI optimized for Dragon Ball's specific art style, focusing on canonical hair geometry, aura physics, and outfit blending rather than just overlapping sprites."
                 }
             },
             {

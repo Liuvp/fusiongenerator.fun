@@ -23,7 +23,7 @@ type StaticRoute = {
 
 const staticRoutes: StaticRoute[] = [
   { url: "", file: "app/page.tsx", changeFrequency: "weekly", priority: 1.0 },
-  { url: "/dragon-ball", file: "app/dragon-ball/page.tsx", changeFrequency: "weekly", priority: 0.8 },
+  { url: "/dragon-ball", file: "app/dragon-ball/page.tsx", changeFrequency: "daily", priority: 0.9 },
   { url: "/pokemon", file: "app/pokemon/page.tsx", changeFrequency: "weekly", priority: 0.8 },
   { url: "/ai", file: "app/ai/page.tsx", changeFrequency: "weekly", priority: 0.8 },
   { url: "/gallery", file: "app/gallery/page.tsx", changeFrequency: "weekly", priority: 0.8 },

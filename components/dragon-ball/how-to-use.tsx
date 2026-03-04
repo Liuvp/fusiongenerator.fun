@@ -86,7 +86,7 @@ export function DBHowToUse() {
             {/* Roster-based Tips */}
             <section className="p-6 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-2xl border border-orange-100">
                 <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xl">💡</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-orange-700">Tip</span>
                     <h3 className="font-bold text-orange-900">Fusion Tips & Quota</h3>
                 </div>
                 <ul className="grid gap-3 sm:grid-cols-2 text-sm text-orange-800/80">
@@ -124,7 +124,7 @@ export function DBHowToUse() {
                     >
                         <span className="relative z-10 flex items-center gap-2">
                             Start Fusing Now
-                            <span className="group-hover:translate-x-1 transition-transform">→</span>
+                            <span className="group-hover:translate-x-1 transition-transform" aria-hidden="true">-&gt;</span>
                         </span>
                     </a>
                 </div>

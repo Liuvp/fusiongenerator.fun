@@ -41,7 +41,7 @@ export const revalidate = 3600;
 // ===============================
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "Dragon Ball Fusion Generator – Goku & Vegeta AI Fusions",
+  title: "Dragon Ball Fusion Generator - Goku & Vegeta AI Fusions",
   description: "Instantly create Dragon Ball fusions like Goku & Vegeta with our free AI tool. Fun, fast, and easy-to-use DBZ fusion generator for fans!",
   robots: {
     index: true,
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     canonical: pageUrl,
   },
   openGraph: {
-    title: "Dragon Ball Fusion Generator – Goku & Vegeta AI Fusions",
+    title: "Dragon Ball Fusion Generator - Goku & Vegeta AI Fusions",
     description: "Instantly create Dragon Ball fusions like Goku & Vegeta with our free AI tool. Fun, fast, and easy-to-use DBZ fusion generator for fans!",
     url: pageUrl,
     type: "website",
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dragon Ball Fusion Generator – Goku & Vegeta AI Fusions",
+    title: "Dragon Ball Fusion Generator - Goku & Vegeta AI Fusions",
     description: "Instantly create Dragon Ball fusions like Goku & Vegeta with our free AI tool. Fun, fast, and easy-to-use DBZ fusion generator for fans!",
     images: [`${baseUrl}/images/dragon-ball-fusion-preview-goku-vegeta.webp`],
   },
@@ -152,11 +152,12 @@ export default function DragonBallPage() {
       "price": "0",
       "priceCurrency": "USD"
     },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "ratingCount": "1250"
-    }
+    "featureList": [
+      "Free Dragon Ball fusion trial",
+      "No image upload required",
+      "Mobile-friendly fusion studio",
+      "Instant image download"
+    ]
   };
 
   // 2. Breadcrumb Schema
@@ -179,6 +180,25 @@ export default function DragonBallPage() {
     ],
   };
 
+  // 3. WebPage Schema
+  const webPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Dragon Ball Fusion Generator",
+    "url": pageUrl,
+    "description": "Create Dragon Ball character fusions instantly with our AI-powered fusion studio.",
+    "inLanguage": "en",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Fusion Generator",
+      "url": baseUrl
+    },
+    "primaryImageOfPage": {
+      "@type": "ImageObject",
+      "url": `${baseUrl}/images/dragon-ball-fusion-preview-goku-vegeta.webp`
+    }
+  };
+
 
   return (
     <>
@@ -194,6 +214,12 @@ export default function DragonBallPage() {
         type="application/ld+json"
         strategy="beforeInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <Script
+        id="dragon-ball-webpage-json-ld"
+        type="application/ld+json"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }}
       />
 
 

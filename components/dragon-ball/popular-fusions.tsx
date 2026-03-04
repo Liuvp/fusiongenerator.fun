@@ -41,7 +41,7 @@ export function DBPopularFusions() {
         "itemListElement": fusions.map((fusion, index) => ({
             "@type": "ListItem",
             "position": index + 1,
-            "name": `Dragon Ball Fusion: ${fusion.left} × ${fusion.right} - ${fusion.name}`,
+            "name": `Dragon Ball Fusion: ${fusion.left} + ${fusion.right} - ${fusion.name}`,
             "image": `https://fusiongenerator.fun${fusion.image}`
         }))
     };
@@ -70,7 +70,7 @@ export function DBPopularFusions() {
                             <article className="flex items-center justify-between">
                                 <div className="space-y-1">
                                     <p className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                                        {fusion.left} × {fusion.right}
+                                        {fusion.left} + {fusion.right}
                                     </p>
                                     <h3 className="block font-black text-xl text-gray-900">
                                         {fusion.name}
