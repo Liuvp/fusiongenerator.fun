@@ -1,11 +1,5 @@
 import Link from "next/link";
 
-const QUICK_LINK_CARDS = [
-    { title: "Free Daily", subtitle: "Generations", href: "/ai" },
-    { title: "No Sign-up", subtitle: "Required", href: "/ai" },
-    { title: "Instant", subtitle: "Downloads", href: "/gallery" },
-];
-
 export function CTA() {
     return (
         <section className="bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-700 px-4 py-20 text-white md:px-6 lg:px-8">
@@ -34,23 +28,8 @@ export function CTA() {
                     </Link>
                 </div>
 
-                <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-                    {QUICK_LINK_CARDS.map((card) => (
-                        <Link
-                            key={card.title}
-                            href={card.href}
-                            className="rounded-xl border border-white/20 px-4 py-5 text-center transition-all hover:border-white/40 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-700"
-                            aria-label={`${card.title} ${card.subtitle}`}
-                        >
-                            <div className="text-2xl font-bold">{card.title}</div>
-                            <div className="text-purple-200">{card.subtitle}</div>
-                        </Link>
-                    ))}
-                </div>
-
                 <p className="mt-8 text-sm text-purple-200">
-                    Pro users get: Unlimited generations, HD quality, no watermarks,
-                    priority processing, and commercial usage rights.
+                    Pro: Unlimited generations, HD, no watermark, priority queue, commercial rights.
                 </p>
             </div>
         </section>
