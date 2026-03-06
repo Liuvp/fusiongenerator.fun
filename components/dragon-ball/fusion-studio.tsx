@@ -157,6 +157,7 @@ const CharacterButton = ({
 export function DBFusionStudio() {
     const { toast } = useToast();
     const resultRef = useRef<HTMLDivElement>(null);
+    const selectionCardRef = useRef<HTMLDivElement>(null);
 
     // ✅ 使用 useRef 管理订阅，避免重复创建
     const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
@@ -178,6 +179,7 @@ export function DBFusionStudio() {
     // ===============================
     const [showAuthOptions, setShowAuthOptions] = useState(false);
     const [isShaking, setIsShaking] = useState(false);
+    const [isSelectionHintActive, setIsSelectionHintActive] = useState(false);
 
     // 检查是否选完
     const isSelectionComplete = useMemo(() => !!(char1 && char2), [char1, char2]);
@@ -517,6 +519,12 @@ export function DBFusionStudio() {
         if (!isSelectionComplete) {
             setIsShaking(true);
             setTimeout(() => setIsShaking(false), 500);
+            setIsSelectionHintActive(true);
+            setTimeout(() => setIsSelectionHintActive(false), 900);
+            selectionCardRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
 
             toast({
                 title: "Select Two Characters",
@@ -811,7 +819,10 @@ export function DBFusionStudio() {
             {steps}
 
             {/* 角色选择区域 */}
-            <Card className="border-0 shadow-sm mb-6">
+            <Card
+                ref={selectionCardRef}
+                className={`border-0 shadow-sm mb-6 transition-all ${isSelectionHintActive ? "ring-2 ring-orange-400 ring-offset-2" : ""}`}
+            >
                 <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-semibold text-gray-700">
@@ -937,6 +948,12 @@ export function DBFusionStudio() {
                             </span>
                         )}
                     </Button>
+
+                    {!isSelectionComplete && (
+                        <p className="mt-3 text-center text-xs text-gray-500">
+                            Pick 2 fighters above, then generate. Click a selected fighter again to remove it.
+                        </p>
+                    )}
 
                     {/* 未登录用户引导：配额不足时显示 */}
                     {showAuthOptions && !user && (
@@ -1111,7 +1128,7 @@ const CharacterSlot = ({ char, position, onClear, priority = false }: CharacterS
     };
 
     return (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center group">
             <div
                 className={`
                     relative w-24 h-24 rounded-xl overflow-hidden border-4 shadow-lg
@@ -1140,11 +1157,11 @@ const CharacterSlot = ({ char, position, onClear, priority = false }: CharacterS
                     <button
                         type="button"
                         onClick={handleClear}
-                        className="absolute top-1 left-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                        aria-label={`Clear ${char.name}`}
-                        title={`Remove ${char.name}`}
+                        className="absolute top-1 left-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-100 shadow-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
+                        aria-label="Clear current selection"
+                        title="Clear current selection"
                     >
-                        ×
+                        x
                     </button>
                 )}
             </div>

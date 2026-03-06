@@ -27,6 +27,7 @@ const randomPrompts = [
     "Neon sci-fi aesthetic",
     "Classical oil painting style",
 ];
+const DUPLICATE_SUBMIT_WINDOW_MS = 1500;
 
 const trackStudioEvent = (eventName: string, payload: StudioEventPayload = {}): void => {
     if (typeof window === "undefined") return;
@@ -121,6 +122,8 @@ const normalizeGenerationError = (
 export default function AIFusionStudioPage() {
     const supabase = useMemo(() => createClient(), []);
     const resultRef = useRef<HTMLDivElement>(null);
+    const generateLockRef = useRef(false);
+    const lastSubmissionRef = useRef<{ signature: string; timestamp: number } | null>(null);
 
     const [leftFile, setLeftFile] = useState<UploadedFile | null>(null);
     const [rightFile, setRightFile] = useState<UploadedFile | null>(null);
@@ -192,8 +195,23 @@ export default function AIFusionStudioPage() {
 
     const canGenerate = Boolean(leftFile && rightFile) && !isGenerating;
     const canRetry = Boolean(leftFile && rightFile) && !isGenerating;
+    const getSubmissionSignature = (left: UploadedFile, right: UploadedFile): string =>
+        [
+            left.file.name,
+            left.file.size,
+            left.file.lastModified,
+            right.file.name,
+            right.file.size,
+            right.file.lastModified,
+            prompt.trim().toLowerCase(),
+        ].join("|");
 
     const startGenerate = async (): Promise<void> => {
+        if (generateLockRef.current || isGenerating) {
+            trackStudioEvent("ai_generate_blocked", { reason: "request_in_flight" });
+            return;
+        }
+
         trackStudioEvent("ai_generate_click", {
             has_left_image: Boolean(leftFile),
             has_right_image: Boolean(rightFile),
@@ -223,20 +241,41 @@ export default function AIFusionStudioPage() {
             return;
         }
 
+        const selectedLeft = leftFile;
+        const selectedRight = rightFile;
+        if (!selectedLeft || !selectedRight) {
+            setError("Upload both images before generating.");
+            setAuthGate(null);
+            return;
+        }
+
+        const requestSignature = getSubmissionSignature(selectedLeft, selectedRight);
+        const now = Date.now();
+        const previousSubmission = lastSubmissionRef.current;
+        if (
+            previousSubmission
+            && previousSubmission.signature === requestSignature
+            && now - previousSubmission.timestamp < DUPLICATE_SUBMIT_WINDOW_MS
+        ) {
+            setAuthGate(null);
+            setError("Generation already submitted. Please wait a moment before trying again.");
+            setIsActionHintActive(true);
+            setTimeout(() => setIsActionHintActive(false), 500);
+            trackStudioEvent("ai_generate_blocked", {
+                reason: "duplicate_submit",
+                cooldown_ms: DUPLICATE_SUBMIT_WINDOW_MS,
+            });
+            return;
+        }
+
+        lastSubmissionRef.current = { signature: requestSignature, timestamp: now };
+        generateLockRef.current = true;
         setMissingSides([]);
         setIsGenerating(true);
         setProgress(0);
         setResultImage(null);
         setError(null);
         setAuthGate(null);
-
-        const selectedLeft = leftFile;
-        const selectedRight = rightFile;
-        if (!selectedLeft || !selectedRight) {
-            setError("Upload both images before generating.");
-            setIsGenerating(false);
-            return;
-        }
 
         const formData = new FormData();
         formData.append("image1", selectedLeft.file);
@@ -334,6 +373,7 @@ export default function AIFusionStudioPage() {
         } finally {
             if (progressTimer) clearInterval(progressTimer);
             if (!success) setProgress((previous) => (previous === 100 ? 100 : 0));
+            generateLockRef.current = false;
             setIsGenerating(false);
         }
     };

@@ -202,7 +202,7 @@ What this does:
 Notes:
   - Clarity API supports only last 1-3 days (UTC) per request.
   - Daily quota is 10 requests per project (UTC).
-  - Token must be provided via CLARITY_API_TOKEN.
+  - Token must be provided via CLARITY_API_TOKEN (preferred) or CLARITY_TOKEN.
 `);
 }
 

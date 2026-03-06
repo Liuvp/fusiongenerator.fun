@@ -64,6 +64,28 @@ function toBool(value, fallback = false) {
   return fallback;
 }
 
+function cleanToken(value) {
+  if (value == null) return null;
+  const token = String(value).trim();
+  return token || null;
+}
+
+function resolveToken(args) {
+  const allowInsecureTokenArg = toBool(
+    process.env.CLARITY_ALLOW_INSECURE_TOKEN_ARG,
+    false
+  );
+  const argToken = cleanToken(args.token);
+  if (argToken && !allowInsecureTokenArg) {
+    throw new Error(
+      "Passing token via --token is disabled for security. Set CLARITY_API_TOKEN in .env.local/.env or shell env."
+    );
+  }
+  const envToken =
+    cleanToken(process.env.CLARITY_API_TOKEN) || cleanToken(process.env.CLARITY_TOKEN);
+  return argToken || envToken;
+}
+
 function parseDotEnvFile(content) {
   const parsed = {};
   const lines = content.split(/\r?\n/);
@@ -190,7 +212,8 @@ Usage:
                                [--strict=false] [--softFail=false]
 
 Required env:
-  CLARITY_API_TOKEN=your_token
+  CLARITY_API_TOKEN=your_token  # Preferred name
+  CLARITY_TOKEN=your_token      # Supported alias
 
 Optional env:
   CLARITY_NUM_OF_DAYS=1|2|3
@@ -198,6 +221,7 @@ Optional env:
   CLARITY_MAX_REQUESTS=1..10
   CLARITY_STRICT=true|false
   CLARITY_SOFT_FAIL=true|false
+  CLARITY_ALLOW_INSECURE_TOKEN_ARG=true  # Not recommended
 
 Notes:
   - Clarity Data Export API supports only last 1-3 days (UTC).
@@ -222,10 +246,10 @@ async function main() {
     return;
   }
 
-  const token = args.token || process.env.CLARITY_API_TOKEN;
+  const token = resolveToken(args);
   if (!token) {
     throw new Error(
-      "Missing CLARITY_API_TOKEN. Set env var or pass --token=YOUR_TOKEN."
+      "Missing CLARITY_API_TOKEN / CLARITY_TOKEN. Put one of them in .env.local (recommended) or set shell env."
     );
   }
 

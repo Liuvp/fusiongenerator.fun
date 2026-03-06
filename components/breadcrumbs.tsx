@@ -10,6 +10,8 @@ const routeNameMap: Record<string, string> = {
   pricing: "Pricing",
   privacy: "Privacy Policy",
   terms: "Terms of Service",
+  sitemap: "Sitemap",
+  "site-map": "Sitemap",
   dashboard: "Dashboard",
   profile: "Profile",
   gallery: "Gallery",

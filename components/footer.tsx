@@ -20,6 +20,7 @@ export function Footer() {
         { label: "Blog", href: "/blog" },
         { label: "About Us", href: "/about" },
         { label: "Contact Us", href: "/contact" },
+        { label: "Sitemap", href: "/sitemap" },
       ],
     },
     {
@@ -62,10 +63,10 @@ export function Footer() {
         </div>
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t pt-8 md:flex-row">
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            © 2026 FusionGenerator.fun
+            (c) 2026 FusionGenerator.fun
           </p>
           <p className="text-center text-xs text-muted-foreground md:text-right max-w-xl">
-            This tool is a fan-made AI generator and is not affiliated with or endorsed by Toei Animation, Shueisha, Nintendo, or The Pokémon Company. All character names and references are used for fan art and illustrative purposes only. Fusion Generator uses third-party AI models to generate images. Users are aware that AI-generated content is powered by external AI services.
+            This tool is a fan-made AI generator and is not affiliated with or endorsed by Toei Animation, Shueisha, Nintendo, or The Pokemon Company. All character names and references are used for fan art and illustrative purposes only. Fusion Generator uses third-party AI models to generate images. Users are aware that AI-generated content is powered by external AI services.
           </p>
         </div>
       </div>

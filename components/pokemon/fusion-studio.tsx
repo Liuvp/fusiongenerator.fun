@@ -323,10 +323,14 @@ export function PokeFusionStudio() {
 
             if (!user) {
                 toast({
-                    title: "Free quota used",
-                    description: "Sign in to unlock more fusion credits.",
+                    title: "Free trial used",
+                    description: "Create a free account to keep generating fusions.",
                 });
-                openAuthGate("guest_quota_used");
+                if (authGateReason !== "guest_quota_used") {
+                    openAuthGate("guest_quota_used");
+                } else {
+                    setShowAuthOptions(true);
+                }
                 trackStudioEvent("pokemon_generate_blocked", {
                     reason: "guest_quota_used",
                     remaining_quota: quota?.remaining ?? 0,
@@ -503,7 +507,7 @@ export function PokeFusionStudio() {
                         ) : !isSelectionComplete ? (
                             `Select 2 Pokemon (${selectedCount}/2)`
                         ) : !hasQuotaAccessValue ? (
-                            user ? "Upgrade to Continue" : "Login to Continue"
+                            user ? "Upgrade to Continue" : "Continue with Free Account"
                         ) : (
                             <span className="flex items-center gap-2"><Sparkles className="w-5 h-5" /> Fuse Pokemon!</span>
                         )}
@@ -512,17 +516,17 @@ export function PokeFusionStudio() {
                     {shouldShowAuthOptions && !user && !hasQuotaAccessValue && (
                         <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">Keep your fusion session going</h4>
+                                <h4 className="font-bold text-gray-800">Continue with a free account</h4>
                                 <p className="text-xs text-gray-600">
                                     {authGateReason === "api_limit_reached"
-                                        ? "Please sign in to continue when free quota is exhausted."
-                                        : "Sign in to unlock account credits and continue generating."}
+                                        ? "Your free guest trial is used. Sign in to keep generating."
+                                        : "Sign in or sign up to unlock account credits and continue."}
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <Button asChild variant="outline" className="w-full bg-white hover:bg-gray-50 text-gray-700 border-gray-200">
                                     <Link href={`/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}>
-                                        Log In
+                                        Continue Free
                                     </Link>
                                 </Button>
                                 <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 border-0">

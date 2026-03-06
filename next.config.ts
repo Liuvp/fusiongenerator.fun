@@ -123,6 +123,17 @@ const nextConfig: NextConfig = {
   // This supports Chrome 90+, Safari 14+, Firefox 88+, Edge 90+ (last 2 years)
   transpilePackages: [],
 
+  // Keep legacy SEO task URL working while the HTML sitemap stays at /site-map
+  async redirects() {
+    return [
+      {
+        source: '/sitemap',
+        destination: '/site-map',
+        permanent: true,
+      },
+    ];
+  },
+
   // Configure cache headers for static assets
   async headers() {
     return [

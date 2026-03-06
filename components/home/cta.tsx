@@ -1,56 +1,56 @@
 import Link from "next/link";
 
+const QUICK_LINK_CARDS = [
+    { title: "Free Daily", subtitle: "Generations", href: "/ai" },
+    { title: "No Sign-up", subtitle: "Required", href: "/ai" },
+    { title: "Instant", subtitle: "Downloads", href: "/gallery" },
+];
+
 export function CTA() {
     return (
-        <section className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-700 text-white">
+        <section className="bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-700 px-4 py-20 text-white md:px-6 lg:px-8">
             <div className="container mx-auto max-w-4xl text-center">
-                {/* 优化标题 - 更直接的行动号召 */}
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                <h2 className="mb-6 text-3xl font-bold md:text-4xl">
                     Create Your First Fusion in 30 Seconds
                 </h2>
 
-                {/* 优化描述 - 强调免费和简单 */}
-                <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
+                <p className="mx-auto mb-8 max-w-2xl text-xl text-purple-100">
                     Join thousands of users creating amazing Dragon Ball fusions,
-                    Pokémon hybrids, and custom character blends. No design experience needed.
+                    Pokemon hybrids, and custom character blends. No design experience needed.
                 </p>
 
-                {/* 优化按钮文本 */}
-                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <div className="flex flex-col justify-center gap-4 sm:flex-row">
                     <Link
                         href="/ai"
-                        className="px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full text-lg font-medium hover:from-orange-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl"
+                        className="rounded-full bg-gradient-to-r from-orange-500 to-pink-500 px-8 py-4 text-lg font-medium shadow-lg transition-all hover:from-orange-600 hover:to-pink-600 hover:shadow-xl"
                     >
-                        🎨 Create Free Fusion Now
+                        Create Free Fusion Now
                     </Link>
                     <Link
                         href="/pricing"
-                        className="px-8 py-4 bg-white text-purple-700 rounded-full text-lg font-medium hover:bg-purple-50 transition-all font-semibold"
+                        className="rounded-full bg-white px-8 py-4 text-lg font-semibold text-purple-700 transition-all hover:bg-purple-50"
                     >
-                        ⚡ Unlock Pro Features
+                        Unlock Pro Features
                     </Link>
                 </div>
 
-                {/* 优化价值主张 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-                    <div className="text-center">
-                        <div className="text-2xl font-bold">Free Daily</div>
-                        <div className="text-purple-200">Generations</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-bold">No Sign-up</div>
-                        <div className="text-purple-200">Required</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-bold">Instant</div>
-                        <div className="text-purple-200">Downloads</div>
-                    </div>
+                <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+                    {QUICK_LINK_CARDS.map((card) => (
+                        <Link
+                            key={card.title}
+                            href={card.href}
+                            className="rounded-xl border border-white/20 px-4 py-5 text-center transition-all hover:border-white/40 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-700"
+                            aria-label={`${card.title} ${card.subtitle}`}
+                        >
+                            <div className="text-2xl font-bold">{card.title}</div>
+                            <div className="text-purple-200">{card.subtitle}</div>
+                        </Link>
+                    ))}
                 </div>
 
-                {/* 优化 Pro 用户卖点 */}
-                <p className="text-sm text-purple-200 mt-8">
-                    🔥 Pro users get: Unlimited generations • HD Quality • No watermarks •
-                    Priority processing • Commercial usage rights
+                <p className="mt-8 text-sm text-purple-200">
+                    Pro users get: Unlimited generations, HD quality, no watermarks,
+                    priority processing, and commercial usage rights.
                 </p>
             </div>
         </section>

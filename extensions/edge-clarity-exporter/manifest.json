@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Clarity Session Extractor",
+  "version": "0.1.0",
+  "description": "Extract visible Microsoft Clarity session details and export JSONL/CSV for analysis.",
+  "permissions": ["activeTab", "downloads", "storage", "scripting"],
+  "host_permissions": ["https://clarity.microsoft.com/*"],
+  "action": {
+    "default_title": "Clarity Session Extractor",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://clarity.microsoft.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
