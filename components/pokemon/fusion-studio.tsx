@@ -201,7 +201,7 @@ export function PokeFusionStudio() {
                 }
                 : {
                     title: `${remaining} free fusion${remaining === 1 ? "" : "s"} left`,
-                    description: "Sign in to unlock more credits after free quota."
+                    description: "When this reaches 0, sign in is required before the next generation."
                 };
         }
 
@@ -562,7 +562,8 @@ export function PokeFusionStudio() {
                     <CardContent className="h-[300px] flex flex-col items-center justify-center p-5 bg-gray-50 rounded-xl">
                         <Sparkles className="w-10 h-10 text-blue-400 animate-spin mb-4" />
                         <p className="text-gray-500 font-medium">Mixing DNA...</p>
-                        <p className="text-xs text-gray-400 mt-2">Creating new species...</p>
+                        <p className="text-xs text-gray-400 mt-2">You can switch tabs while we keep generating.</p>
+                        <p className="text-xs text-gray-400">Result will appear here automatically.</p>
                     </CardContent>
                 </Card>
             )}

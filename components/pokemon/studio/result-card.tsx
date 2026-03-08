@@ -2,6 +2,7 @@
 
 import { forwardRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Download, RefreshCw, Share2 } from "lucide-react";
@@ -46,26 +47,43 @@ export const ResultCard = forwardRef<HTMLDivElement, ResultCardProps>(({ result,
                         </h2>
                         <div className="flex items-center justify-center sm:justify-start gap-2 mt-1">
                             <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-                            <p className="text-sm text-gray-500 font-medium">{result.style.name} Style Result</p>
+                            <p className="text-sm text-gray-500 font-medium">{result.style.name} style ready. Download or continue generating.</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Button onClick={onDownload} className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all">
                             <Download className="w-4 h-4 mr-2" />
-                            <span className="hidden sm:inline">Save</span>
-                            <span className="sm:hidden">Save</span>
-                        </Button>
-                        <Button onClick={onShare} variant="outline" className="border-gray-200 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                            <Share2 className="w-4 h-4 mr-2" />
-                            <span className="hidden sm:inline">Share</span>
-                            <span className="sm:hidden">Share</span>
+                            <span>Download HD</span>
                         </Button>
                         <Button onClick={onReset} variant="outline" className="border-gray-200 hover:bg-gray-100 transition-colors">
                             <RefreshCw className="w-4 h-4 mr-2" />
-                            <span className="hidden sm:inline">New</span>
-                            <span className="sm:hidden">New</span>
+                            <span>Continue Generating</span>
                         </Button>
+                        <Button onClick={onShare} variant="outline" className="border-gray-200 hover:bg-blue-50 hover:text-blue-600 transition-colors sm:col-span-2">
+                            <Share2 className="w-4 h-4 mr-2" />
+                            <span>Share Result</span>
+                        </Button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Link
+                            href="/gallery?source=pokemon_result"
+                            className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                        >
+                            View Example Results
+                        </Link>
+                        <Link
+                            href="/dragon-ball?source=pokemon_result"
+                            className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                        >
+                            Try Dragon Ball Studio
+                        </Link>
+                        <Link
+                            href="/pricing?source=pokemon_result_next_step"
+                            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:from-purple-700 hover:to-indigo-700 sm:col-span-2"
+                        >
+                            Unlock Unlimited
+                        </Link>
                     </div>
                 </div>
             </CardContent>

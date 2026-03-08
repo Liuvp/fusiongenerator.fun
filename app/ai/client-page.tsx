@@ -16,6 +16,13 @@ type AuthGateState = {
 } | null;
 
 type StudioEventPayload = Record<string, string | number | boolean | null | undefined>;
+type QuotaSnapshot = {
+    used: number;
+    remaining: number;
+    limit: number;
+    isVIP: boolean;
+    type?: "anonymous" | "credits" | "daily_limit";
+} | null;
 
 const randomPrompts = [
     "Cyberpunk style fusion",
@@ -136,6 +143,8 @@ export default function AIFusionStudioPage() {
     const [missingSides, setMissingSides] = useState<Side[]>([]);
     const [canShare, setCanShare] = useState(false);
     const [isActionHintActive, setIsActionHintActive] = useState(false);
+    const [quota, setQuota] = useState<QuotaSnapshot>(null);
+    const [isQuotaLoading, setIsQuotaLoading] = useState(true);
 
     const setFileSafe = (
         setter: Dispatch<SetStateAction<UploadedFile | null>>,
@@ -193,8 +202,111 @@ export default function AIFusionStudioPage() {
         setCanShare(typeof navigator !== "undefined" && "share" in navigator);
     }, []);
 
+    const refreshQuota = useCallback(async (options?: { silent?: boolean }): Promise<void> => {
+        if (!options?.silent) {
+            setIsQuotaLoading(true);
+        }
+
+        try {
+            const response = await fetch("/api/get-quota", {
+                method: "GET",
+                cache: "no-store",
+            });
+
+            if (!response.ok) {
+                throw new Error(`Quota request failed: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data && typeof data === "object" && "quota" in data) {
+                setQuota((data as { quota: QuotaSnapshot }).quota ?? null);
+            } else {
+                setQuota(null);
+            }
+        } catch (error) {
+            console.error("Failed to refresh AI quota:", error);
+            setQuota(null);
+        } finally {
+            if (!options?.silent) {
+                setIsQuotaLoading(false);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        let mounted = true;
+        void refreshQuota();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+            if (!mounted) return;
+            void refreshQuota();
+        });
+
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
+    }, [refreshQuota, supabase.auth]);
+
     const canGenerate = Boolean(leftFile && rightFile) && !isGenerating;
     const canRetry = Boolean(leftFile && rightFile) && !isGenerating;
+    const isQuotaBlocked = Boolean(quota && !quota.isVIP && quota.remaining <= 0);
+    const quotaStatusCopy = useMemo(() => {
+        if (isQuotaLoading) {
+            return {
+                title: "Checking your free quota...",
+                description: "We show remaining attempts before generation so you know what to expect.",
+                tone: "neutral" as const,
+            };
+        }
+
+        if (!quota) {
+            return {
+                title: "Free access is available",
+                description: "Quota details could not be loaded yet. You can still try generating.",
+                tone: "neutral" as const,
+            };
+        }
+
+        if (quota.isVIP) {
+            return {
+                title: "VIP active: unlimited generations",
+                description: "You can generate and download without free-tier limits.",
+                tone: "positive" as const,
+            };
+        }
+
+        if (quota.remaining > 0) {
+            if (quota.type === "anonymous") {
+                return {
+                    title: `${quota.remaining} free guest attempt${quota.remaining === 1 ? "" : "s"} left`,
+                    description: "When this reaches 0, sign-in is required before the next generation.",
+                    tone: "positive" as const,
+                };
+            }
+
+            return {
+                title: `${quota.remaining} credit${quota.remaining === 1 ? "" : "s"} remaining`,
+                description: "Each generation uses one credit.",
+                tone: "positive" as const,
+            };
+        }
+
+        if (quota.type === "anonymous") {
+            return {
+                title: "Free guest quota used",
+                description: "Sign in to continue generating before uploading and submitting again.",
+                tone: "warning" as const,
+            };
+        }
+
+        return {
+            title: "No credits left",
+            description: "Upgrade to continue generating AI fusions.",
+            tone: "warning" as const,
+        };
+    }, [isQuotaLoading, quota]);
+
     const getSubmissionSignature = (left: UploadedFile, right: UploadedFile): string =>
         [
             left.file.name,
@@ -246,6 +358,39 @@ export default function AIFusionStudioPage() {
         if (!selectedLeft || !selectedRight) {
             setError("Upload both images before generating.");
             setAuthGate(null);
+            return;
+        }
+
+        if (isQuotaBlocked) {
+            const nextAuthGate: AuthGateState =
+                quota?.type === "anonymous"
+                    ? {
+                        kind: "guest_limit",
+                        title: "Continue your fusion session",
+                        description: "Free guest quota is used. Sign in before generating again.",
+                    }
+                    : {
+                        kind: "member_credits",
+                        title: "Need more generation credits?",
+                        description: "Upgrade to unlock more AI fusion generations.",
+                    };
+
+            setAuthGate(nextAuthGate);
+            setError(
+                nextAuthGate.kind === "guest_limit"
+                    ? "Free quota used. Log in to continue generating."
+                    : "Not enough credits. Upgrade to continue generating."
+            );
+            setIsActionHintActive(true);
+            setTimeout(() => setIsActionHintActive(false), 500);
+            trackStudioEvent("ai_generate_blocked", {
+                reason: "quota_blocked_before_request",
+                quota_type: quota?.type ?? "unknown",
+            });
+            trackStudioEvent("ai_auth_gate_open", {
+                kind: nextAuthGate.kind,
+                status: 0,
+            });
             return;
         }
 
@@ -317,6 +462,7 @@ export default function AIFusionStudioPage() {
                 setError(normalized.message);
                 setAuthGate(normalized.authGate);
                 setProgress(0);
+                void refreshQuota({ silent: true });
 
                 if (normalized.authGate) {
                     trackStudioEvent("ai_auth_gate_open", {
@@ -351,6 +497,7 @@ export default function AIFusionStudioPage() {
             setProgress(100);
             setAuthGate(null);
             success = true;
+            void refreshQuota({ silent: true });
 
             trackStudioEvent("ai_generate_success", {
                 has_prompt: Boolean(prompt.trim()),
@@ -430,6 +577,19 @@ export default function AIFusionStudioPage() {
                 <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
                     Upload two images, describe the fusion style, and create unique artwork instantly.
                 </p>
+            </div>
+
+            <div
+                className={`rounded-xl border px-4 py-3 text-sm ${
+                    quotaStatusCopy.tone === "warning"
+                        ? "border-amber-200 bg-amber-50 text-amber-800"
+                        : quotaStatusCopy.tone === "positive"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                            : "border-border bg-muted/40 text-muted-foreground"
+                }`}
+            >
+                <p className="font-semibold">{quotaStatusCopy.title}</p>
+                <p className="mt-1 text-xs sm:text-sm">{quotaStatusCopy.description}</p>
             </div>
 
             <div className="space-y-4">
@@ -521,6 +681,8 @@ export default function AIFusionStudioPage() {
                     className={`w-full rounded-2xl py-4 text-lg font-bold flex items-center justify-center gap-3 transition-all duration-300 min-h-[56px] shadow-lg ${
                         isGenerating
                             ? "bg-muted text-muted-foreground cursor-wait shadow-none"
+                            : isQuotaBlocked
+                                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
                             : canGenerate
                                 ? "bg-gradient-to-r from-primary via-secondary to-primary bg-[length:200%_100%] hover:bg-[position:100%_0] active:scale-[0.98] text-white shadow-primary/25"
                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -533,6 +695,11 @@ export default function AIFusionStudioPage() {
                         <>
                             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             Generating...
+                        </>
+                    ) : isQuotaBlocked ? (
+                        <>
+                            <Sparkles size={20} aria-hidden="true" />
+                            Sign in to Continue
                         </>
                     ) : canGenerate ? (
                         <>
@@ -563,6 +730,9 @@ export default function AIFusionStudioPage() {
                         </div>
                         <p className="text-sm text-muted-foreground text-center">
                             AI is creating your fusion... {Math.round(progress)}%
+                        </p>
+                        <p className="text-xs text-muted-foreground/80 text-center">
+                            You can switch tabs while we process. Come back here for the final result.
                         </p>
                     </div>
                 )}
@@ -624,28 +794,11 @@ export default function AIFusionStudioPage() {
             <div ref={resultRef} aria-live="polite" className="space-y-4">
                 {resultImage && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xl sm:text-2xl font-bold">Result</h3>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={downloadResult}
-                                    className="p-2.5 rounded-xl bg-muted hover:bg-muted/80 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                                    aria-label="Download image"
-                                >
-                                    <Download size={18} />
-                                </button>
-                                {canShare && (
-                                    <button
-                                        type="button"
-                                        onClick={shareResult}
-                                        className="p-2.5 rounded-xl bg-muted hover:bg-muted/80 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                                        aria-label="Share image"
-                                    >
-                                        <Share2 size={18} />
-                                    </button>
-                                )}
-                            </div>
+                        <div className="space-y-1">
+                            <h3 className="text-xl sm:text-2xl font-bold">Your Fusion Is Ready</h3>
+                            <p className="text-sm text-muted-foreground">
+                                Download it now, then continue generating variations or explore more examples.
+                            </p>
                         </div>
 
                         <div className="relative aspect-square w-full rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-background to-muted/30 overflow-hidden shadow-xl flex items-center justify-center">
@@ -662,6 +815,55 @@ export default function AIFusionStudioPage() {
                             />
                         </div>
 
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={downloadResult}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:from-emerald-600 hover:to-green-700 min-h-[48px]"
+                            >
+                                <Download size={18} />
+                                Download HD
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setResultImage(null);
+                                    setError(null);
+                                    setProgress(0);
+                                    setAuthGate(null);
+                                }}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-muted/20 min-h-[48px]"
+                            >
+                                <RefreshCw size={18} />
+                                Continue Generating
+                            </button>
+                            {canShare && (
+                                <button
+                                    type="button"
+                                    onClick={shareResult}
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-muted/20 min-h-[48px] sm:col-span-2"
+                                >
+                                    <Share2 size={18} />
+                                    Share Result
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <Link
+                                href="/gallery?source=ai_result"
+                                className="inline-flex items-center justify-center rounded-xl border border-border bg-white px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-muted/20 min-h-[48px]"
+                            >
+                                See Example Results
+                            </Link>
+                            <Link
+                                href="/pricing?source=ai_result_next_step"
+                                className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:from-purple-700 hover:to-indigo-700 min-h-[48px]"
+                            >
+                                Unlock Unlimited
+                            </Link>
+                        </div>
+
                         <button
                             type="button"
                             onClick={() => {
@@ -674,10 +876,10 @@ export default function AIFusionStudioPage() {
                                 setAuthGate(null);
                                 setMissingSides([]);
                             }}
-                            className="w-full py-3 rounded-xl border-2 border-border hover:border-primary/50 text-base font-medium flex items-center justify-center gap-2 transition-colors min-h-[48px]"
+                            className="w-full py-3 rounded-xl border-2 border-border hover:border-primary/50 text-sm font-medium flex items-center justify-center gap-2 transition-colors min-h-[48px]"
                         >
                             <RefreshCw size={18} />
-                            Create New Fusion
+                            Start From Scratch
                         </button>
                     </div>
                 )}

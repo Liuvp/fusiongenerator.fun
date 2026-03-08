@@ -344,12 +344,10 @@ export function DBFusionStudio() {
                 setUser(data?.user ?? null);
                 setIsLoadingAuth(false);
 
-                if (data?.user) {
-                    const response = await fetch('/api/get-quota');
-                    if (response.ok) {
-                        const quotaData = await response.json();
-                        if (isMounted) setQuota(quotaData.quota);
-                    }
+                const response = await fetch('/api/get-quota');
+                if (response.ok) {
+                    const quotaData = await response.json();
+                    if (isMounted) setQuota(quotaData.quota);
                 }
             } catch (error) {
                 if (isMounted) {
@@ -1014,7 +1012,8 @@ export function DBFusionStudio() {
                                 focusable="false"
                             />
                             <p className="text-gray-600 font-semibold">Channeling Ki...</p>
-                            <p className="text-sm text-gray-500 font-medium">This may take a moment</p>
+                            <p className="text-sm text-gray-500 font-medium">You can switch tabs while we keep generating.</p>
+                            <p className="text-xs text-gray-400">We will show the fusion result here as soon as it is ready.</p>
                             <div className="sr-only">
                                 Generating fusion between {char1?.name} and {char2?.name}. Please wait.
                             </div>
@@ -1051,10 +1050,10 @@ export function DBFusionStudio() {
                                         {result.char1.name} × {result.char2.name}
                                     </h3>
                                     <p className="text-sm text-gray-500 mt-1">
-                                        Fusion Complete
+                                        Fusion complete. Download it, keep generating, or explore next steps.
                                     </p>
                                 </div>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <Button
                                         type="button"
                                         onClick={downloadImage}
@@ -1064,7 +1063,17 @@ export function DBFusionStudio() {
                                         title="Download fusion image"
                                     >
                                         <Download className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                        Save
+                                        Download HD
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        aria-label="Continue generating another Dragon Ball fusion"
+                                        onClick={clearSelection}
+                                        variant="outline"
+                                        title="Continue with a new fusion"
+                                    >
+                                        <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
+                                        Continue Generating
                                     </Button>
                                     <Button
                                         type="button"
@@ -1074,17 +1083,29 @@ export function DBFusionStudio() {
                                         title="Share fusion result"
                                     >
                                         <Share2 className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                        Share
+                                        Share Result
                                     </Button>
                                     <Button
                                         type="button"
-                                        aria-label="Start a new Dragon Ball fusion"
-                                        onClick={clearSelection}
+                                        asChild
                                         variant="outline"
-                                        title="Create new fusion"
+                                        title="View example fusion results"
                                     >
-                                        <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                        New
+                                        <Link href="/gallery?source=dragon_ball_result">
+                                            View Example Results
+                                        </Link>
+                                    </Button>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <Button type="button" asChild variant="outline">
+                                        <Link href="/pokemon?source=dragon_ball_result">
+                                            Try Pokemon Studio
+                                        </Link>
+                                    </Button>
+                                    <Button type="button" asChild className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 border-0">
+                                        <Link href="/pricing?source=dragon_ball_result_next_step">
+                                            Unlock Unlimited
+                                        </Link>
                                     </Button>
                                 </div>
                             </div>
