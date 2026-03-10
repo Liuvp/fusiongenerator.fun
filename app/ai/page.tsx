@@ -232,7 +232,7 @@ export default function AIFusionPage() {
                             </p>
                             <div className="flex flex-col sm:flex-row gap-3 justify-center px-4 sm:px-0">
                                 <Button asChild className="h-12 sm:h-11 px-6 text-base sm:text-sm rounded-xl">
-                                    <Link href="#fusion-studio" aria-label="Start using the AI fusion tool now">Start Fusing</Link>
+                                    <Link href="#fusion-studio" aria-label="Jump to the upload studio and start with two images">Jump to Upload Studio</Link>
                                 </Button>
                                 <Button asChild variant="outline" className="h-12 sm:h-11 px-6 text-base sm:text-sm rounded-xl">
                                     <Link href="/gallery" aria-label="View our gallery of community AI fusions">View Gallery</Link>
@@ -369,7 +369,7 @@ export default function AIFusionPage() {
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                                 <Button asChild className="w-full sm:w-auto h-12 sm:h-11 px-8 text-base sm:text-sm rounded-xl shadow-lg shadow-primary/20">
                                     <Link href="#fusion-studio" aria-label="Go to the fusion studio to start creating">
-                                        Start Fusing Now
+                                        Jump to Upload Studio
                                     </Link>
                                 </Button>
                                 <Button asChild variant="outline" className="w-full sm:w-auto h-12 sm:h-11 px-8 text-base sm:text-sm rounded-xl hover:bg-muted">

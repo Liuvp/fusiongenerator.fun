@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { checkUserDailyQuota, checkVIPUserDailyQuota } from '@/lib/rate-limit';
+
+const FALLBACK_QUOTA = {
+    used: 0,
+    remaining: 1,
+    limit: 1,
+    isVIP: false,
+    type: 'anonymous'
+} as const;
 
 export async function GET(request: NextRequest) {
     try {
@@ -82,9 +89,9 @@ export async function GET(request: NextRequest) {
 
     } catch (error: any) {
         console.error('Get quota error:', error);
-        return NextResponse.json(
-            { error: 'Failed to get quota' },
-            { status: 500 }
-        );
+        return NextResponse.json({
+            quota: FALLBACK_QUOTA,
+            degraded: true,
+        });
     }
 }

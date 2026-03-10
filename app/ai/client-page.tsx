@@ -145,6 +145,8 @@ export default function AIFusionStudioPage() {
     const [isActionHintActive, setIsActionHintActive] = useState(false);
     const [quota, setQuota] = useState<QuotaSnapshot>(null);
     const [isQuotaLoading, setIsQuotaLoading] = useState(true);
+    const [showPromptControls, setShowPromptControls] = useState(false);
+    const [isHashFocused, setIsHashFocused] = useState(false);
 
     const setFileSafe = (
         setter: Dispatch<SetStateAction<UploadedFile | null>>,
@@ -202,6 +204,20 @@ export default function AIFusionStudioPage() {
         setCanShare(typeof navigator !== "undefined" && "share" in navigator);
     }, []);
 
+    useEffect(() => {
+        const highlightStudioFromHash = (): void => {
+            if (typeof window === "undefined") return;
+            if (window.location.hash !== "#fusion-studio") return;
+
+            setIsHashFocused(true);
+            window.setTimeout(() => setIsHashFocused(false), 1400);
+        };
+
+        highlightStudioFromHash();
+        window.addEventListener("hashchange", highlightStudioFromHash);
+        return () => window.removeEventListener("hashchange", highlightStudioFromHash);
+    }, []);
+
     const refreshQuota = useCallback(async (options?: { silent?: boolean }): Promise<void> => {
         if (!options?.silent) {
             setIsQuotaLoading(true);
@@ -214,7 +230,8 @@ export default function AIFusionStudioPage() {
             });
 
             if (!response.ok) {
-                throw new Error(`Quota request failed: ${response.status}`);
+                setQuota(null);
+                return;
             }
 
             const data = await response.json();
@@ -224,7 +241,6 @@ export default function AIFusionStudioPage() {
                 setQuota(null);
             }
         } catch (error) {
-            console.error("Failed to refresh AI quota:", error);
             setQuota(null);
         } finally {
             if (!options?.silent) {
@@ -527,6 +543,7 @@ export default function AIFusionStudioPage() {
 
     const surpriseMe = (): void => {
         const randomPrompt = randomPrompts[Math.floor(Math.random() * randomPrompts.length)];
+        setShowPromptControls(true);
         setPrompt(randomPrompt);
         trackStudioEvent("ai_prompt_randomized", { prompt: randomPrompt });
     };
@@ -567,7 +584,9 @@ export default function AIFusionStudioPage() {
     return (
         <section
             id="fusion-studio"
-            className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-8 interactive-loaded"
+            className={`scroll-mt-24 w-full max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-8 interactive-loaded rounded-3xl transition-all duration-500 ${
+                isHashFocused ? "ring-2 ring-primary/50 ring-offset-4 ring-offset-background bg-primary/5" : ""
+            }`}
             aria-labelledby="studio-title"
         >
             <div className="text-center space-y-2">
@@ -590,6 +609,26 @@ export default function AIFusionStudioPage() {
             >
                 <p className="font-semibold">{quotaStatusCopy.title}</p>
                 <p className="mt-1 text-xs sm:text-sm">{quotaStatusCopy.description}</p>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-card/70 px-4 py-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p className="text-sm font-semibold text-foreground">Fast path for first-time users</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            1. Upload Image A and Image B. 2. Click Generate. Add style instructions only if you want a specific look.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowPromptControls((current) => !current)}
+                        className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-muted/30"
+                        aria-expanded={showPromptControls}
+                        aria-controls="optional-style-panel"
+                    >
+                        {showPromptControls ? "Hide Optional Style" : "Add Optional Style"}
+                    </button>
+                </div>
             </div>
 
             <div className="space-y-4">
@@ -637,42 +676,56 @@ export default function AIFusionStudioPage() {
                 </div>
             </div>
 
-            <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
-                    Describe Fusion Style (Optional)
-                </div>
-
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                        <label htmlFor="fusion-prompt" className="sr-only">Fusion Prompt</label>
-                        <button
-                            type="button"
-                            onClick={surpriseMe}
-                            disabled={isGenerating}
-                            className="text-sm flex items-center gap-1.5 text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 ml-auto min-h-[44px] px-3 font-medium"
-                            aria-label="Generate random prompt"
-                        >
-                            <Dice6 size={18} aria-hidden="true" />
-                            Surprise Me
-                        </button>
+            {(showPromptControls || Boolean(prompt.trim())) && (
+                <div id="optional-style-panel" className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
+                        Optional Style Instructions
                     </div>
-                    <input
-                        id="fusion-prompt"
-                        value={prompt}
-                        onChange={(event) => setPrompt(event.target.value)}
-                        disabled={isGenerating}
-                        placeholder="e.g. Cyberpunk style, Cinematic lighting..."
-                        className="w-full rounded-xl border-2 border-border bg-background px-4 py-3 text-base focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
-                    />
+
+                    <div className="space-y-2 rounded-2xl border border-border bg-card/60 p-4">
+                        <div className="flex items-center justify-between">
+                            <label htmlFor="fusion-prompt" className="sr-only">Fusion Prompt</label>
+                            <p className="text-xs text-muted-foreground">Skip this for the fastest first result.</p>
+                            <button
+                                type="button"
+                                onClick={surpriseMe}
+                                disabled={isGenerating}
+                                className="text-sm flex items-center gap-1.5 text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 ml-auto min-h-[44px] px-3 font-medium"
+                                aria-label="Generate random prompt"
+                            >
+                                <Dice6 size={18} aria-hidden="true" />
+                                Surprise Me
+                            </button>
+                        </div>
+                        <input
+                            id="fusion-prompt"
+                            value={prompt}
+                            onChange={(event) => setPrompt(event.target.value)}
+                            disabled={isGenerating}
+                            placeholder="e.g. Cyberpunk style, Cinematic lighting..."
+                            className="w-full rounded-xl border-2 border-border bg-background px-4 py-3 text-base focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
 
             <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                        {showPromptControls || Boolean(prompt.trim()) ? "3" : "2"}
+                    </span>
                     Generate Fusion
                 </div>
+
+                {Boolean(leftFile && rightFile) && !isGenerating && !isQuotaBlocked && (
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary">
+                        <p className="font-semibold">Ready to generate</p>
+                        <p className="mt-1 text-xs sm:text-sm text-primary/80">
+                            Your two images are loaded. Generate now or add optional style instructions first.
+                        </p>
+                    </div>
+                )}
 
                 <button
                     type="button"
