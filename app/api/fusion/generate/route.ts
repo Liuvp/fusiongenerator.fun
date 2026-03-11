@@ -186,11 +186,11 @@ export async function POST(req: NextRequest) {
             image2Description = "a distinct character";
         }
 
-        let isPremium = false;
-        if (user) {
-            try {
-                const subscription = await getUserSubscription(user.id);
-                isPremium = !!subscription;
+            let isPremium = false;
+            if (user) {
+                try {
+                    const subscription = await getUserSubscription(user.id);
+                    isPremium = !!subscription;
             } catch (e) {
                 console.warn("Failed to check subscription status:", e);
             }
@@ -200,11 +200,11 @@ export async function POST(req: NextRequest) {
             ? " text \"fusiongenerator.fun\" watermark in bottom right corner."
             : "";
 
-        const finalPrompt = `(Masterpiece). Fusion of character in image AND character looking like: ${image2Description || "the second uploaded image"}. ${prompt}.${watermarkInstruction} Detailed.`;
+            const finalPrompt = `(Masterpiece). Fusion of character in image AND character looking like: ${image2Description || "the second uploaded image"}. ${prompt}.${watermarkInstruction} Detailed.`;
 
-        // Generate Final Image
-        try {
-            console.log("Generating fusion with Flux...");
+            // Generate Final Image
+            try {
+                console.log("Generating fusion with Flux...");
             const result: any = await fal.subscribe("fal-ai/flux/dev", {
                 input: { prompt: finalPrompt, image_url: url1, strength: 0.85 },
                 logs: true
@@ -213,11 +213,11 @@ export async function POST(req: NextRequest) {
             // 5. Deduct Credit
             let remainingCredits = activeCustomer ? activeCustomer.credits : 0;
 
-            if (user && activeCustomer) {
-                try {
-                    const { error: updateError } = await supabase
-                        .from("customers")
-                        .update({ credits: activeCustomer.credits - COST })
+                if (user && activeCustomer) {
+                    try {
+                        const { error: updateError } = await supabase
+                            .from("customers")
+                            .update({ credits: activeCustomer.credits - COST })
                         .eq("id", activeCustomer.id);
 
                     if (!updateError) remainingCredits = activeCustomer.credits - COST;
@@ -225,9 +225,17 @@ export async function POST(req: NextRequest) {
                 } catch (e) { console.error("Deduction Error:", e); }
             }
 
+            const imageUrl =
+                Array.isArray(result?.images) && typeof result.images[0]?.url === "string"
+                    ? result.images[0].url
+                    : null;
+            if (!imageUrl) {
+                throw new Error("[Fal Error] Model response did not include a valid image URL.");
+            }
+
             return NextResponse.json({
                 success: true,
-                imageUrl: result.images[0].url,
+                imageUrl,
                 remainingCredits: remainingCredits,
                 logs: result.logs
             });
@@ -239,8 +247,24 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("API Error Trace:", error);
+        const rawMessage = typeof error?.message === "string" ? error.message : "Unknown server error";
+        const normalized = rawMessage.toLowerCase();
+
+        // Map recoverable service failures to 503 so the client can show a retry-oriented message.
+        if (
+            normalized.includes("[fal error]") ||
+            normalized.includes("model response did not include") ||
+            normalized.includes("temporarily unavailable") ||
+            normalized.includes("busy") ||
+            normalized.includes("timeout")
+        ) {
+            return NextResponse.json({
+                error: "Generation service is temporarily unavailable. Please try again in a moment."
+            }, { status: 503 });
+        }
+
         return NextResponse.json({
-            error: error.message.includes("[API Error]") ? error.message : `[API Error] ${error.message}`
+            error: rawMessage.includes("[API Error]") ? rawMessage : `[API Error] ${rawMessage}`
         }, { status: 500 });
     }
 }
