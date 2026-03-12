@@ -20,7 +20,7 @@ export function Footer() {
         { label: "Blog", href: "/blog" },
         { label: "About Us", href: "/about" },
         { label: "Contact Us", href: "/contact" },
-        { label: "Sitemap", href: "/sitemap" },
+        { label: "Sitemap", href: "/site-map" },
       ],
     },
     {

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     canonical: "/site-map",
   },
   robots: {
-    index: false,
+    index: true,
     follow: true,
   },
 };

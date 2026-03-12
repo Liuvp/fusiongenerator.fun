@@ -1,9 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-export async function middleware(request: NextRequest) {
-  // Optimize: Fast path for AI page to avoid blocking middleware execution (500ms+ savings)
-  if (request.nextUrl.pathname.startsWith('/ai')) {
+export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/ai")) {
     return NextResponse.next();
   }
 
@@ -34,8 +33,6 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired - required for Server Components
-  // This will automatically refresh the session cookie if needed
   await supabase.auth.getUser();
 
   return supabaseResponse;

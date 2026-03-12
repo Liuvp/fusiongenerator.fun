@@ -1,11 +1,10 @@
-import { Metadata } from 'next'
-import Image from 'next/image'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { getPostBySlug, getAllPosts, getRelatedPosts } from '../data/posts'
-import BlogCard from '@/components/blog/BlogCard'
+import { Metadata } from "next"
+import Image from "next/image"
+import { notFound } from "next/navigation"
+import { getPostBySlug, getAllPosts, getRelatedPosts } from "../data/posts"
+import BlogCard from "@/components/blog/BlogCard"
 
-export const dynamic = 'force-static'
+export const dynamic = "force-static"
 
 interface Props {
     params: Promise<{
@@ -13,7 +12,6 @@ interface Props {
     }>
 }
 
-// ✅ SSG: 静态生成所有可能的路径
 export async function generateStaticParams() {
     const posts = getAllPosts()
 
@@ -22,17 +20,15 @@ export async function generateStaticParams() {
     }))
 }
 
-// ✅ SEO: 动态生成元数据
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params
     const post = getPostBySlug(slug)
 
-    // ✅ [NEW] 现在的写法：直接通过抛出异常进入 404 流程
     if (!post) {
         notFound()
     }
 
-    const ogImage = post.coverImage // 实际项目中可以是专门生成的 OG 图片
+    const ogImage = post.coverImage
 
     return {
         title: post.title,
@@ -43,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         openGraph: {
             title: post.title,
             description: post.excerpt,
-            type: 'article',
+            type: "article",
             publishedTime: post.publishedDate,
             authors: [post.author],
             images: [
@@ -56,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             ],
         },
         twitter: {
-            card: 'summary_large_image',
+            card: "summary_large_image",
             title: post.title,
             description: post.excerpt,
             images: [ogImage],
@@ -73,36 +69,35 @@ export default async function BlogPostPage({ params }: Props) {
     }
 
     const relatedPosts = getRelatedPosts(post.slug)
-    const formattedDate = new Date(post.publishedDate).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+    const formattedDate = new Date(post.publishedDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
     })
 
-    // ✅ 结构化数据：Article Schema
     const articleSchema = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
-        "headline": post.title,
-        "image": [
+        headline: post.title,
+        image: [
             `https://fusiongenerator.fun${post.coverImage}`
         ],
-        "datePublished": post.publishedDate,
-        "dateModified": post.publishedDate,
-        "author": [{
+        datePublished: post.publishedDate,
+        dateModified: post.publishedDate,
+        author: [{
             "@type": "Person",
-            "name": post.author,
-            "url": "https://fusiongenerator.fun"
+            name: post.author,
+            url: "https://fusiongenerator.fun"
         }],
-        "publisher": {
+        publisher: {
             "@type": "Organization",
-            "name": "Fusion Generator",
-            "logo": {
+            name: "Fusion Generator",
+            logo: {
                 "@type": "ImageObject",
-                "url": "https://fusiongenerator.fun/images/fusion-generator-logo-new.svg"
+                url: "https://fusiongenerator.fun/images/fusion-generator-logo-new.svg"
             }
         },
-        "description": post.excerpt
+        description: post.excerpt
     }
 
     return (
@@ -113,11 +108,7 @@ export default async function BlogPostPage({ params }: Props) {
             />
 
             <div className="min-h-screen bg-background pb-20">
-                {/* 顶部进度条/导航占位 - 如果有全局Header这里会自动处理 */}
-
                 <article className="container max-w-4xl mx-auto px-4 sm:px-6 py-8 md:py-12">
-
-                    {/* 文章头部 */}
                     <header className="mb-10 text-center space-y-6">
                         <div className="flex flex-wrap justify-center gap-2 mb-4">
                             {post.tags.map(tag => (
@@ -136,14 +127,13 @@ export default async function BlogPostPage({ params }: Props) {
                                 <span className="sr-only">Author</span>
                                 <span className="font-medium text-foreground">{post.author}</span>
                             </div>
-                            <span aria-hidden="true">•</span>
+                            <span aria-hidden="true">-</span>
                             <time dateTime={post.publishedDate}>{formattedDate}</time>
-                            <span aria-hidden="true">•</span>
+                            <span aria-hidden="true">-</span>
                             <span>{post.readTime} min read</span>
                         </div>
                     </header>
 
-                    {/* 封面图 */}
                     <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-xl mb-12 bg-muted">
                         <Image
                             src={post.coverImage}
@@ -155,13 +145,10 @@ export default async function BlogPostPage({ params }: Props) {
                         />
                     </div>
 
-                    {/* 文章内容区 */}
                     <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl prose-img:shadow-md">
-                        {/* 注意：这里的 content 目前是纯文本占位符。实际项目中，你应该使用 MDXRemote 或 dangerouslySetInnerHTML 来渲染 Markdown/HTML 内容 */}
                         <div dangerouslySetInnerHTML={{ __html: post.content }} />
 
-                        {/* 模拟一些默认内容填充，防止页面看起来太空 */}
-                        {post.content === 'Full article content here...' && (
+                        {post.content === "Full article content here..." && (
                             <div className="space-y-6 text-muted-foreground">
                                 <p className="lead text-xl text-foreground">
                                     {post.excerpt}
@@ -195,7 +182,6 @@ export default async function BlogPostPage({ params }: Props) {
 
                     <hr className="my-12 border-border" />
 
-                    {/* 相关文章推荐 */}
                     {relatedPosts.length > 0 && (
                         <aside aria-labelledby="related-posts">
                             <h2 id="related-posts" className="text-3xl font-bold mb-8">Related Articles</h2>

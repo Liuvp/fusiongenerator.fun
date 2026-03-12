@@ -11,6 +11,12 @@ import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const baseUrl = getSiteUrl();
+const googleSiteVerification =
+  process.env.GOOGLE_SITE_VERIFICATION ??
+  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+const bingSiteVerification =
+  process.env.BING_SITE_VERIFICATION ??
+  process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION;
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -20,27 +26,31 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
+  title: "Fusion Generator - Dragon Ball & Pokemon AI Fusions",
   description:
-    "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
+    "Generate unique Dragon Ball and Pokemon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
   openGraph: {
-    title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
+    title: "Fusion Generator - Dragon Ball & Pokemon AI Fusions",
     description:
-      "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
+      "Generate unique Dragon Ball and Pokemon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
     type: "website",
     url: `${baseUrl}/`,
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fusion Generator – Dragon Ball & Pokémon AI Fusions",
+    title: "Fusion Generator - Dragon Ball & Pokemon AI Fusions",
     description:
-      "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
+      "Generate unique Dragon Ball and Pokemon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
   },
   robots: "index, follow",
   verification: {
-    // Add your Bing Webmaster validation here
-    // other: { 'msvalidate.01': 'YOUR_BING_VERIFICATION_CODE' },
+    google: googleSiteVerification,
+    other: bingSiteVerification
+      ? {
+          "msvalidate.01": bingSiteVerification,
+        }
+      : undefined,
   },
 };
 
@@ -76,14 +86,12 @@ export default async function RootLayout({
         >
           <div className="relative min-h-screen">
             <Header user={user} />
-            {/* Breadcrumbs for existing pages (not shown on homepage) */}
             <Breadcrumbs />
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
           <Toaster />
         </ThemeProvider>
-        {/* Google Analytics - Optimized loading */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
           strategy="lazyOnload"
@@ -98,7 +106,6 @@ export default async function RootLayout({
             });
           `}
         </Script>
-        {/* Microsoft Clarity - Optimized loading */}
         <Script id="microsoft-clarity" strategy="lazyOnload">
           {`
             (function(c,l,a,r,i,t,y){

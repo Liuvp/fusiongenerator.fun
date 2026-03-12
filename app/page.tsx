@@ -7,19 +7,20 @@ import { BlogPreview } from "@/components/home/blog-preview";
 import { GalleryPreview } from "@/components/home/gallery-preview";
 import { FAQ } from "@/components/home/faq";
 
-// Force static generation to ensure meta tags are in <head>
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600;
 
 export const metadata = {
-  title: "Fusion Generator – Create Dragon Ball & Pokémon AI Fusions",
-  description: "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
+  title: "Fusion Generator - Create Dragon Ball & Pokemon AI Fusions",
+  description:
+    "Generate unique Dragon Ball and Pokemon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
   alternates: {
-    canonical: '/',
+    canonical: "/",
   },
   openGraph: {
-    title: "Fusion Generator – Create Dragon Ball & Pokémon AI Fusions",
-    description: "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
+    title: "Fusion Generator - Create Dragon Ball & Pokemon AI Fusions",
+    description:
+      "Generate unique Dragon Ball and Pokemon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
     url: "/",
     type: "website",
     siteName: "Fusion Generator",
@@ -34,8 +35,9 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fusion Generator – Create Dragon Ball & Pokémon AI Fusions",
-    description: "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
+    title: "Fusion Generator - Create Dragon Ball & Pokemon AI Fusions",
+    description:
+      "Generate unique Dragon Ball and Pokemon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
     images: ["/hero-fusion-example.webp"],
   },
 };
@@ -44,23 +46,24 @@ export default function Home() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Fusion Generator",
-    "description": "Generate unique Dragon Ball and Pokémon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
-    "url": "https://fusiongenerator.fun/",
-    "applicationCategory": "MultimediaApplication",
-    "operatingSystem": "All",
-    "offers": {
+    name: "Fusion Generator",
+    description:
+      "Generate unique Dragon Ball and Pokemon character fusions instantly with AI. High-quality, style-consistent blending. No account required.",
+    url: "https://fusiongenerator.fun/",
+    applicationCategory: "MultimediaApplication",
+    operatingSystem: "All",
+    offers: {
       "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
+      price: "0",
+      priceCurrency: "USD",
     },
-    "featureList": [
+    featureList: [
       "Dragon Ball Fusion Generator",
-      "Pokémon Fusion Maker",
+      "Pokemon Fusion Maker",
       "AI Character Creator",
       "Style-Consistent Blending",
-      "High-Resolution Export"
-    ]
+      "High-Resolution Export",
+    ],
   };
 
   return (

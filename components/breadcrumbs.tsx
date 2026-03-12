@@ -47,9 +47,34 @@ export function Breadcrumbs() {
     return { href, label };
   });
 
+  const itemListElement = [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://fusiongenerator.fun/",
+    },
+    ...items.map((item, idx) => ({
+      "@type": "ListItem",
+      position: idx + 2,
+      name: item.label,
+      item: `https://fusiongenerator.fun${item.href}`,
+    })),
+  ];
+
   return (
     <nav aria-label="Breadcrumb" className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container px-4 md:px-6 py-2">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement,
+            }),
+          }}
+        />
         <ol className="flex items-center gap-2 text-sm text-muted-foreground">
           <li>
             <Link href="/" className="hover:text-foreground">Home</Link>
