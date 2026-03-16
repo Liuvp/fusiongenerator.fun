@@ -44,9 +44,9 @@ export async function GET(request: Request) {
     try {
         const supabase = createServiceRoleClient();
 
-        // Use the service role so the keep-alive query does not depend on a user session.
+        // Use a lightweight query against a table that exists in the live schema.
         const { count, error } = await supabase
-            .from('generation_batches')
+            .from('customers')
             .select('id', { count: 'exact', head: true });
 
         if (error) {
