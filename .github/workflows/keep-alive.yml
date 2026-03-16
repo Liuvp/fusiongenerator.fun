@@ -2,21 +2,24 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Run at 00:00 UTC daily
+    - cron: '17 3 * * *' # Run daily away from the top of the hour
   workflow_dispatch: # Allow manual trigger
 
 jobs:
   ping:
     runs-on: ubuntu-latest
+    env:
+      KEEP_ALIVE_URL: https://fusiongenerator.fun/api/system/keep-alive
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
     steps:
+      - name: Validate Required Secret
+        run: test -n "$CRON_SECRET"
+
       - name: Ping Keep-Alive Endpoint
         run: |
           echo "Pinging keep-alive endpoint..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://fusiongenerator.fun/api/system/keep-alive)
-          echo "Response status code: $response"
-          if [ "$response" -eq 200 ]; then
-            echo "Success: Database is active."
-          else
-            echo "Error: Failed to ping database. Status code: $response"
-            exit 1
-          fi
+          response=$(curl --fail --silent --show-error --retry 3 --retry-all-errors --max-time 30 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$KEEP_ALIVE_URL")
+          echo "$response"
+          echo "$response" | grep -q '"status":"ok"'

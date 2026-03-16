@@ -1,4 +1,10 @@
 {
+    "crons": [
+        {
+            "path": "/api/system/keep-alive",
+            "schedule": "41 5 * * *"
+        }
+    ],
     "headers": [
         {
             "source": "/sitemap.xml",
