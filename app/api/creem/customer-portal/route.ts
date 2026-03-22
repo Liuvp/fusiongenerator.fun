@@ -1,9 +1,9 @@
 import { createServiceRoleClient } from "@/utils/supabase/service-role";
 import { createClient } from "@/utils/supabase/server";
+import { getCreemApiUrl } from "@/utils/creem/api-url";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     // Get the user from the session
     const supabase = await createClient();
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
 
     // Call Creem API to get the customer portal link
     const response = await fetch(
-      `${process.env.CREEM_API_URL}/customers/billing`,
+      getCreemApiUrl("/customers/billing"),
       {
         method: "POST",
         headers: {

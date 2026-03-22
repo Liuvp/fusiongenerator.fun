@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { getCreemApiUrl } from "@/utils/creem/api-url";
 import { NextResponse } from "next/server";
 
 // Force dynamic to ensure env vars are read at runtime, not build time
@@ -53,14 +54,7 @@ export async function POST(request: Request) {
 
         // Determine the base URL for redirection
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get("origin") || "http://localhost:3000";
-        // Use configured API URL or fallback to production
-        let creemApiUrl = process.env.CREEM_API_URL || "https://api.creem.io/v1/checkouts";
-
-        // Auto-fix common configuration errors (missing path suffix)
-        if (!creemApiUrl.endsWith("/checkouts")) {
-            // Remove trailing slash if present then append suffix
-            creemApiUrl = creemApiUrl.replace(/\/$/, "") + "/checkouts";
-        }
+        const creemApiUrl = getCreemApiUrl("/checkouts");
 
         console.log(`Checking out with API URL: ${creemApiUrl}`);
 

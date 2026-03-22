@@ -1,6 +1,7 @@
 "use server";
 
 import { encodedRedirect } from "@/utils/utils";
+import { getCreemApiUrl } from "@/utils/creem/api-url";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -237,7 +238,7 @@ export async function createCheckoutSession(
       requestBody.discount_code = discountCode;
     }
 
-    const response = await fetch(process.env.CREEM_API_URL + "/checkouts", {
+    const response = await fetch(getCreemApiUrl("/checkouts"), {
       method: "POST",
       headers: {
         "x-api-key": process.env.CREEM_API_KEY!,
