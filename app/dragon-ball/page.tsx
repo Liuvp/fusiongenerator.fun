@@ -229,7 +229,7 @@ export default function DragonBallPage() {
         <div className="container px-4 md:px-6 py-10 md:py-12">
           <div className="max-w-5xl mx-auto space-y-12 md:space-y-16">
             <DBHero />
-            <ErrorBoundary>
+            <ErrorBoundary context="dragon_ball_studio">
               <DBFusionStudioClient />
             </ErrorBoundary>
             <DBHowToUse />

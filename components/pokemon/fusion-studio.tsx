@@ -211,8 +211,8 @@ export function PokeFusionStudio() {
                 description: "Upgrade to VIP for unlimited Pokemon fusions."
             }
             : {
-                title: "Free quota used",
-                description: "Sign in or sign up to keep generating."
+                title: "Free guest fusion used",
+                description: "Create a free account to keep generating and save future fusions in one place."
             };
     }, [hasQuotaAccessValue, quota?.isVIP, quota?.remaining, user]);
 
@@ -507,7 +507,7 @@ export function PokeFusionStudio() {
                         ) : !isSelectionComplete ? (
                             `Select 2 Pokemon (${selectedCount}/2)`
                         ) : !hasQuotaAccessValue ? (
-                            user ? "Upgrade to Continue" : "Continue with Free Account"
+                            user ? "Unlock More Fusions" : "Continue Free"
                         ) : (
                             <span className="flex items-center gap-2"><Sparkles className="w-5 h-5" /> Fuse Pokemon!</span>
                         )}
@@ -520,18 +520,24 @@ export function PokeFusionStudio() {
                                 <p className="text-xs text-gray-600">
                                     {authGateReason === "api_limit_reached"
                                         ? "Your free guest trial is used. Sign in to keep generating."
-                                        : "Sign in or sign up to unlock account credits and continue."}
+                                        : "Sign in or create a free account to keep generating and save your next fusions."}
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <Button asChild variant="outline" className="w-full bg-white hover:bg-gray-50 text-gray-700 border-gray-200">
-                                    <Link href={`/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}>
+                                    <Link
+                                        href={`/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}
+                                        onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "sign_in", reason: authGateReason ?? "quota_limit" })}
+                                    >
                                         Continue Free
                                     </Link>
                                 </Button>
                                 <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 border-0">
-                                    <Link href={`/sign-up?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}>
-                                        Sign Up Free
+                                    <Link
+                                        href={`/sign-up?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}
+                                        onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "sign_up", reason: authGateReason ?? "quota_limit" })}
+                                    >
+                                        Create Free Account
                                     </Link>
                                 </Button>
                             </div>
@@ -547,7 +553,10 @@ export function PokeFusionStudio() {
                                 </p>
                             </div>
                             <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-indigo-700 border-0">
-                                <Link href="/pricing?source=pokemon_fusion_quota">
+                                <Link
+                                    href="/pricing?source=pokemon_fusion_quota"
+                                    onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "pricing", reason: "member_quota_exceeded" })}
+                                >
                                     Upgrade to VIP
                                 </Link>
                             </Button>

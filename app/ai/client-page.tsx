@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Sparkles, Dice6, RefreshCw, Download, Share2 } from "lucide-react";
 import UploadBox, { UploadedFile, Side } from "./components/UploadBox";
 import { createClient } from "@/utils/supabase/client";
+import { toAnalyticsErrorMessage } from "@/utils/analytics";
 
 type AuthGateKind = "guest_limit" | "member_credits";
 
@@ -82,8 +83,8 @@ const normalizeGenerationError = (
             message: "Free quota used. Log in to continue generating.",
             authGate: {
                 kind: "guest_limit",
-                title: "Continue your fusion session",
-                description: "Sign in to unlock account credits and keep generating.",
+                title: "Continue with a free account",
+                description: "Sign in or create a free account to unlock more generations and keep exploring ideas.",
             },
         };
     }
@@ -202,6 +203,29 @@ export default function AIFusionStudioPage() {
 
     useEffect(() => {
         setCanShare(typeof navigator !== "undefined" && "share" in navigator);
+    }, []);
+
+    useEffect(() => {
+        const handleError = (event: ErrorEvent) => {
+            trackStudioEvent("ai_runtime_error", {
+                page: "ai_studio",
+                message: toAnalyticsErrorMessage(event.error || event.message),
+            });
+        };
+
+        const handleRejection = (event: PromiseRejectionEvent) => {
+            trackStudioEvent("ai_runtime_error", {
+                page: "ai_studio",
+                message: toAnalyticsErrorMessage(event.reason),
+            });
+        };
+
+        window.addEventListener("error", handleError);
+        window.addEventListener("unhandledrejection", handleRejection);
+        return () => {
+            window.removeEventListener("error", handleError);
+            window.removeEventListener("unhandledrejection", handleRejection);
+        };
     }, []);
 
     useEffect(() => {
@@ -815,14 +839,26 @@ export default function AIFusionStudioPage() {
                             <Link
                                 href={`/sign-in?redirect_to=${encodeURIComponent("/ai#fusion-studio")}&source=ai_studio&reason=free_limit`}
                                 className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                onClick={() =>
+                                    trackStudioEvent("ai_auth_gate_click", {
+                                        kind: "guest_limit",
+                                        cta: "sign_in",
+                                    })
+                                }
                             >
-                                Log In
+                                Continue Free
                             </Link>
                             <Link
                                 href={`/sign-up?redirect_to=${encodeURIComponent("/ai#fusion-studio")}&source=ai_studio&reason=free_limit`}
                                 className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-2 text-sm font-semibold text-white hover:from-blue-700 hover:to-purple-700"
+                                onClick={() =>
+                                    trackStudioEvent("ai_auth_gate_click", {
+                                        kind: "guest_limit",
+                                        cta: "sign_up",
+                                    })
+                                }
                             >
-                                Sign Up Free
+                                Create Free Account
                             </Link>
                         </div>
                     </div>
@@ -837,6 +873,12 @@ export default function AIFusionStudioPage() {
                         <Link
                             href="/pricing?source=ai_studio&reason=insufficient_credits"
                             className="inline-flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:from-purple-700 hover:to-indigo-700"
+                            onClick={() =>
+                                trackStudioEvent("ai_auth_gate_click", {
+                                    kind: "member_credits",
+                                    cta: "pricing",
+                                })
+                            }
                         >
                             Upgrade to Continue
                         </Link>

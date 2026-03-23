@@ -169,7 +169,7 @@ export default function PokemonPage() {
               </div>
             </section>
 
-            <ErrorBoundary>
+            <ErrorBoundary context="pokemon_studio">
               <PokeFusionStudio />
             </ErrorBoundary>
             <PokeHowToUse />

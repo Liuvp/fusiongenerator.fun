@@ -11,8 +11,48 @@
       .trim();
   }
 
+  const PANEL_LABELS = [
+    "Entry:",
+    "Exit:",
+    "Referrer:",
+    "Duration:",
+    "Clicks:",
+    "Pages:",
+    "User ID:",
+    "Session insights",
+    "Favorite this session",
+    "Share recording",
+    "View visitor profile",
+    "More details",
+    "View session info and event timeline",
+    "Your insights are powered by AI",
+    "Share feedback",
+    "Copy",
+    "Slang off",
+  ];
+
+  function normalizePanelText(text) {
+    let value = String(text || "").replace(/\u00a0/g, " ").replace(/\r/g, "");
+
+    for (const label of PANEL_LABELS) {
+      const escaped = escapeRegex(label);
+      value = value.replace(new RegExp("([^\\n])(" + escaped + ")", "gi"), "$1\n$2");
+    }
+
+    value = value.replace(
+      /([A-Za-z/])(\d{1,2}:\d{2}\s*(?:AM|PM))/g,
+      "$1\n$2"
+    );
+    value = value.replace(
+      /\b(AM|PM)(?=(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+\d{1,2}\b)/gi,
+      "$1\n"
+    );
+
+    return value;
+  }
+
   function splitLines(text) {
-    return normalizeWhitespace(text)
+    return normalizeWhitespace(normalizePanelText(text))
       .split("\n")
       .map((line) => normalizeWhitespace(line))
       .filter(Boolean);
@@ -28,6 +68,19 @@
 
   function parseLabelValue(lines, label, fullText) {
     const escapedLabel = escapeRegex(label);
+    if (fullText) {
+      const inlineMatcher = new RegExp(
+        escapedLabel +
+          "\\s*([\\s\\S]*?)(?=(?:Entry:|Exit:|Referrer:|Duration:|Clicks:|Pages:|User ID:|Session insights|Favorite this session|Share recording|View visitor profile|More details|View session info and event timeline|Your insights are powered by AI|Share feedback|Copy|Slang off|\\b\\d{1,2}:\\d{2}\\s*(?:AM|PM)\\b|\\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\\.?\\s+\\d{1,2}\\b|$))",
+        "i"
+      );
+      const m = fullText.match(inlineMatcher);
+      if (m) {
+        const value = normalizeWhitespace(m[1]);
+        if (value) return value;
+      }
+    }
+
     const matcher = new RegExp("^" + escapedLabel + "\\s*(.+)$", "i");
     for (let i = 0; i < lines.length; i += 1) {
       const line = lines[i];
@@ -42,22 +95,13 @@
         }
       }
     }
-    if (fullText) {
-      const inlineMatcher = new RegExp(
-        escapedLabel +
-          "\\s*([^\\n]+?)(?=\\s+(?:Entry:|Exit:|Referrer:|Duration:|Clicks:|Pages:|User ID:|Session insights|$))",
-        "i"
-      );
-      const m = fullText.match(inlineMatcher);
-      if (m) return normalizeWhitespace(m[1]);
-    }
     return null;
   }
 
   function parseDurationClicksPages(lines, fullText) {
     for (const line of lines) {
       const m = line.match(
-        /Duration:\s*([0-9:]+)\s+Clicks:\s*(\d+)\s+Pages:\s*(\d+)/i
+        /Duration:\s*([0-9:]+)\s*Clicks:\s*(\d+)\s*Pages:\s*(\d+)/i
       );
       if (m) {
         return {
@@ -69,7 +113,7 @@
     }
     if (fullText) {
       const m = fullText.match(
-        /Duration:\s*([0-9:]+)\s+Clicks:\s*(\d+)\s+Pages:\s*(\d+)/i
+        /Duration:\s*([0-9:]+)\s*Clicks:\s*(\d+)\s*Pages:\s*(\d+)/i
       );
       if (m) {
         return {
@@ -106,15 +150,34 @@
       device: null,
     };
 
+    const browserRegex =
+      /\b(Edge|Chrome|Firefox|Safari|Opera|Brave|Samsung Internet|Internet Explorer|MobileSafari)\b/i;
+    const deviceRegex = /\b(PC|Desktop|Mobile|Tablet|Android|iPhone|iPad|Mac)\b/i;
+
     const userIdLine = lines.find((line) => /^User ID:/i.test(line));
     if (userIdLine) {
-      const m = userIdLine.match(/^User ID:\s*(.+)$/i);
+      const m = userIdLine.match(/^User ID:\s*([^\s]+)(?:\s+(.+))?$/i);
       identity.user_id = m ? normalizeWhitespace(m[1]) : null;
+      const trailing = m ? normalizeWhitespace(m[2] || "") : "";
+      if (trailing) {
+        if (!identity.browser) {
+          const browserMatch = trailing.match(browserRegex);
+          if (browserMatch) identity.browser = normalizeWhitespace(browserMatch[1]);
+        }
+        if (!identity.device) {
+          const deviceMatch = trailing.match(deviceRegex);
+          if (deviceMatch) identity.device = normalizeWhitespace(deviceMatch[1]);
+        }
+        const countryCandidate = trailing
+          .replace(browserRegex, "")
+          .replace(deviceRegex, "")
+          .replace(/\b(?:Session insights|Favorite this session|Share recording|More details)\b[\s\S]*$/i, "")
+          .trim();
+        if (countryCandidate && !identity.country) {
+          identity.country = countryCandidate;
+        }
+      }
     }
-
-    const browserRegex =
-      /\b(Edge|Chrome|Firefox|Safari|Opera|Brave|Samsung Internet|Internet Explorer)\b/i;
-    const deviceRegex = /\b(PC|Desktop|Mobile|Tablet|Android|iPhone|iPad|Mac)\b/i;
 
     if (fullText) {
       const blockMatch = fullText.match(
@@ -216,6 +279,10 @@
     if (!part) return [];
 
     const cleaned = part
+      .replace(
+        /^(?:Filled\s+IconGenerate|IconSorry,.*?insights|Favorite this session|Share recording|View visitor profile|More details|View session info and event timeline|Session insights|Copy)+/i,
+        ""
+      )
       .replace(/Your insights are powered by AI[\s\S]*?possible\./i, "")
       .replace(/Share feedback[\s\S]*?improve\!/i, "")
       .trim();
@@ -673,8 +740,9 @@
   }
 
   function parsePanel(element, index) {
-    const text = getElementText(element);
-    const lines = splitLines((element && element.innerText) || "");
+    const rawText = getElementText(element);
+    const text = normalizeWhitespace(normalizePanelText(rawText));
+    const lines = splitLines((element && element.innerText) || rawText);
     const entry = cleanPathLikeValue(parseLabelValue(lines, "Entry:", text));
     const exit = cleanPathLikeValue(parseLabelValue(lines, "Exit:", text));
     const referrer = parseLabelValue(lines, "Referrer:", text);

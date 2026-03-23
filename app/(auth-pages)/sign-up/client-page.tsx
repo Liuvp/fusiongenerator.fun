@@ -8,10 +8,75 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Sparkles, Zap, Check, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { trackEvent, toAnalyticsErrorMessage } from "@/utils/analytics";
+import type { AuthSearchParams } from "./page";
 
-export default function ClientPage({ searchParams, redirectTo }: { searchParams: Message, redirectTo?: string }) {
+export default function ClientPage({
+    searchParams,
+    redirectTo,
+}: {
+    searchParams: AuthSearchParams;
+    redirectTo?: string;
+}) {
     const [showPassword, setShowPassword] = useState(false);
+    const hasExistingAccountError =
+        "error" in searchParams &&
+        /already has an account|already registered/i.test(searchParams.error);
+    const trackedErrorRef = useRef<string | null>(null);
+    const source = searchParams.source || "direct";
+    const reason = searchParams.reason || "none";
+
+    useEffect(() => {
+        trackEvent("auth_page_view", {
+            page: "sign_up",
+            source,
+            reason,
+            has_redirect: Boolean(redirectTo),
+        });
+    }, [reason, redirectTo, source]);
+
+    useEffect(() => {
+        if (!("error" in searchParams) || !searchParams.error) return;
+        if (trackedErrorRef.current === searchParams.error) return;
+
+        trackedErrorRef.current = searchParams.error;
+        trackEvent("auth_form_error", {
+            page: "sign_up",
+            source,
+            reason,
+            message: searchParams.error.slice(0, 160),
+            is_existing_account: hasExistingAccountError,
+        });
+    }, [hasExistingAccountError, reason, searchParams, source]);
+
+    useEffect(() => {
+        const handleError = (event: ErrorEvent) => {
+            trackEvent("auth_runtime_error", {
+                page: "sign_up",
+                source,
+                reason,
+                message: toAnalyticsErrorMessage(event.error || event.message),
+            });
+        };
+
+        const handleRejection = (event: PromiseRejectionEvent) => {
+            trackEvent("auth_runtime_error", {
+                page: "sign_up",
+                source,
+                reason,
+                message: toAnalyticsErrorMessage(event.reason),
+            });
+        };
+
+        window.addEventListener("error", handleError);
+        window.addEventListener("unhandledrejection", handleRejection);
+        return () => {
+            window.removeEventListener("error", handleError);
+            window.removeEventListener("unhandledrejection", handleRejection);
+        };
+    }, [reason, source]);
+
     return (
         <>
             <div className="flex flex-col space-y-2 text-center">
@@ -24,11 +89,15 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                 <p className="text-sm text-muted-foreground">
                     Create unlimited Dragon Ball & Pokemon fusions with our AI-powered generator
                 </p>
+                {redirectTo && (
+                    <p className="text-xs font-medium text-primary">
+                        Create your account and we&apos;ll bring you right back to your fusion.
+                    </p>
+                )}
             </div>
 
-            {/* Benefits Section */}
             <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                <p className="text-sm font-semibold mb-3 text-center">What you'll get:</p>
+                <p className="text-sm font-semibold mb-3 text-center">What you&apos;ll get:</p>
                 <div className="grid gap-2">
                     <div className="flex items-center gap-2 text-sm">
                         <Check className="h-4 w-4 text-green-600" />
@@ -55,7 +124,6 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
 
             <div className="grid gap-6">
                 <form className="grid gap-4">
-                    {/* Redirect URL */}
                     <input type="hidden" name="redirect_to" value={redirectTo || ""} />
 
                     <div className="grid gap-2">
@@ -77,7 +145,7 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                                 id="password"
                                 name="password"
                                 type={showPassword ? "text" : "password"}
-                                placeholder="••••••••"
+                                placeholder="Create a password"
                                 autoComplete="new-password"
                                 required
                                 minLength={6}
@@ -102,11 +170,42 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                         className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
                         pendingText="Creating account..."
                         formAction={signUpAction}
+                        onClick={() =>
+                            trackEvent("auth_submit_click", {
+                                page: "sign_up",
+                                method: "password",
+                                source,
+                                reason,
+                            })
+                        }
                     >
                         <Zap className="mr-2 h-4 w-4" />
                         Create free account
                     </SubmitButton>
                     <FormMessage message={searchParams} />
+                    {hasExistingAccountError && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                            <p className="font-medium">Looks like you already signed up.</p>
+                            <p className="mt-1 text-amber-800">
+                                Try signing in instead. If you originally used Google, choose the Google button below.
+                            </p>
+                            <Link
+                                href={redirectTo ? `/sign-in?redirect_to=${encodeURIComponent(redirectTo)}` : "/sign-in"}
+                                className="mt-3 inline-flex font-semibold underline underline-offset-4"
+                                onClick={() =>
+                                    trackEvent("auth_switch_flow_click", {
+                                        page: "sign_up",
+                                        destination: "sign_in",
+                                        source,
+                                        reason,
+                                        from_existing_account_warning: true,
+                                    })
+                                }
+                            >
+                                Go to sign in
+                            </Link>
+                        </div>
+                    )}
                 </form>
                 <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -124,6 +223,14 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                         type="submit"
                         variant="outline"
                         className="w-full flex items-center justify-center gap-2"
+                        onClick={() =>
+                            trackEvent("auth_submit_click", {
+                                page: "sign_up",
+                                method: "google",
+                                source,
+                                reason,
+                            })
+                        }
                     >
                         <svg viewBox="0 0 24 24" className="h-5 w-5">
                             <path
@@ -163,12 +270,19 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                     <Link
                         href={redirectTo ? `/sign-in?redirect_to=${encodeURIComponent(redirectTo)}` : "/sign-in"}
                         className="text-primary underline underline-offset-4 hover:text-primary/90 font-semibold"
+                        onClick={() =>
+                            trackEvent("auth_switch_flow_click", {
+                                page: "sign_up",
+                                destination: "sign_in",
+                                source,
+                                reason,
+                            })
+                        }
                     >
                         Sign in
                     </Link>
                 </div>
 
-                {/* Quick Links */}
                 <div className="pt-4 border-t">
                     <p className="text-xs text-muted-foreground text-center mb-2">Try it free first:</p>
                     <div className="grid grid-cols-3 gap-2">

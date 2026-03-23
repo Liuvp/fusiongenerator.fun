@@ -6,6 +6,10 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+function getAuthRedirectParams(redirectTo?: string) {
+  return redirectTo ? { redirect_to: redirectTo } : {};
+}
+
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
@@ -17,7 +21,8 @@ export const signUpAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/sign-up",
-      "Email and password are required"
+      "Email and password are required",
+      getAuthRedirectParams(redirectTo),
     );
   }
 
@@ -36,10 +41,24 @@ export const signUpAction = async (formData: FormData) => {
 
   if (error) {
     console.error(error.code + " " + error.message);
-    return encodedRedirect("error", "/sign-up", error.message);
-  } else {
-    return encodedRedirect("success", "/dashboard", "Thanks for signing up! Please check your email for a verification link.");
+    let errorMessage = error.message;
+    if (error.message.toLowerCase().includes("already registered")) {
+      errorMessage =
+        "This email already has an account. Sign in instead, or use Google if that is how you registered before.";
+    }
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      errorMessage,
+      getAuthRedirectParams(redirectTo),
+    );
   }
+
+  return encodedRedirect(
+    "success",
+    "/dashboard",
+    "Thanks for signing up! Please check your email for a verification link.",
+  );
 };
 
 export const signInAction = async (formData: FormData) => {
@@ -56,10 +75,16 @@ export const signInAction = async (formData: FormData) => {
   if (error) {
     let errorMessage = error.message;
     if (error.message.includes("Invalid login credentials")) {
-      errorMessage = "❌ Email or password is incorrect. Please check and try again.";
+      errorMessage =
+        "Email or password is incorrect. If you signed up with Google, use the Google sign-in button below.";
     }
     console.error("Sign in error:", error.message);
-    return encodedRedirect("error", "/sign-in", errorMessage);
+    return encodedRedirect(
+      "error",
+      "/sign-in",
+      errorMessage,
+      getAuthRedirectParams(redirectTo),
+    );
   }
 
   if (redirectTo) {
@@ -88,7 +113,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/forgot-password",
-      "Could not reset password"
+      "Could not reset password",
     );
   }
 
@@ -99,7 +124,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   return encodedRedirect(
     "success",
     "/forgot-password",
-    "Check your email for a link to reset your password."
+    "Check your email for a link to reset your password.",
   );
 };
 
@@ -113,7 +138,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/dashboard/reset-password",
-      "Password and confirm password are required"
+      "Password and confirm password are required",
     );
   }
 
@@ -121,19 +146,19 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/dashboard/reset-password",
-      "Passwords do not match"
+      "Passwords do not match",
     );
   }
 
   const { error } = await supabase.auth.updateUser({
-    password: password,
+    password,
   });
 
   if (error) {
     encodedRedirect(
       "error",
       "/dashboard/reset-password",
-      "Password update failed"
+      "Password update failed",
     );
   }
 
@@ -168,7 +193,12 @@ export const signInWithGoogleAction = async (formData: FormData) => {
   });
 
   if (error) {
-    return encodedRedirect("error", "/sign-in", error.message);
+    return encodedRedirect(
+      "error",
+      "/sign-in",
+      error.message,
+      getAuthRedirectParams(redirectTo),
+    );
   }
 
   if (data.url) {
@@ -198,7 +228,12 @@ export const signUpWithGoogleAction = async (formData: FormData) => {
   });
 
   if (error) {
-    return encodedRedirect("error", "/sign-up", error.message);
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      error.message,
+      getAuthRedirectParams(redirectTo),
+    );
   }
 
   if (data.url) {
@@ -212,14 +247,14 @@ export async function createCheckoutSession(
   userId: string,
   productType: "subscription" | "credits",
   credits_amount?: number,
-  discountCode?: string
+  discountCode?: string,
 ) {
   try {
     const requestBody: any = {
       product_id: productId,
       // request_id: `${userId}-${Date.now()}`, // use Unique request ID if you need
       customer: {
-        email: email,
+        email,
       },
       metadata: {
         user_id: userId,
@@ -228,12 +263,10 @@ export async function createCheckoutSession(
       },
     };
 
-    // 如果配置了成功重定向 URL，则添加到请求中
     if (process.env.CREEM_SUCCESS_URL) {
       requestBody.success_url = process.env.CREEM_SUCCESS_URL;
     }
 
-    // 添加折扣码（如果有）
     if (discountCode) {
       requestBody.discount_code = discountCode;
     }

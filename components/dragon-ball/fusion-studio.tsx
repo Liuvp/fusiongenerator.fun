@@ -232,8 +232,8 @@ export function DBFusionStudio() {
                 description: "Upgrade to VIP for unlimited Dragon Ball fusions."
             }
             : {
-                title: "Free quota used",
-                description: "Sign in to continue generating fusions."
+                title: "Free guest fusion used",
+                description: "Create a free account to keep generating and save future fusions in one place."
             };
     }, [hasQuotaAccessValue, isLoadingAuth, quota.isVIP, quota.remaining, user]);
 
@@ -938,7 +938,7 @@ export function DBFusionStudio() {
                                 <span>SELECT 2 FIGHTERS ({selectedCount}/2)</span>
                             </span>
                         ) : !hasQuotaAccessValue ? (
-                            user ? "UPGRADE TO CONTINUE" : "LOGIN TO CONTINUE"
+                            user ? "UNLOCK MORE FUSIONS" : "CONTINUE FREE"
                         ) : (
                             <span className="flex items-center gap-3">
                                 <Sparkles className="w-6 h-6" aria-hidden="true" focusable="false" />
@@ -957,20 +957,26 @@ export function DBFusionStudio() {
                     {showAuthOptions && !user && (
                         <div className="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">Need more Fusion Energy?</h4>
+                                <h4 className="font-bold text-gray-800">Continue with a free account</h4>
                                 <p className="text-xs text-gray-600">
-                                    Join thousands of Dragon Ball fans creating daily fusions!
+                                    Sign in or create a free account to keep this session moving and save future fusions.
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <Button asChild variant="outline" className="w-full bg-white hover:bg-gray-50 text-gray-700 border-gray-200">
-                                    <Link href={`/sign-in?redirect_to=${encodeURIComponent('/dragon-ball#fusion-studio')}&reason=quota_limit&source=dragon_ball_fusion`}>
-                                        Log In
+                                    <Link
+                                        href={`/sign-in?redirect_to=${encodeURIComponent('/dragon-ball#fusion-studio')}&reason=quota_limit&source=dragon_ball_fusion`}
+                                        onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_in", reason: "quota_limit" })}
+                                    >
+                                        Continue Free
                                     </Link>
                                 </Button>
                                 <Button asChild className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-600 border-0">
-                                    <Link href={`/sign-up?redirect_to=${encodeURIComponent('/dragon-ball#fusion-studio')}&reason=quota_limit&source=dragon_ball_fusion`}>
-                                        Sign Up Free
+                                    <Link
+                                        href={`/sign-up?redirect_to=${encodeURIComponent('/dragon-ball#fusion-studio')}&reason=quota_limit&source=dragon_ball_fusion`}
+                                        onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_up", reason: "quota_limit" })}
+                                    >
+                                        Create Free Account
                                     </Link>
                                 </Button>
                             </div>
@@ -987,7 +993,10 @@ export function DBFusionStudio() {
                                 </p>
                             </div>
                             <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-blue-700 border-0">
-                                <Link href="/pricing?source=dragon_ball_fusion_quota">
+                                <Link
+                                    href="/pricing?source=dragon_ball_fusion_quota"
+                                    onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "pricing", reason: "member_quota_exceeded" })}
+                                >
                                     Upgrade to VIP 🚀
                                 </Link>
                             </Button>

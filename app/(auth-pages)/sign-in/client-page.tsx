@@ -7,11 +7,72 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Sparkles, Zap, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { Sparkles, Zap, Eye, EyeOff, Infinity, Download, Images } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { trackEvent, toAnalyticsErrorMessage } from "@/utils/analytics";
+import type { AuthSearchParams } from "./page";
 
-export default function ClientPage({ searchParams, redirectTo }: { searchParams: Message, redirectTo?: string }) {
+export default function ClientPage({
+    searchParams,
+    redirectTo,
+}: {
+    searchParams: AuthSearchParams;
+    redirectTo?: string;
+}) {
     const [showPassword, setShowPassword] = useState(false);
+    const trackedErrorRef = useRef<string | null>(null);
+    const source = searchParams.source || "direct";
+    const reason = searchParams.reason || "none";
+
+    useEffect(() => {
+        trackEvent("auth_page_view", {
+            page: "sign_in",
+            source,
+            reason,
+            has_redirect: Boolean(redirectTo),
+        });
+    }, [reason, redirectTo, source]);
+
+    useEffect(() => {
+        if (!("error" in searchParams) || !searchParams.error) return;
+        if (trackedErrorRef.current === searchParams.error) return;
+
+        trackedErrorRef.current = searchParams.error;
+        trackEvent("auth_form_error", {
+            page: "sign_in",
+            source,
+            reason,
+            message: searchParams.error.slice(0, 160),
+        });
+    }, [reason, searchParams, source]);
+
+    useEffect(() => {
+        const handleError = (event: ErrorEvent) => {
+            trackEvent("auth_runtime_error", {
+                page: "sign_in",
+                source,
+                reason,
+                message: toAnalyticsErrorMessage(event.error || event.message),
+            });
+        };
+
+        const handleRejection = (event: PromiseRejectionEvent) => {
+            trackEvent("auth_runtime_error", {
+                page: "sign_in",
+                source,
+                reason,
+                message: toAnalyticsErrorMessage(event.reason),
+            });
+        };
+
+        window.addEventListener("error", handleError);
+        window.addEventListener("unhandledrejection", handleRejection);
+        return () => {
+            window.removeEventListener("error", handleError);
+            window.removeEventListener("unhandledrejection", handleRejection);
+        };
+    }, [reason, source]);
+
     return (
         <>
             <div className="flex flex-col space-y-2 text-center">
@@ -24,27 +85,30 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                 <p className="text-sm text-muted-foreground">
                     Sign in to access unlimited fusions, save your creations, and unlock premium features
                 </p>
+                {redirectTo && (
+                    <p className="text-xs font-medium text-primary">
+                        Sign in and we&apos;ll bring you back to where you left off.
+                    </p>
+                )}
             </div>
 
-            {/* Benefits Section */}
             <div className="grid grid-cols-3 gap-3 my-4 p-4 bg-muted/30 rounded-lg">
                 <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">∞</div>
-                    <div className="text-xs text-muted-foreground">Unlimited Fusions</div>
+                    <Infinity className="mx-auto h-6 w-6 text-primary" />
+                    <div className="text-xs text-muted-foreground mt-2">Unlimited Fusions</div>
                 </div>
                 <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">HD</div>
-                    <div className="text-xs text-muted-foreground">High Quality</div>
+                    <Download className="mx-auto h-6 w-6 text-primary" />
+                    <div className="text-xs text-muted-foreground mt-2">HD Downloads</div>
                 </div>
                 <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">💾</div>
-                    <div className="text-xs text-muted-foreground">Save Gallery</div>
+                    <Images className="mx-auto h-6 w-6 text-primary" />
+                    <div className="text-xs text-muted-foreground mt-2">Saved Gallery</div>
                 </div>
             </div>
 
             <div className="grid gap-6">
                 <form className="grid gap-4">
-                    {/* Redirect URL */}
                     <input type="hidden" name="redirect_to" value={redirectTo || ""} />
 
                     <div className="grid gap-2">
@@ -75,7 +139,7 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                                 id="password"
                                 name="password"
                                 type={showPassword ? "text" : "password"}
-                                placeholder="••••••••"
+                                placeholder="Enter your password"
                                 autoComplete="current-password"
                                 required
                                 className="pr-10 h-11"
@@ -98,6 +162,14 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                         className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
                         pendingText="Signing in..."
                         formAction={signInAction}
+                        onClick={() =>
+                            trackEvent("auth_submit_click", {
+                                page: "sign_in",
+                                method: "password",
+                                source,
+                                reason,
+                            })
+                        }
                     >
                         <Zap className="mr-2 h-4 w-4" />
                         Sign in
@@ -120,6 +192,14 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                         type="submit"
                         variant="outline"
                         className="w-full flex items-center justify-center gap-2"
+                        onClick={() =>
+                            trackEvent("auth_submit_click", {
+                                page: "sign_in",
+                                method: "google",
+                                source,
+                                reason,
+                            })
+                        }
                     >
                         <svg viewBox="0 0 24 24" className="h-5 w-5">
                             <path
@@ -143,16 +223,23 @@ export default function ClientPage({ searchParams, redirectTo }: { searchParams:
                     </Button>
                 </form>
                 <div className="text-sm text-muted-foreground text-center">
-                    Don't have an account?{" "}
+                    Don&apos;t have an account?{" "}
                     <Link
                         href={redirectTo ? `/sign-up?redirect_to=${encodeURIComponent(redirectTo)}` : "/sign-up"}
                         className="text-primary underline underline-offset-4 hover:text-primary/90 font-semibold"
+                        onClick={() =>
+                            trackEvent("auth_switch_flow_click", {
+                                page: "sign_in",
+                                destination: "sign_up",
+                                source,
+                                reason,
+                            })
+                        }
                     >
                         Sign up for free
                     </Link>
                 </div>
 
-                {/* Quick Links */}
                 <div className="pt-4 border-t">
                     <p className="text-xs text-muted-foreground text-center mb-2">Start creating without an account:</p>
                     <div className="grid grid-cols-3 gap-2">
