@@ -226,14 +226,14 @@ export function DBFusionStudio() {
                 };
         }
 
-        return user
-            ? {
-                title: "No credits left",
-                description: "Upgrade to VIP for unlimited Dragon Ball fusions."
-            }
-            : {
-                title: "Free guest fusion used",
-                description: "Create a free account to keep generating and save future fusions in one place."
+            return user
+                ? {
+                    title: "No credits left",
+                    description: "Upgrade to VIP for unlimited Dragon Ball fusions."
+                }
+                : {
+                title: "Keep generating with a free account",
+                description: "Guest access includes 1 free fusion. Sign in or create a free account before your next generation."
             };
     }, [hasQuotaAccessValue, isLoadingAuth, quota.isVIP, quota.remaining, user]);
 
@@ -938,7 +938,7 @@ export function DBFusionStudio() {
                                 <span>SELECT 2 FIGHTERS ({selectedCount}/2)</span>
                             </span>
                         ) : !hasQuotaAccessValue ? (
-                            user ? "UNLOCK MORE FUSIONS" : "CONTINUE FREE"
+                            user ? "UNLOCK MORE FUSIONS" : "CREATE FREE ACCOUNT"
                         ) : (
                             <span className="flex items-center gap-3">
                                 <Sparkles className="w-6 h-6" aria-hidden="true" focusable="false" />
@@ -957,9 +957,9 @@ export function DBFusionStudio() {
                     {showAuthOptions && !user && (
                         <div className="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">Continue with a free account</h4>
+                                <h4 className="font-bold text-gray-800">Keep generating with a free account</h4>
                                 <p className="text-xs text-gray-600">
-                                    Sign in or create a free account to keep this session moving and save future fusions.
+                                    Your free guest try is used. Sign in to continue, or create a free account to save future fusions.
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
@@ -968,7 +968,7 @@ export function DBFusionStudio() {
                                         href={`/sign-in?redirect_to=${encodeURIComponent('/dragon-ball#fusion-studio')}&reason=quota_limit&source=dragon_ball_fusion`}
                                         onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_in", reason: "quota_limit" })}
                                     >
-                                        Continue Free
+                                        Sign In to Continue
                                     </Link>
                                 </Button>
                                 <Button asChild className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-600 border-0">

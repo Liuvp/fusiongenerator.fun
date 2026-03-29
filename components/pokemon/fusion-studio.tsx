@@ -211,8 +211,8 @@ export function PokeFusionStudio() {
                 description: "Upgrade to VIP for unlimited Pokemon fusions."
             }
             : {
-                title: "Free guest fusion used",
-                description: "Create a free account to keep generating and save future fusions in one place."
+                title: "Keep generating with a free account",
+                description: "Guest access includes 1 free fusion. Sign in or create a free account before your next generation."
             };
     }, [hasQuotaAccessValue, quota?.isVIP, quota?.remaining, user]);
 
@@ -507,7 +507,7 @@ export function PokeFusionStudio() {
                         ) : !isSelectionComplete ? (
                             `Select 2 Pokemon (${selectedCount}/2)`
                         ) : !hasQuotaAccessValue ? (
-                            user ? "Unlock More Fusions" : "Continue Free"
+                            user ? "Unlock More Fusions" : "Create Free Account"
                         ) : (
                             <span className="flex items-center gap-2"><Sparkles className="w-5 h-5" /> Fuse Pokemon!</span>
                         )}
@@ -516,11 +516,11 @@ export function PokeFusionStudio() {
                     {shouldShowAuthOptions && !user && !hasQuotaAccessValue && (
                         <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">Continue with a free account</h4>
+                                <h4 className="font-bold text-gray-800">Keep generating with a free account</h4>
                                 <p className="text-xs text-gray-600">
                                     {authGateReason === "api_limit_reached"
-                                        ? "Your free guest trial is used. Sign in to keep generating."
-                                        : "Sign in or create a free account to keep generating and save your next fusions."}
+                                        ? "Your free guest try is used. Sign in before your next generation."
+                                        : "Guest access includes 1 free fusion. Sign in or create a free account to keep generating and save your next fusions."}
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
@@ -529,7 +529,7 @@ export function PokeFusionStudio() {
                                         href={`/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}
                                         onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "sign_in", reason: authGateReason ?? "quota_limit" })}
                                     >
-                                        Continue Free
+                                        Sign In to Continue
                                     </Link>
                                 </Button>
                                 <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 border-0">

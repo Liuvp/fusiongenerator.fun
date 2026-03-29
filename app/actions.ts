@@ -39,12 +39,12 @@ export const signUpAction = async (formData: FormData) => {
     },
   });
 
-  if (error) {
+    if (error) {
     console.error(error.code + " " + error.message);
     let errorMessage = error.message;
     if (error.message.toLowerCase().includes("already registered")) {
       errorMessage =
-        "This email already has an account. Sign in instead, or use Google if that is how you registered before.";
+        "This email already has an account. Sign in instead, or continue with Google if you used Google before.";
     }
     return encodedRedirect(
       "error",
@@ -76,7 +76,7 @@ export const signInAction = async (formData: FormData) => {
     let errorMessage = error.message;
     if (error.message.includes("Invalid login credentials")) {
       errorMessage =
-        "Email or password is incorrect. If you signed up with Google, use the Google sign-in button below.";
+        "Email or password is incorrect. If this email was created with Google, use Continue with Google instead.";
     }
     console.error("Sign in error:", error.message);
     return encodedRedirect(

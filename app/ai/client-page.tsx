@@ -83,8 +83,8 @@ const normalizeGenerationError = (
             message: "Free quota used. Log in to continue generating.",
             authGate: {
                 kind: "guest_limit",
-                title: "Continue with a free account",
-                description: "Sign in or create a free account to unlock more generations and keep exploring ideas.",
+                title: "Keep generating with a free account",
+                description: "Guest access includes 1 free generation. Sign in or create a free account before your next one.",
             },
         };
     }
@@ -334,8 +334,8 @@ export default function AIFusionStudioPage() {
 
         if (quota.type === "anonymous") {
             return {
-                title: "Free guest quota used",
-                description: "Sign in to continue generating before uploading and submitting again.",
+                title: "Keep generating with a free account",
+                description: "Guest access includes 1 free generation. Sign in before uploading and generating again.",
                 tone: "warning" as const,
             };
         }
@@ -406,8 +406,8 @@ export default function AIFusionStudioPage() {
                 quota?.type === "anonymous"
                     ? {
                         kind: "guest_limit",
-                        title: "Continue your fusion session",
-                        description: "Free guest quota is used. Sign in before generating again.",
+                        title: "Keep generating with a free account",
+                        description: "Your free guest try is used. Sign in or create a free account before generating again.",
                     }
                     : {
                         kind: "member_credits",
@@ -846,7 +846,7 @@ export default function AIFusionStudioPage() {
                                     })
                                 }
                             >
-                                Continue Free
+                                Sign In to Continue
                             </Link>
                             <Link
                                 href={`/sign-up?redirect_to=${encodeURIComponent("/ai#fusion-studio")}&source=ai_studio&reason=free_limit`}
