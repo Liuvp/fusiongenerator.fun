@@ -28,8 +28,9 @@ export function PokemonGrid({ pokemon1, pokemon2, onSelect }: PokemonGridProps) 
                                     ? 'border-blue-500 shadow-md ring-2 ring-blue-200 scale-105 z-10'
                                     : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
                             }`}
-                        aria-label={`Select ${p.name}`}
+                        aria-label={isSelected ? `${p.name} selected. Tap again to remove.` : `Select ${p.name}`}
                         aria-pressed={isSelected}
+                        title={isSelected ? `Remove ${p.name} from the fusion` : `Select ${p.name}`}
                     >
                         {/* Background & Image */}
                         <div className="relative w-full h-full bg-gray-50/50">

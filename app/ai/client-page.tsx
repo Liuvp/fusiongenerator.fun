@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { Sparkles, Dice6, RefreshCw, Download, Share2 } from "lucide-react";
 import UploadBox, { UploadedFile, Side } from "./components/UploadBox";
 import { createClient } from "@/utils/supabase/client";
@@ -128,6 +129,7 @@ const normalizeGenerationError = (
 };
 
 export default function AIFusionStudioPage() {
+    const searchParams = useSearchParams();
     const supabase = useMemo(() => createClient(), []);
     const resultRef = useRef<HTMLDivElement>(null);
     const generateLockRef = useRef(false);
@@ -148,6 +150,8 @@ export default function AIFusionStudioPage() {
     const [isQuotaLoading, setIsQuotaLoading] = useState(true);
     const [showPromptControls, setShowPromptControls] = useState(false);
     const [isHashFocused, setIsHashFocused] = useState(false);
+    const aiReturnTarget = "/ai?auth=welcome&from=ai_studio#fusion-studio";
+    const showAuthReturnBanner = searchParams.get("auth") === "welcome";
 
     const setFileSafe = (
         setter: Dispatch<SetStateAction<UploadedFile | null>>,
@@ -635,6 +639,64 @@ export default function AIFusionStudioPage() {
                 <p className="mt-1 text-xs sm:text-sm">{quotaStatusCopy.description}</p>
             </div>
 
+            {showAuthReturnBanner && (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary">
+                    <p className="font-semibold">You&apos;re back in AI Fusion Studio</p>
+                    <p className="mt-1 text-xs sm:text-sm text-primary/80">
+                        Sign-in worked. Upload your two images again and finish the fusion you were trying to make.
+                    </p>
+                    <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                        <Link
+                            href="#fusion-studio"
+                            className="inline-flex items-center justify-center rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/5"
+                        >
+                            Continue Here
+                        </Link>
+                        <Link
+                            href="/dragon-ball#fusion-studio"
+                            className="inline-flex items-center justify-center rounded-lg border border-primary/10 bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary/90"
+                        >
+                            Try Dragon Ball Fusion
+                        </Link>
+                    </div>
+                </div>
+            )}
+
+            {quota?.type === "anonymous" && quota.remaining > 0 && !leftFile && !rightFile && (
+                <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                    <p className="font-semibold">Planning to make more than one fusion?</p>
+                    <p className="mt-1 text-xs sm:text-sm text-blue-800">
+                        Guest access includes 1 free generation. Sign in now if you want a smoother path back into AI Fusion, your gallery, and the Dragon Ball or Pokemon generators.
+                    </p>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <Link
+                            href={`/sign-in?redirect_to=${encodeURIComponent(aiReturnTarget)}&source=ai_studio&reason=free_limit`}
+                            className="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-900 hover:bg-blue-100"
+                            onClick={() =>
+                                trackStudioEvent("ai_auth_gate_click", {
+                                    kind: "guest_limit",
+                                    cta: "sign_in_early",
+                                })
+                            }
+                        >
+                            Sign In Before You Start
+                        </Link>
+                        <Link
+                            href={`/sign-up?redirect_to=${encodeURIComponent(aiReturnTarget)}&source=ai_studio&reason=free_limit`}
+                            className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-2 text-sm font-semibold text-white hover:from-blue-700 hover:to-purple-700"
+                            onClick={() =>
+                                trackStudioEvent("ai_auth_gate_click", {
+                                    kind: "guest_limit",
+                                    cta: "sign_up_early",
+                                })
+                            }
+                        >
+                            Create Free Account First
+                        </Link>
+                    </div>
+                </div>
+            )}
+
             <div className="rounded-2xl border border-border bg-card/70 px-4 py-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -837,7 +899,7 @@ export default function AIFusionStudioPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <Link
-                                href={`/sign-in?redirect_to=${encodeURIComponent("/ai#fusion-studio")}&source=ai_studio&reason=free_limit`}
+                                href={`/sign-in?redirect_to=${encodeURIComponent(aiReturnTarget)}&source=ai_studio&reason=free_limit`}
                                 className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                                 onClick={() =>
                                     trackStudioEvent("ai_auth_gate_click", {
@@ -849,7 +911,7 @@ export default function AIFusionStudioPage() {
                                 Sign In to Continue
                             </Link>
                             <Link
-                                href={`/sign-up?redirect_to=${encodeURIComponent("/ai#fusion-studio")}&source=ai_studio&reason=free_limit`}
+                                href={`/sign-up?redirect_to=${encodeURIComponent(aiReturnTarget)}&source=ai_studio&reason=free_limit`}
                                 className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-2 text-sm font-semibold text-white hover:from-blue-700 hover:to-purple-700"
                                 onClick={() =>
                                     trackStudioEvent("ai_auth_gate_click", {

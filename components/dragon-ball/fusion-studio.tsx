@@ -120,9 +120,9 @@ const CharacterButton = ({
                         : 'border-gray-200 hover:border-orange-300 hover:shadow-sm'
                 }
             `}
-            aria-label={`Select ${character.name}`}
+            aria-label={isSelected ? `${character.name} selected. Tap again to remove.` : `Select ${character.name}`}
             aria-pressed={isSelected}
-            title={`Select ${character.name}`}
+            title={isSelected ? `Remove ${character.name} from the fusion` : `Select ${character.name}`}
         >
             <div className="relative w-full h-full bg-gray-100 flex items-center justify-center p-1">
                 <Image
@@ -180,6 +180,7 @@ export function DBFusionStudio() {
     const [showAuthOptions, setShowAuthOptions] = useState(false);
     const [isShaking, setIsShaking] = useState(false);
     const [isSelectionHintActive, setIsSelectionHintActive] = useState(false);
+    const hiddenResultNoticeRef = useRef(false);
 
     // 检查是否选完
     const isSelectionComplete = useMemo(() => !!(char1 && char2), [char1, char2]);
@@ -198,6 +199,28 @@ export function DBFusionStudio() {
         () => Number(Boolean(char1)) + Number(Boolean(char2)),
         [char1, char2]
     );
+
+    const selectionGuidance = useMemo(() => {
+        if (selectedCount === 0) {
+            return {
+                title: "Pick your first fighter",
+                description: "Start with any Dragon Ball character. Pick a second fighter to unlock fusion."
+            };
+        }
+
+        if (selectedCount === 1) {
+            const selectedName = char1?.name ?? char2?.name;
+            return {
+                title: `${selectedName} locked in`,
+                description: "Pick one more fighter to complete the pair. Tap a selected fighter again if you want to remove it."
+            };
+        }
+
+        return {
+            title: `${char1?.name} + ${char2?.name} ready`,
+            description: "Tap FUU-SION-HA! to generate. If you tap a new fighter now, it replaces slot 1 and shifts the older pick to slot 2."
+        };
+    }, [char1, char2, selectedCount]);
 
     const quotaStatusCopy = useMemo(() => {
         if (isLoadingAuth) {
@@ -330,6 +353,24 @@ export function DBFusionStudio() {
         }
     }, [result, isGenerating]);
 
+    useEffect(() => {
+        const handleVisibilityChange = (): void => {
+            if (document.hidden) return;
+            if (!hiddenResultNoticeRef.current || !result) return;
+
+            hiddenResultNoticeRef.current = false;
+            toast({
+                title: "Fusion Ready",
+                description: `${result.char1.name} x ${result.char2.name} is ready below.`,
+                duration: 2500
+            });
+            resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [result, toast]);
+
     // ===============================
     // 认证和配额检查
     // ===============================
@@ -435,11 +476,16 @@ export function DBFusionStudio() {
             setChar2(char);
         } else {
             // 队列逻辑：旧的 char1 移到 char2，新角色占据 char1
+            toast({
+                title: "Lead fighter updated",
+                description: `${char.name} moved into slot 1. ${char1.name} shifted to slot 2.`,
+                duration: 1600
+            });
             setChar2(char1);
             setChar1(char);
         }
         setResult(null);
-    }, [char1, char2]);
+    }, [char1, char2, toast]);
 
     const randomize = useCallback((): void => {
         const [c1, c2] = getRandomCharacters(2);
@@ -453,6 +499,34 @@ export function DBFusionStudio() {
             duration: 2000
         });
     }, [toast]);
+
+    const swapLeftFighter = useCallback((): void => {
+        const options = DB_CHARACTERS.filter((fighter) => fighter.id !== char2?.id);
+        const nextFighter = options[Math.floor(Math.random() * options.length)];
+        if (!nextFighter || !char2) return;
+
+        setChar1(nextFighter);
+        setResult(null);
+        toast({
+            title: "Left fighter swapped",
+            description: `${nextFighter.name} is ready to fuse with ${char2.name}.`,
+            duration: 1800
+        });
+    }, [char2, toast]);
+
+    const swapRightFighter = useCallback((): void => {
+        const options = DB_CHARACTERS.filter((fighter) => fighter.id !== char1?.id);
+        const nextFighter = options[Math.floor(Math.random() * options.length)];
+        if (!nextFighter || !char1) return;
+
+        setChar2(nextFighter);
+        setResult(null);
+        toast({
+            title: "Right fighter swapped",
+            description: `${char1.name} is now paired with ${nextFighter.name}.`,
+            duration: 1800
+        });
+    }, [char1, toast]);
 
     const clearSelection = useCallback((): void => {
         setChar1(undefined);
@@ -617,6 +691,10 @@ export function DBFusionStudio() {
                 char1: char1!,
                 char2: char2!
             });
+
+            if (typeof document !== "undefined" && document.hidden) {
+                hiddenResultNoticeRef.current = true;
+            }
 
             toast({
                 title: "Fusion Complete!",
@@ -900,6 +978,11 @@ export function DBFusionStudio() {
                         <p className="mt-1">{quotaStatusCopy.description}</p>
                     </div>
 
+                    <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
+                        <p className="font-semibold">{selectionGuidance.title}</p>
+                        <p className="mt-1 text-gray-500">{selectionGuidance.description}</p>
+                    </div>
+
                     <Button
                         type="button"
                         onClick={generateFusion}
@@ -1020,9 +1103,9 @@ export function DBFusionStudio() {
                                 aria-hidden="true"
                                 focusable="false"
                             />
-                            <p className="text-gray-600 font-semibold">Channeling Ki...</p>
+                            <p className="text-gray-600 font-semibold">Channeling Ki for {char1?.name} x {char2?.name}...</p>
                             <p className="text-sm text-gray-500 font-medium">You can switch tabs while we keep generating.</p>
-                            <p className="text-xs text-gray-400">We will show the fusion result here as soon as it is ready.</p>
+                            <p className="text-xs text-gray-400">If the image finishes while you are away, we will surface it when you come back.</p>
                             <div className="sr-only">
                                 Generating fusion between {char1?.name} and {char2?.name}. Please wait.
                             </div>
@@ -1086,6 +1169,22 @@ export function DBFusionStudio() {
                                     </Button>
                                     <Button
                                         type="button"
+                                        onClick={swapLeftFighter}
+                                        variant="outline"
+                                        title="Keep the right fighter and swap the left one"
+                                    >
+                                        Swap Left Fighter
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={swapRightFighter}
+                                        variant="outline"
+                                        title="Keep the left fighter and swap the right one"
+                                    >
+                                        Swap Right Fighter
+                                    </Button>
+                                    <Button
+                                        type="button"
                                         aria-label="Share this fusion with friends"
                                         onClick={shareResult}
                                         variant="outline"
@@ -1106,6 +1205,9 @@ export function DBFusionStudio() {
                                     </Button>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <Button type="button" onClick={randomize} variant="outline">
+                                        Try Another Popular Pair
+                                    </Button>
                                     <Button type="button" asChild variant="outline">
                                         <Link href="/pokemon?source=dragon_ball_result">
                                             Try Pokemon Studio

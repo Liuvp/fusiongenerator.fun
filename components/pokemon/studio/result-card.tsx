@@ -18,9 +18,12 @@ interface ResultCardProps {
     onDownload: () => void;
     onShare: () => void;
     onReset: () => void;
+    onSwapLeft: () => void;
+    onSwapRight: () => void;
+    onTryAnotherPair: () => void;
 }
 
-export const ResultCard = forwardRef<HTMLDivElement, ResultCardProps>(({ result, onDownload, onShare, onReset }, ref) => {
+export const ResultCard = forwardRef<HTMLDivElement, ResultCardProps>(({ result, onDownload, onShare, onReset, onSwapLeft, onSwapRight, onTryAnotherPair }, ref) => {
     return (
         <Card ref={ref} className="border-0 shadow-xl overflow-hidden mb-6 animate-in fade-in slide-in-from-bottom-8 duration-500 bg-white">
             <CardContent className="p-0">
@@ -60,12 +63,21 @@ export const ResultCard = forwardRef<HTMLDivElement, ResultCardProps>(({ result,
                             <RefreshCw className="w-4 h-4 mr-2" />
                             <span>Continue Generating</span>
                         </Button>
+                        <Button onClick={onSwapLeft} variant="outline" className="border-gray-200 hover:bg-gray-100 transition-colors">
+                            <span>Swap Left Pokemon</span>
+                        </Button>
+                        <Button onClick={onSwapRight} variant="outline" className="border-gray-200 hover:bg-gray-100 transition-colors">
+                            <span>Swap Right Pokemon</span>
+                        </Button>
                         <Button onClick={onShare} variant="outline" className="border-gray-200 hover:bg-blue-50 hover:text-blue-600 transition-colors sm:col-span-2">
                             <Share2 className="w-4 h-4 mr-2" />
                             <span>Share Result</span>
                         </Button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Button onClick={onTryAnotherPair} variant="outline" className="border-gray-200 hover:bg-gray-100 transition-colors">
+                            <span>Try Another Popular Pair</span>
+                        </Button>
                         <Link
                             href="/gallery?source=pokemon_result"
                             className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
@@ -74,7 +86,7 @@ export const ResultCard = forwardRef<HTMLDivElement, ResultCardProps>(({ result,
                         </Link>
                         <Link
                             href="/dragon-ball?source=pokemon_result"
-                            className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                            className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:col-span-2"
                         >
                             Try Dragon Ball Studio
                         </Link>

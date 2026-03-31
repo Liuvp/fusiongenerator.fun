@@ -23,6 +23,15 @@ export default function ClientPage({
     const trackedErrorRef = useRef<string | null>(null);
     const source = searchParams.source || "direct";
     const reason = searchParams.reason || "none";
+    const isAiStudioFlow = source === "ai_studio";
+    const buildAuthHref = (basePath: "/sign-in" | "/sign-up") => {
+        const params = new URLSearchParams();
+        if (redirectTo) params.set("redirect_to", redirectTo);
+        if (source && source !== "direct") params.set("source", source);
+        if (reason && reason !== "none") params.set("reason", reason);
+        const query = params.toString();
+        return query ? `${basePath}?${query}` : basePath;
+    };
 
     useEffect(() => {
         trackEvent("auth_page_view", {
@@ -91,6 +100,15 @@ export default function ClientPage({
                     </p>
                 )}
             </div>
+
+            {isAiStudioFlow && (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                    <p className="font-semibold">You&apos;re coming back to AI Fusion Studio</p>
+                    <p className="mt-1 text-xs text-blue-800">
+                        If you previously used Google, choose Continue with Google for the fastest route back to your fusion flow.
+                    </p>
+                </div>
+            )}
 
             <div className="grid grid-cols-3 gap-3 my-4 p-4 bg-muted/30 rounded-lg">
                 <div className="text-center">
@@ -228,7 +246,7 @@ export default function ClientPage({
                 <div className="text-sm text-muted-foreground text-center">
                     Don&apos;t have an account?{" "}
                     <Link
-                        href={redirectTo ? `/sign-up?redirect_to=${encodeURIComponent(redirectTo)}` : "/sign-up"}
+                        href={buildAuthHref("/sign-up")}
                         className="text-primary underline underline-offset-4 hover:text-primary/90 font-semibold"
                         onClick={() =>
                             trackEvent("auth_switch_flow_click", {

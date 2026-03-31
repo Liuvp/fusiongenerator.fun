@@ -26,6 +26,15 @@ export default function ClientPage({
     const trackedErrorRef = useRef<string | null>(null);
     const source = searchParams.source || "direct";
     const reason = searchParams.reason || "none";
+    const isAiStudioFlow = source === "ai_studio";
+    const buildAuthHref = (basePath: "/sign-in" | "/sign-up") => {
+        const params = new URLSearchParams();
+        if (redirectTo) params.set("redirect_to", redirectTo);
+        if (source && source !== "direct") params.set("source", source);
+        if (reason && reason !== "none") params.set("reason", reason);
+        const query = params.toString();
+        return query ? `${basePath}?${query}` : basePath;
+    };
 
     useEffect(() => {
         trackEvent("auth_page_view", {
@@ -95,6 +104,15 @@ export default function ClientPage({
                     </p>
                 )}
             </div>
+
+            {isAiStudioFlow && (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                    <p className="font-semibold">Almost back to AI Fusion Studio</p>
+                    <p className="mt-1 text-xs text-blue-800">
+                        Create a free account now and we&apos;ll send you back to the studio so you can finish your next fusion.
+                    </p>
+                </div>
+            )}
 
             <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
                 <p className="text-sm font-semibold mb-3 text-center">What you&apos;ll get:</p>
@@ -239,7 +257,7 @@ export default function ClientPage({
                                 The fastest fix is to sign in instead. If you originally used Google, choose Continue with Google above.
                             </p>
                             <Link
-                                href={redirectTo ? `/sign-in?redirect_to=${encodeURIComponent(redirectTo)}` : "/sign-in"}
+                                href={buildAuthHref("/sign-in")}
                                 className="mt-3 inline-flex font-semibold underline underline-offset-4"
                                 onClick={() =>
                                     trackEvent("auth_switch_flow_click", {
@@ -270,7 +288,7 @@ export default function ClientPage({
                 <div className="text-sm text-muted-foreground text-center">
                     Already have an account?{" "}
                     <Link
-                        href={redirectTo ? `/sign-in?redirect_to=${encodeURIComponent(redirectTo)}` : "/sign-in"}
+                        href={buildAuthHref("/sign-in")}
                         className="text-primary underline underline-offset-4 hover:text-primary/90 font-semibold"
                         onClick={() =>
                             trackEvent("auth_switch_flow_click", {

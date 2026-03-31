@@ -41,6 +41,7 @@ export function PokeFusionStudio() {
     const { toast } = useToast();
     const supabase = useMemo(() => createClient(), []);
     const resultRef = useRef<HTMLDivElement>(null);
+    const hiddenResultNoticeRef = useRef(false);
 
     // State
     const [pokemon1, setPokemon1] = useState<Pokemon>();
@@ -106,6 +107,24 @@ export function PokeFusionStudio() {
 
     useEffect(() => { if (result && !isGenerating) scrollToResult(); }, [result, isGenerating, scrollToResult]);
 
+    useEffect(() => {
+        const handleVisibilityChange = (): void => {
+            if (document.hidden) return;
+            if (!hiddenResultNoticeRef.current || !result) return;
+
+            hiddenResultNoticeRef.current = false;
+            toast({
+                title: "Fusion Ready",
+                description: `${result.pokemon1.name} x ${result.pokemon2.name} is ready below.`,
+                duration: 2500
+            });
+            resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [result, toast]);
+
     /** Auth & Quota */
     useEffect(() => {
         let mounted = true;
@@ -165,6 +184,27 @@ export function PokeFusionStudio() {
     const hasQuotaAccessValue = hasQuotaAccess();
     const shouldShowAuthOptions = !hasQuotaAccessValue || showAuthOptions;
     const shouldDisableButton = isGenerating;
+    const selectionGuidance = useMemo(() => {
+        if (selectedCount === 0) {
+            return {
+                title: "Pick your first Pokemon",
+                description: "Choose any Pokemon to begin. Add a second one to unlock the fusion button."
+            };
+        }
+
+        if (selectedCount === 1) {
+            const selectedName = pokemon1?.name ?? pokemon2?.name;
+            return {
+                title: `${selectedName} locked in`,
+                description: "Pick one more Pokemon to complete the pair. Tap a selected Pokemon again if you want to remove it."
+            };
+        }
+
+        return {
+            title: `${pokemon1?.name} + ${pokemon2?.name} ready`,
+            description: "Fuse now for the fastest result. If you tap a new Pokemon, it replaces slot 1 and shifts the older pick to slot 2."
+        };
+    }, [pokemon1, pokemon2, selectedCount]);
 
     const openAuthGate = useCallback((reason: AuthGateReason) => {
         setAuthGateReason(reason);
@@ -252,6 +292,11 @@ export function PokeFusionStudio() {
         if (!pokemon1) setPokemon1(p);
         else if (!pokemon2) setPokemon2(p);
         else {
+            toast({
+                title: "Lead Pokemon updated",
+                description: `${p.name} moved into slot 1. ${pokemon1.name} shifted to slot 2.`,
+                duration: 1600
+            });
             setPokemon2(pokemon1);
             setPokemon1(p);
         }
@@ -285,6 +330,34 @@ export function PokeFusionStudio() {
             });
             toast({ title: "Demo Loaded", description: `Showing random example: ${sample.name}` });
         }
+    };
+
+    const swapLeftPokemon = () => {
+        const options = POKEMON_DATABASE.filter((pokemon) => pokemon.id !== pokemon2?.id);
+        const nextPokemon = options[Math.floor(Math.random() * options.length)];
+        if (!nextPokemon || !pokemon2) return;
+
+        setPokemon1(nextPokemon);
+        setPromptSource("auto");
+        setResult(null);
+        toast({
+            title: "Left Pokemon swapped",
+            description: `${nextPokemon.name} is ready to fuse with ${pokemon2.name}.`,
+        });
+    };
+
+    const swapRightPokemon = () => {
+        const options = POKEMON_DATABASE.filter((pokemon) => pokemon.id !== pokemon1?.id);
+        const nextPokemon = options[Math.floor(Math.random() * options.length)];
+        if (!nextPokemon || !pokemon1) return;
+
+        setPokemon2(nextPokemon);
+        setPromptSource("auto");
+        setResult(null);
+        toast({
+            title: "Right Pokemon swapped",
+            description: `${pokemon1.name} is now paired with ${nextPokemon.name}.`,
+        });
     };
 
     const clearSelection = () => {
@@ -378,6 +451,9 @@ export function PokeFusionStudio() {
 
             if (data.quota) setQuota(data.quota);
             if (pokemon1 && pokemon2) {
+                if (typeof document !== "undefined" && document.hidden) {
+                    hiddenResultNoticeRef.current = true;
+                }
                 setResult({ imageUrl: data.imageUrl, pokemon1, pokemon2, style });
                 toast({ title: "Started!", description: "Creating your fusion..." });
                 trackStudioEvent("pokemon_generate_success", {
@@ -501,6 +577,11 @@ export function PokeFusionStudio() {
                         <p className="mt-1">{quotaStatusCopy.description}</p>
                     </div>
 
+                    <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
+                        <p className="font-semibold">{selectionGuidance.title}</p>
+                        <p className="mt-1 text-gray-500">{selectionGuidance.description}</p>
+                    </div>
+
                     <Button onClick={generateFusion} disabled={shouldDisableButton} size="lg" className={`w-full py-6 text-xl font-black uppercase shadow-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] ${isActionHintActive ? 'ring-2 ring-red-400 ring-offset-2' : ''} ${!isSelectionComplete ? 'bg-gray-400 hover:bg-gray-500' : !hasQuotaAccessValue ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700' : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}>
                         {isGenerating ? (
                             <span className="flex items-center gap-2"><Sparkles className="w-5 h-5 animate-spin" /> Generating...</span>
@@ -570,9 +651,9 @@ export function PokeFusionStudio() {
                 <Card className="border-0 shadow-md mb-6 animate-pulse">
                     <CardContent className="h-[300px] flex flex-col items-center justify-center p-5 bg-gray-50 rounded-xl">
                         <Sparkles className="w-10 h-10 text-blue-400 animate-spin mb-4" />
-                        <p className="text-gray-500 font-medium">Mixing DNA...</p>
+                        <p className="text-gray-500 font-medium">Mixing DNA for {pokemon1?.name} x {pokemon2?.name}...</p>
                         <p className="text-xs text-gray-400 mt-2">You can switch tabs while we keep generating.</p>
-                        <p className="text-xs text-gray-400">Result will appear here automatically.</p>
+                        <p className="text-xs text-gray-400">If the result finishes while you are away, we will call it out when you come back.</p>
                     </CardContent>
                 </Card>
             )}
@@ -585,6 +666,9 @@ export function PokeFusionStudio() {
                     onDownload={downloadImage}
                     onShare={shareResult}
                     onReset={clearSelection}
+                    onSwapLeft={swapLeftPokemon}
+                    onSwapRight={swapRightPokemon}
+                    onTryAnotherPair={randomize}
                 />
             )}
         </div>
