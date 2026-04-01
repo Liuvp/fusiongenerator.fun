@@ -105,7 +105,7 @@ export default function ClientPage({
                 <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
                     <p className="font-semibold">You&apos;re coming back to AI Fusion Studio</p>
                     <p className="mt-1 text-xs text-blue-800">
-                        If you previously used Google, choose Continue with Google for the fastest route back to your fusion flow.
+                        If you previously used Google, choose Continue with Google for the fastest route back to your fusion flow. If this browser already used its free guest try, signing in here will stop the repeated auth redirects.
                     </p>
                 </div>
             )}

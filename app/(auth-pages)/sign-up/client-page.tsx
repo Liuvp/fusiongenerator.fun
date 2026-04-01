@@ -109,7 +109,7 @@ export default function ClientPage({
                 <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
                     <p className="font-semibold">Almost back to AI Fusion Studio</p>
                     <p className="mt-1 text-xs text-blue-800">
-                        Create a free account now and we&apos;ll send you back to the studio so you can finish your next fusion.
+                        Create a free account now and we&apos;ll send you back to the studio so you can finish your next fusion. If this email was already used before, switch to sign in instead of trying to register again.
                     </p>
                 </div>
             )}

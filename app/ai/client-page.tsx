@@ -152,6 +152,16 @@ export default function AIFusionStudioPage() {
     const [isHashFocused, setIsHashFocused] = useState(false);
     const aiReturnTarget = "/ai?auth=welcome&from=ai_studio#fusion-studio";
     const showAuthReturnBanner = searchParams.get("auth") === "welcome";
+    const showGuestStartBanner =
+        quota?.type === "anonymous" &&
+        quota.remaining > 0 &&
+        !leftFile &&
+        !rightFile;
+    const showGuestQuotaUsedBanner =
+        quota?.type === "anonymous" &&
+        quota.remaining <= 0 &&
+        !leftFile &&
+        !rightFile;
 
     const setFileSafe = (
         setter: Dispatch<SetStateAction<UploadedFile | null>>,
@@ -276,6 +286,12 @@ export default function AIFusionStudioPage() {
             }
         }
     }, []);
+
+    const handleRefreshStudio = useCallback(async (): Promise<void> => {
+        setError(null);
+        setAuthGate(null);
+        await refreshQuota();
+    }, [refreshQuota]);
 
     useEffect(() => {
         let mounted = true;
@@ -662,11 +678,11 @@ export default function AIFusionStudioPage() {
                 </div>
             )}
 
-            {quota?.type === "anonymous" && quota.remaining > 0 && !leftFile && !rightFile && (
+            {showGuestStartBanner && (
                 <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-                    <p className="font-semibold">Planning to make more than one fusion?</p>
+                    <p className="font-semibold">No account required for your first fusion</p>
                     <p className="mt-1 text-xs sm:text-sm text-blue-800">
-                        Guest access includes 1 free generation. Sign in now if you want a smoother path back into AI Fusion, your gallery, and the Dragon Ball or Pokemon generators.
+                        You can try 1 guest fusion right now. We only ask you to sign in after that if you want to keep going, save your work, or move between AI, Dragon Ball, and Pokemon tools.
                     </p>
                     <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <Link
@@ -692,6 +708,41 @@ export default function AIFusionStudioPage() {
                             }
                         >
                             Create Free Account First
+                        </Link>
+                    </div>
+                </div>
+            )}
+
+            {showGuestQuotaUsedBanner && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    <p className="font-semibold">This browser already used its free guest fusion</p>
+                    <p className="mt-1 text-xs sm:text-sm text-amber-800">
+                        You do not need an account to discover the tool. This prompt appears because the guest try on this browser is already used. Sign in once to keep generating without bouncing between pages.
+                    </p>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <Link
+                            href={`/sign-in?redirect_to=${encodeURIComponent(aiReturnTarget)}&source=ai_studio&reason=free_limit`}
+                            className="inline-flex items-center justify-center rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100"
+                            onClick={() =>
+                                trackStudioEvent("ai_auth_gate_click", {
+                                    kind: "guest_limit",
+                                    cta: "sign_in_quota_banner",
+                                })
+                            }
+                        >
+                            Sign In to Continue
+                        </Link>
+                        <Link
+                            href={`/sign-up?redirect_to=${encodeURIComponent(aiReturnTarget)}&source=ai_studio&reason=free_limit`}
+                            className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-2 text-sm font-semibold text-white hover:from-blue-700 hover:to-purple-700"
+                            onClick={() =>
+                                trackStudioEvent("ai_auth_gate_click", {
+                                    kind: "guest_limit",
+                                    cta: "sign_up_quota_banner",
+                                })
+                            }
+                        >
+                            Create Free Account
                         </Link>
                     </div>
                 </div>
@@ -880,14 +931,29 @@ export default function AIFusionStudioPage() {
                     <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-sm text-center animate-in fade-in duration-300">
                         <p>{error}</p>
                         {canRetry && (
+                            <p className="mt-2 text-xs text-destructive/80">
+                                Your uploads are still here, so you can retry without starting over.
+                            </p>
+                        )}
+                        <div className="mt-3 flex flex-col justify-center gap-2 sm:flex-row">
+                            {canRetry && (
+                                <button
+                                    type="button"
+                                    onClick={startGenerate}
+                                    className="inline-flex items-center justify-center rounded-lg border border-destructive/40 bg-white px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/5"
+                                >
+                                    Try Again
+                                </button>
+                            )}
                             <button
                                 type="button"
-                                onClick={startGenerate}
-                                className="mt-3 inline-flex items-center justify-center rounded-lg border border-destructive/40 bg-white px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/5"
+                                onClick={() => void handleRefreshStudio()}
+                                className="inline-flex items-center justify-center rounded-lg border border-destructive/20 bg-white px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/5"
                             >
-                                Try Again
+                                <RefreshCw size={14} className="mr-1.5" />
+                                Refresh Studio Status
                             </button>
-                        )}
+                        </div>
                     </div>
                 )}
 
