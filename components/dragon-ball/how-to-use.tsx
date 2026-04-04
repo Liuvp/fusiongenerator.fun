@@ -123,7 +123,7 @@ export function DBHowToUse() {
                         aria-label="Jump to the fusion studio at the top"
                     >
                         <span className="relative z-10 flex items-center gap-2">
-                            Start Fusing Now
+                            Open Fusion Studio
                             <span className="group-hover:translate-x-1 transition-transform" aria-hidden="true">-&gt;</span>
                         </span>
                     </a>

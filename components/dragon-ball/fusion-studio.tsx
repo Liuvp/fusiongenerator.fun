@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -155,6 +156,7 @@ const CharacterButton = ({
 // 主组件
 // ===============================
 export function DBFusionStudio() {
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const resultRef = useRef<HTMLDivElement>(null);
     const selectionCardRef = useRef<HTMLDivElement>(null);
@@ -181,6 +183,8 @@ export function DBFusionStudio() {
     const [isShaking, setIsShaking] = useState(false);
     const [isSelectionHintActive, setIsSelectionHintActive] = useState(false);
     const hiddenResultNoticeRef = useRef(false);
+    const dbReturnTarget = "/dragon-ball?auth=welcome&from=dragon_ball_fusion#fusion-studio";
+    const showAuthReturnBanner = searchParams.get("auth") === "welcome";
 
     // 检查是否选完
     const isSelectionComplete = useMemo(() => !!(char1 && char2), [char1, char2]);
@@ -259,6 +263,9 @@ export function DBFusionStudio() {
                 description: "Guest access includes 1 free fusion. Sign in or create a free account before your next generation."
             };
     }, [hasQuotaAccessValue, isLoadingAuth, quota.isVIP, quota.remaining, user]);
+
+    const showGuestStartBanner = !user && quota.remaining > 0 && !char1 && !char2;
+    const showGuestQuotaUsedBanner = !user && quota.remaining <= 0 && !char1 && !char2;
 
     const openAuthGate = useCallback((reason: AuthGateReason): void => {
         setShowAuthOptions(true);
@@ -892,6 +899,49 @@ export function DBFusionStudio() {
             </header>
 
             {/* 步骤指示器 */}
+            {showAuthReturnBanner && (
+                <div className="mb-6 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                    <p className="font-semibold">You&apos;re back in Dragon Ball Fusion Studio</p>
+                    <p className="mt-1 text-xs text-orange-800">
+                        Sign-in worked. Pick 2 fighters and keep going right where you left off.
+                    </p>
+                </div>
+            )}
+
+            {showGuestStartBanner && (
+                <div className="mb-6 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                    <p className="font-semibold">No account required for your first Dragon Ball fusion</p>
+                    <p className="mt-1 text-xs text-orange-800">
+                        You can try 1 guest fusion right now. We only ask you to sign in after that if you want more generations or saved history.
+                    </p>
+                </div>
+            )}
+
+            {showGuestQuotaUsedBanner && (
+                <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    <p className="font-semibold">This browser already used its free guest fusion</p>
+                    <p className="mt-1 text-xs text-amber-800">
+                        Sign in once to keep generating without getting bounced between pages.
+                    </p>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <Link
+                            href={`/sign-in?redirect_to=${encodeURIComponent(dbReturnTarget)}&reason=quota_limit&source=dragon_ball_fusion`}
+                            className="inline-flex items-center justify-center rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100"
+                            onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_in_banner", reason: "quota_limit" })}
+                        >
+                            Sign In to Continue
+                        </Link>
+                        <Link
+                            href={`/sign-up?redirect_to=${encodeURIComponent(dbReturnTarget)}&reason=quota_limit&source=dragon_ball_fusion`}
+                            className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-3 py-2 text-sm font-semibold text-white hover:from-orange-600 hover:to-red-600"
+                            onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_up_banner", reason: "quota_limit" })}
+                        >
+                            Create Free Account
+                        </Link>
+                    </div>
+                </div>
+            )}
+
             {steps}
 
             {/* 角色选择区域 */}
@@ -1048,7 +1098,7 @@ export function DBFusionStudio() {
                             <div className="grid grid-cols-2 gap-3">
                                 <Button asChild variant="outline" className="w-full bg-white hover:bg-gray-50 text-gray-700 border-gray-200">
                                     <Link
-                                        href={`/sign-in?redirect_to=${encodeURIComponent('/dragon-ball#fusion-studio')}&reason=quota_limit&source=dragon_ball_fusion`}
+                                        href={`/sign-in?redirect_to=${encodeURIComponent(dbReturnTarget)}&reason=quota_limit&source=dragon_ball_fusion`}
                                         onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_in", reason: "quota_limit" })}
                                     >
                                         Sign In to Continue
@@ -1056,7 +1106,7 @@ export function DBFusionStudio() {
                                 </Button>
                                 <Button asChild className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-600 border-0">
                                     <Link
-                                        href={`/sign-up?redirect_to=${encodeURIComponent('/dragon-ball#fusion-studio')}&reason=quota_limit&source=dragon_ball_fusion`}
+                                        href={`/sign-up?redirect_to=${encodeURIComponent(dbReturnTarget)}&reason=quota_limit&source=dragon_ball_fusion`}
                                         onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_up", reason: "quota_limit" })}
                                     >
                                         Create Free Account
@@ -1165,7 +1215,7 @@ export function DBFusionStudio() {
                                         title="Continue with a new fusion"
                                     >
                                         <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                        Continue Generating
+                                        Start New Pair
                                     </Button>
                                     <Button
                                         type="button"

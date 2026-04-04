@@ -27,6 +27,8 @@ export default function ClientPage({
     const source = searchParams.source || "direct";
     const reason = searchParams.reason || "none";
     const isAiStudioFlow = source === "ai_studio";
+    const isDragonBallFlow = source === "dragon_ball_fusion";
+    const studioName = isDragonBallFlow ? "Dragon Ball Fusion Studio" : "AI Fusion Studio";
     const buildAuthHref = (basePath: "/sign-in" | "/sign-up") => {
         const params = new URLSearchParams();
         if (redirectTo) params.set("redirect_to", redirectTo);
@@ -105,9 +107,9 @@ export default function ClientPage({
                 )}
             </div>
 
-            {isAiStudioFlow && (
+            {(isAiStudioFlow || isDragonBallFlow) && (
                 <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-                    <p className="font-semibold">Almost back to AI Fusion Studio</p>
+                    <p className="font-semibold">Almost back to {studioName}</p>
                     <p className="mt-1 text-xs text-blue-800">
                         Create a free account now and we&apos;ll send you back to the studio so you can finish your next fusion. If this email was already used before, switch to sign in instead of trying to register again.
                     </p>

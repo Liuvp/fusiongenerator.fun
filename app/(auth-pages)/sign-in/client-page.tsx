@@ -24,6 +24,8 @@ export default function ClientPage({
     const source = searchParams.source || "direct";
     const reason = searchParams.reason || "none";
     const isAiStudioFlow = source === "ai_studio";
+    const isDragonBallFlow = source === "dragon_ball_fusion";
+    const studioName = isDragonBallFlow ? "Dragon Ball Fusion Studio" : "AI Fusion Studio";
     const buildAuthHref = (basePath: "/sign-in" | "/sign-up") => {
         const params = new URLSearchParams();
         if (redirectTo) params.set("redirect_to", redirectTo);
@@ -101,9 +103,9 @@ export default function ClientPage({
                 )}
             </div>
 
-            {isAiStudioFlow && (
+            {(isAiStudioFlow || isDragonBallFlow) && (
                 <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-                    <p className="font-semibold">You&apos;re coming back to AI Fusion Studio</p>
+                    <p className="font-semibold">You&apos;re coming back to {studioName}</p>
                     <p className="mt-1 text-xs text-blue-800">
                         If you previously used Google, choose Continue with Google for the fastest route back to your fusion flow. If this browser already used its free guest try, signing in here will stop the repeated auth redirects.
                     </p>

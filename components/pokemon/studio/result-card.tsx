@@ -61,7 +61,7 @@ export const ResultCard = forwardRef<HTMLDivElement, ResultCardProps>(({ result,
                         </Button>
                         <Button onClick={onReset} variant="outline" className="border-gray-200 hover:bg-gray-100 transition-colors">
                             <RefreshCw className="w-4 h-4 mr-2" />
-                            <span>Continue Generating</span>
+                            <span>Start New Pair</span>
                         </Button>
                         <Button onClick={onSwapLeft} variant="outline" className="border-gray-200 hover:bg-gray-100 transition-colors">
                             <span>Swap Left Pokemon</span>
