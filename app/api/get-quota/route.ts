@@ -3,8 +3,8 @@ import { createClient } from '@/utils/supabase/server';
 
 const FALLBACK_QUOTA = {
     used: 0,
-    remaining: 1,
-    limit: 1,
+    remaining: 3,
+    limit: 3,
     isVIP: false,
     type: 'anonymous'
 } as const;

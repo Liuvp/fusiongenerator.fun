@@ -180,12 +180,12 @@ export async function getIPRateLimit(ip: string): Promise<{ value: number; limit
 }
 
 /**
- * 只读检查：获取 匿名用户(Fusion) 剩余配额 (1次)
+ * 只读检查：获取 匿名用户(Fusion) 剩余配额 (3次)
  * Key: fusion:anonymous:{ip}
  */
 export async function getAnonymousRateLimit(ip: string): Promise<{ value: number; limit: number; remaining: number }> {
     const key = `fusion:anonymous:${ip}`;
-    const limit = 1;
+    const limit = 3;
 
     let current = 0;
     if (!redis) {

@@ -85,7 +85,7 @@ const normalizeGenerationError = (
             authGate: {
                 kind: "guest_limit",
                 title: "Keep generating with a free account",
-                description: "Guest access includes 1 free generation. Sign in or create a free account before your next one.",
+                description: "Guest access includes 3 free generations. Sign in or create a free account before your next one.",
             },
         };
     }
@@ -355,7 +355,7 @@ export default function AIFusionStudioPage() {
         if (quota.type === "anonymous") {
             return {
                 title: "Keep generating with a free account",
-                description: "Guest access includes 1 free generation. Sign in before uploading and generating again.",
+                description: "Guest access includes 3 free generations. Sign in before uploading and generating again.",
                 tone: "warning" as const,
             };
         }
@@ -682,7 +682,7 @@ export default function AIFusionStudioPage() {
                 <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
                     <p className="font-semibold">No account required for your first fusion</p>
                     <p className="mt-1 text-xs sm:text-sm text-blue-800">
-                        You can try 1 guest fusion right now. We only ask you to sign in after that if you want to keep going, save your work, or move between AI, Dragon Ball, and Pokemon tools.
+                        You can try 3 guest fusions right now. We only ask you to sign in after that if you want to keep going, save your work, or move between AI, Dragon Ball, and Pokemon tools.
                     </p>
                     <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <Link

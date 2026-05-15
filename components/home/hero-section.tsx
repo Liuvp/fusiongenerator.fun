@@ -16,25 +16,25 @@ export function HeroSection() {
             </p>
 
             <div className="relative max-w-lg mt-8">
-              <Link href="/ai" className="group block cursor-pointer" aria-label="Open AI Fusion Generator to create character fusions">
+              <Link href="/dragon-ball" className="group block cursor-pointer" aria-label="Try Dragon Ball Fusion Generator — no account needed">
                 <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-25 group-hover:opacity-100 transition duration-1000"></div>
                 <div className="relative flex items-center bg-white rounded-full p-2 shadow-xl border border-purple-200">
                   <div className="flex-1 px-4 text-gray-500 font-medium truncate">
-                    Mix: Anime + Superheroes
+                    Try: Goku + Vegeta
                   </div>
                   <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition transform group-hover:scale-105">
-                    Fuse Your Characters!
+                    Try Dragon Ball Fusion Free!
                   </span>
                 </div>
               </Link>
               <p className="mt-3 text-sm text-purple-100">
-                No account required for your first free fusion.
+                No account required for your first 3 fusions.
               </p>
             </div>
           </div>
 
           <div className="w-full md:w-1/2">
-            <Link href="/ai" className="relative block cursor-pointer" aria-label="Start creating an AI fusion now">
+            <Link href="/dragon-ball" className="relative block cursor-pointer" aria-label="Start creating an AI fusion now">
               <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg blur-lg opacity-75 animate-pulse"></div>
               <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
                 <Image

@@ -18,7 +18,7 @@ import { User } from "@supabase/supabase-js";
 // ===============================
 const LOCAL_STORAGE_KEY = "db_fusion_studio_state";
 const STORAGE_EXPIRY = 24 * 60 * 60 * 1000; // 24小时
-const DEFAULT_QUOTA = { used: 0, remaining: 1, limit: 1, isVIP: false }; // 统一免费额度为 1 次
+const DEFAULT_QUOTA = { used: 0, remaining: 3, limit: 3, isVIP: false }; // 免费额度 3 次
 
 // ===============================
 // 类型定义
@@ -180,6 +180,7 @@ export function DBFusionStudio() {
     // State for interactive feedback
     // ===============================
     const [showAuthOptions, setShowAuthOptions] = useState(false);
+    const [isGridExpanded, setIsGridExpanded] = useState(false);
     const [isShaking, setIsShaking] = useState(false);
     const [isSelectionHintActive, setIsSelectionHintActive] = useState(false);
     const hiddenResultNoticeRef = useRef(false);
@@ -260,7 +261,7 @@ export function DBFusionStudio() {
                 }
                 : {
                 title: "Keep generating with a free account",
-                description: "Guest access includes 1 free fusion. Sign in or create a free account before your next generation."
+                description: "Guest access includes 3 free fusions. Sign in or create a free account before your next generation."
             };
     }, [hasQuotaAccessValue, isLoadingAuth, quota.isVIP, quota.remaining, user]);
 
@@ -910,9 +911,9 @@ export function DBFusionStudio() {
 
             {showGuestStartBanner && (
                 <div className="mb-6 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
-                    <p className="font-semibold">No account required for your first Dragon Ball fusion</p>
+                    <p className="font-semibold">No account required for your first 3 Dragon Ball fusions</p>
                     <p className="mt-1 text-xs text-orange-800">
-                        You can try 1 guest fusion right now. We only ask you to sign in after that if you want more generations or saved history.
+                        You can try 3 guest fusions right now. We only ask you to sign in after that if you want more generations or saved history.
                     </p>
                 </div>
             )}
@@ -968,11 +969,19 @@ export function DBFusionStudio() {
                         </Button>
                     </div>
                     <div
-                        className="grid grid-cols-4 gap-3 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar"
+                        className={`grid grid-cols-4 gap-3 overflow-y-auto pr-1 custom-scrollbar transition-all duration-300 ${isGridExpanded ? 'max-h-[320px]' : 'max-h-[180px] md:max-h-[320px]'}`}
                         aria-live="polite"
                     >
                         {characterGrid}
                     </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsGridExpanded(prev => !prev)}
+                        className="mt-3 w-full text-center text-xs text-orange-600 font-medium hover:text-orange-700 md:hidden"
+                        aria-expanded={isGridExpanded}
+                    >
+                        {isGridExpanded ? 'Show less ↑' : `Show all ${DB_CHARACTERS.length} characters ↓`}
+                    </button>
                 </CardContent>
             </Card>
 
