@@ -315,14 +315,39 @@
 
 ---
 
-### 🟢 P3-4：Bing Webmaster 提交
+### ✅ P3-4：Bing IndexNow 配置（已完成 2026-05-16）
 
-**当前状态：** 0 点击、2 展示
+**Bing 实际数据（比 Google 好 10 倍）：**
 
-**待做：**
-- [ ] 在 Bing Webmaster 提交 sitemap.xml
-- [ ] 确认 Bing 是否已收录核心页面
-- [ ] Bing 站长工具地址：https://www.bing.com/webmasters
+| 指标 | Bing | Google (GSC) |
+|---|---|---|
+| 点击 | **173** | 16 |
+| 展示 | **3.9K** | 229 |
+| 查询词 | 70 | 33 |
+| 索引页面 | 18 | 28 |
+
+**Bing TOP 关键词：**
+
+| 关键词 | 点击 | 展示 |
+|---|---|---|
+| fusion generator | 66 | 1.1K |
+| fusion pokémon | 23 | 725 |
+| dragon ball fusion generator | 21 | 486 |
+| fusion pokemon | 20 | 1.0K |
+| pokemon fusion | 8 | 317 |
+
+**已完成：**
+- ✅ IndexNow key 生成：`0c32f305-17b0-4d16-8f50-0fa6d90a0528`
+- ✅ 验证文件 `public/0c32f305-17b0-4d16-8f50-0fa6d90a0528.txt`
+- ✅ 提交脚本 `scripts/submit-indexnow.js`（自动读 sitemap.xml）
+- ✅ `package.json` postbuild 钩子 — 每次 Vercel 部署自动提交
+- ✅ 首次提交 12 个 URL → 202 Accepted
+- ✅ `/dragon-ball` 已在 Bing 索引
+
+**关键发现：**
+- 外链：0（Bing + Google 共同瓶颈）
+- Sitemap：14 页，状态 Success，上次爬取 2026/2/17
+- IndexNow 未配置（已修复）
 
 ---
 
@@ -339,7 +364,7 @@
 | 7 | P3-1 图片质量 | 🔴 转化头号瓶颈 | ⭐⭐⭐ 高 | 待定 | P2-5 数据 |
 | 8 | P3-2 外链建设 | 🟡 索引 + 权威度 | ⭐⭐ 中 | 持续 | 无 |
 | 9 | P3-3 INP 优化 | 🟢 用户体验 | ⭐⭐ 中 | 1-2 小时 | 无 |
-| 10 | P3-4 Bing 提交 | 🟢 新流量渠道 | ⭐ 低 | 30 分钟 | 无 |
+| 10 | P3-4 Bing IndexNow | ✅ 已完成 | ⭐ 低 | 30 分钟 | 无 |
 
 ---
 
