@@ -80,20 +80,20 @@
 
 ## 修复方案
 
-### 步骤 1：手动请求索引核心页面（立即执行）
+### 步骤 1：手动请求索引核心页面 ✅ 已完成（2026-05-16）
 
-用 GSC 的网址检查工具逐页请求索引，强制 Google 重新爬取：
+在 GSC 网址检查工具中逐页请求索引，强制 Google 重新爬取：
 
-1. `https://fusiongenerator.fun/` — 首页
-2. `https://fusiongenerator.fun/dragon-ball` — 核心产品页
-3. `https://fusiongenerator.fun/pokemon` — 核心产品页
-4. `https://fusiongenerator.fun/ai` — 核心产品页
+1. ✅ `https://fusiongenerator.fun/` — 首页（已编入索引，已请求重新抓取）
+2. ✅ `https://fusiongenerator.fun/dragon-ball` — 已请求编入索引
+3. ✅ `https://fusiongenerator.fun/pokemon` — 已请求编入索引
+4. ✅ `https://fusiongenerator.fun/ai` — 已请求编入索引
 
-**操作：** 在 GSC 网址检查工具中输入 URL → 点击「请求编入索引」
+### 步骤 2：Sitemap 重新提交 ✅ 已完成（2026-05-16）
 
-### 步骤 2：Sitemap 重新提交（已完成）
+✅ 已在 GSC 重新提交 sitemap.xml
 
-✅ 已在 GSC 重新提交 sitemap.xml（2026-05-16）
+**Sitemap "无法抓取" 原因：** 之前可能提交了不存在的 `sitemap-index.xml`（返回 404）。正确 URL 只有 `https://fusiongenerator.fun/sitemap.xml`。
 
 ### 步骤 3：更新 Sitemap 时间戳
 
