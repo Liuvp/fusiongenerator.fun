@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
                 console.log(`[RateLimit] Memory Fallback: IP ${clientIP} usage ${usage}`);
             }
 
-            if (usage > 3) {
+            if (usage > 2) {
                 return NextResponse.json({
                     error: "Free trial limit reached. Please login to get more credits!",
                     isLimitReached: true // Signal for frontend
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
             }
 
             console.log(`Anonymous user (IP: ${clientIP}) used 1 free credit.`);
-            remainingQuota = Math.max(0, 3 - usage);
+            remainingQuota = Math.max(0, 2 - usage);
 
         } else {
             // LOGGED IN Logic

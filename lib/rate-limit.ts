@@ -185,7 +185,7 @@ export async function getIPRateLimit(ip: string): Promise<{ value: number; limit
  */
 export async function getAnonymousRateLimit(ip: string): Promise<{ value: number; limit: number; remaining: number }> {
     const key = `fusion:anonymous:${ip}`;
-    const limit = 3;
+    const limit = 2;
 
     let current = 0;
     if (!redis) {

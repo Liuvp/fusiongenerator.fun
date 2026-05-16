@@ -121,7 +121,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">3 free fusions daily</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">2 free fusions daily</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">

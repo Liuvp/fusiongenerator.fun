@@ -160,7 +160,7 @@ export function PokeFusionStudio() {
     }, [supabase]);
 
     /** Helpers */
-    const getRemainingDisplay = () => quota?.isVIP ? "∞" : (quota ? quota.remaining : user ? "0" : "3");
+    const getRemainingDisplay = () => quota?.isVIP ? "∞" : (quota ? quota.remaining : user ? "0" : "2");
     const hasQuotaAccess = () => {
         // VIP 用户永远有访问权限
         if (quota?.isVIP) return true;
@@ -232,7 +232,7 @@ export function PokeFusionStudio() {
             };
         }
 
-        const remaining = quota?.remaining ?? (user ? 0 : 3);
+        const remaining = quota?.remaining ?? (user ? 0 : 2);
         if (hasQuotaAccessValue) {
             return user
                 ? {
@@ -252,7 +252,7 @@ export function PokeFusionStudio() {
             }
             : {
                 title: "Keep generating with a free account",
-                description: "Guest access includes 3 free fusions. Sign in or create a free account before your next generation."
+                description: "Guest access includes 2 free fusions. Sign in or create a free account before your next generation."
             };
     }, [hasQuotaAccessValue, quota?.isVIP, quota?.remaining, user]);
 
@@ -601,7 +601,7 @@ export function PokeFusionStudio() {
                                 <p className="text-xs text-gray-600">
                                     {authGateReason === "api_limit_reached"
                                         ? "Your free guest try is used. Sign in before your next generation."
-                                        : "Guest access includes 3 free fusions. Sign in or create a free account to keep generating and save your next fusions."}
+                                        : "Guest access includes 2 free fusions. Sign in or create a free account to keep generating and save your next fusions."}
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">

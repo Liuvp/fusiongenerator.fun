@@ -121,7 +121,7 @@ export default function ClientPage({
                 <div className="grid gap-2">
                     <div className="flex items-center gap-2 text-sm">
                         <Check className="h-4 w-4 text-green-600" />
-                        <span>1 free starter credit after signup</span>
+                        <span>2 free starter credits after signup</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                         <Check className="h-4 w-4 text-green-600" />

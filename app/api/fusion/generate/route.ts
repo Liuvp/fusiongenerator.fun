@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
                 usage = 1;
             }
 
-            if (usage > 1) {
+            if (usage > 2) {
                 return NextResponse.json({
                     error: "Free trial limit reached. Please login to get more credits!",
                     isLimitReached: true

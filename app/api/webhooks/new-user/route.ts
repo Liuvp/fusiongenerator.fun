@@ -28,7 +28,7 @@ export async function POST(request: Request) {
             const { error: dbError } = await supabase
                 .from('customers')
                 .upsert(
-                    { user_id: id, credits: 1 },
+                    { user_id: id, credits: 2 },
                     { onConflict: 'user_id', ignoreDuplicates: true } // If exists, keep existing (prevent overwrite if race condition)
                 );
 

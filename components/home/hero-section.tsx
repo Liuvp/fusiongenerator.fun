@@ -28,7 +28,7 @@ export function HeroSection() {
                 </div>
               </Link>
               <p className="mt-3 text-sm text-purple-100">
-                No account required for your first 3 fusions.
+                No account required for your first 2 fusions.
               </p>
             </div>
           </div>

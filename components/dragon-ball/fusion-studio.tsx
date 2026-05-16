@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -18,7 +18,7 @@ import { User } from "@supabase/supabase-js";
 // ===============================
 const LOCAL_STORAGE_KEY = "db_fusion_studio_state";
 const STORAGE_EXPIRY = 24 * 60 * 60 * 1000; // 24小时
-const DEFAULT_QUOTA = { used: 0, remaining: 3, limit: 3, isVIP: false }; // 免费额度 3 次
+const DEFAULT_QUOTA = { used: 0, remaining: 2, limit: 2, isVIP: false }; // 免费额度 2 次
 
 // ===============================
 // 类型定义
@@ -97,7 +97,7 @@ interface CharacterButtonProps {
     onSelect: (char: DBCharacter) => void;
 }
 
-const CharacterButton = ({
+const CharacterButton = memo(({
     character,
     index,
     isSelected1,
@@ -111,7 +111,7 @@ const CharacterButton = ({
             type="button"
             onClick={() => onSelect(character)}
             className={`
-                group relative aspect-square rounded-xl overflow-hidden border-2 
+                group relative aspect-square rounded-xl overflow-hidden border-2 min-h-[44px] min-w-[44px]
                 transition-all duration-200 active:scale-95 touch-manipulation
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2
                 ${isSelected1
@@ -135,7 +135,8 @@ const CharacterButton = ({
                         object-contain p-1 transition-transform duration-300
                         ${isSelected ? 'scale-110' : 'group-hover:scale-110'}
                     `}
-                    priority={index < 8} // Prioritize above-the-fold characters
+                    priority={index < 4}
+                    loading={index < 4 ? "eager" : "lazy"}
                     unoptimized={true} // Avoid blurry downscaling if Next.js image optimization is aggressive
                 />
                 {isSelected && (
@@ -150,7 +151,8 @@ const CharacterButton = ({
             </div>
         </button>
     );
-};
+});
+CharacterButton.displayName = "CharacterButton";
 
 // ===============================
 // 主组件
@@ -184,6 +186,7 @@ export function DBFusionStudio() {
     const [isShaking, setIsShaking] = useState(false);
     const [isSelectionHintActive, setIsSelectionHintActive] = useState(false);
     const hiddenResultNoticeRef = useRef(false);
+    const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
     const dbReturnTarget = "/dragon-ball?auth=welcome&from=dragon_ball_fusion#fusion-studio";
     const showAuthReturnBanner = searchParams.get("auth") === "welcome";
 
@@ -261,12 +264,13 @@ export function DBFusionStudio() {
                 }
                 : {
                 title: "Keep generating with a free account",
-                description: "Guest access includes 3 free fusions. Sign in or create a free account before your next generation."
+                description: "Guest access includes 2 free fusions. Sign in or create a free account before your next generation."
             };
     }, [hasQuotaAccessValue, isLoadingAuth, quota.isVIP, quota.remaining, user]);
 
     const showGuestStartBanner = !user && quota.remaining > 0 && !char1 && !char2;
     const showGuestQuotaUsedBanner = !user && quota.remaining <= 0 && !char1 && !char2;
+    const isFromChatGPT = searchParams.get('utm_source') === 'chatgpt.com';
 
     const openAuthGate = useCallback((reason: AuthGateReason): void => {
         setShowAuthOptions(true);
@@ -694,6 +698,7 @@ export function DBFusionStudio() {
             }
 
             // 设置结果
+            setFeedbackSubmitted(false);
             setResult({
                 imageUrl: data.imageUrl,
                 char1: char1!,
@@ -814,6 +819,34 @@ export function DBFusionStudio() {
         }
     }, [result, toast]);
 
+    const submitFeedback = useCallback(async (rating: number): Promise<void> => {
+        if (!result || feedbackSubmitted) return;
+        setFeedbackSubmitted(true);
+
+        trackStudioEvent("db_fusion_feedback", {
+            rating,
+            char1_id: result.char1.id,
+            char2_id: result.char2.id,
+            is_logged_in: Boolean(user),
+        });
+
+        try {
+            await fetch("/api/feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    fusionType: "dragon_ball",
+                    char1Id: result.char1.id,
+                    char2Id: result.char2.id,
+                    rating,
+                    imageUrl: result.imageUrl,
+                }),
+            });
+        } catch {
+            console.warn("Feedback submission failed");
+        }
+    }, [result, feedbackSubmitted, user]);
+
     // ===============================
     // 渲染函数 - 优化：使用提取的组件
     // ===============================
@@ -911,9 +944,9 @@ export function DBFusionStudio() {
 
             {showGuestStartBanner && (
                 <div className="mb-6 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
-                    <p className="font-semibold">No account required for your first 3 Dragon Ball fusions</p>
+                    <p className="font-semibold">No account required for your first 2 Dragon Ball fusions</p>
                     <p className="mt-1 text-xs text-orange-800">
-                        You can try 3 guest fusions right now. We only ask you to sign in after that if you want more generations or saved history.
+                        You can try 2 guest fusions right now. We only ask you to sign in after that if you want more generations or saved history.
                     </p>
                 </div>
             )}
@@ -943,6 +976,15 @@ export function DBFusionStudio() {
                 </div>
             )}
 
+            {isFromChatGPT && (
+                <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-900">
+                    <p className="font-semibold">Welcome from ChatGPT! 👋</p>
+                    <p className="mt-1 text-xs text-purple-800">
+                        Pick any two Dragon Ball characters below, then tap "FUU-SION-HA!" to create your fusion. No account needed for your first 2 tries.
+                    </p>
+                </div>
+            )}
+
             {steps}
 
             {/* 角色选择区域 */}
@@ -951,7 +993,7 @@ export function DBFusionStudio() {
                 className={`border-0 shadow-sm mb-6 transition-all ${isSelectionHintActive ? "ring-2 ring-orange-400 ring-offset-2" : ""}`}
             >
                 <CardContent className="p-5">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3">
                         <h3 className="text-sm font-semibold text-gray-700">
                             Choose Fighters
                         </h3>
@@ -1204,6 +1246,16 @@ export function DBFusionStudio() {
                                         Fusion complete. Download it, keep generating, or explore next steps.
                                     </p>
                                 </div>
+                                {!feedbackSubmitted ? (
+                                    <div className="flex items-center justify-center gap-4 py-2">
+                                        <span className="text-sm text-gray-500">How do you like it?</span>
+                                        <button type="button" onClick={() => submitFeedback(1)} className="text-2xl hover:scale-125 transition-transform" aria-label="Love it">😍</button>
+                                        <button type="button" onClick={() => submitFeedback(2)} className="text-2xl hover:scale-125 transition-transform" aria-label="It's okay">😐</button>
+                                        <button type="button" onClick={() => submitFeedback(3)} className="text-2xl hover:scale-125 transition-transform" aria-label="Not good">😢</button>
+                                    </div>
+                                ) : (
+                                    <p className="text-center text-sm text-green-600 py-2">Thanks for your feedback!</p>
+                                )}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <Button
                                         type="button"
