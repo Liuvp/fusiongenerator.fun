@@ -45,4 +45,4 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return <PricingPageClient user={null} />;
-}
+} 
