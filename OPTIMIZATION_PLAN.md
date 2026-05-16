@@ -1,13 +1,14 @@
 # fusiongenerator.fun 优化执行方案
 
-> 基于 Clarity 30 天用户行为数据（91 个会话，86 条录制）+ 代码审查
+> 基于 Clarity 30 天用户行为数据（91 会话，86 条录制）+ 代码审查 + GSC/Bing/GA4 实际数据
 > 编制时间：2026-05-15
+> 最后更新：2026-05-16
 
 ---
 
 ## 一、现状摘要
 
-### 核心数据
+### 用户行为数据（Clarity 30 天）
 
 | 指标 | 数值 | 判断 |
 |---|---|---|
@@ -21,6 +22,43 @@
 | INP | 320ms | ⚠️ 超过 200ms 阈值 |
 | AI 引用（Copilot） | 18 次 | 有 AI 流量基础 |
 
+### 搜索引擎数据（GSC 28 天，截至 2026-05-16）
+
+| 指标 | 数值 | 判断 |
+|---|---|---|
+| 总点击 | 16 | 极低 |
+| 总展示 | 229 | 有曝光但无点击 |
+| 平均 CTR | 7.0% | 偏低 |
+| 平均排名 | 64.1 | 🔴 第 6 页，几乎不可见 |
+| Sitemap 页面数 | 144 | — |
+| 已索引 | **28** | 19.4% |
+| 未索引 | **116** | 🔴 **80.6% 未索引 — SEO 最大瓶颈** |
+
+**查询词 TOP 5（按展示量）：**
+
+| 查询词 | 展示 | 点击 | 排名 |
+|---|---|---|---|
+| dragon ball fusion generator | 15 | 0 | 63.4 |
+| fusion generator | 11 | 0 | 73.5 |
+| dbz fusion generator | 5 | 0 | 75.6 |
+| naruto fusion generator | 3 | 0 | 46.7 |
+| anime fusion generator | 3 | 0 | 72.3 |
+
+**GSC 索引页面数据：** 只有首页有搜索数据（66 展示 / 1 点击 / 排名 70.4），`/dragon-ball`、`/pokemon`、`/ai` 等核心页面**未出现在 GSC 报告中**。
+
+### Bing Webmaster（28 天）
+
+0 次点击，2 次展示。基本无 Bing 流量。
+
+### GA4（30 天）
+
+| 指标 | 数值 |
+|---|---|
+| 用户 | 709 |
+| 新用户 | 685（96.6%） |
+| 平均参与时间 | 1 分 39 秒 |
+| 事件数 | 6.1K |
+
 ### 流量来源
 
 | 来源 | 占比 | 备注 |
@@ -31,7 +69,7 @@
 | Copilot | 少量 | 18 次引用 |
 | **Google** | **接近 0** | 🔴 最大增长空间 |
 
-### 入口页分布
+### 入口页分布（Clarity）
 
 | 入口页 | 会话数 | 占比 |
 |---|---|---|
@@ -40,306 +78,243 @@
 | `/ai` | 9 | 10.5% |
 | `/dragon-ball?utm_source=chatgpt.com` | 6 | 7.0% |
 
----
+### 注册用户（截至 2026-05-16）
 
-## 二、问题诊断与执行方案
-
-### 🔴 P0：免费额度只有 1 次 → 改为 3 次
-
-**问题：** 用户完成第 1 次融合后，立即弹出登录墙。55.8% 秒退率 + 3 个被迫登录会话 = 转化漏斗在第 1 次体验后断裂。
-
-**代码位置：** `components/dragon-ball/fusion-studio.tsx:21`
-
-```typescript
-// 当前
-const DEFAULT_QUOTA = { used: 0, remaining: 1, limit: 1, isVIP: false };
-
-// 改为
-const DEFAULT_QUOTA = { used: 0, remaining: 3, limit: 3, isVIP: false };
-```
-
-**改法：** 一行代码。`remaining` 和 `limit` 从 1 改成 3。
-
-**预期效果：**
-- 用户能体验 3 次融合再决定是否注册
-- 秒退率下降（用户有更多时间理解产品价值）
-- 注册转化率可能反而提升（体验更深 → 更愿意注册）
-
-**风险：** 无。纯前端逻辑，不影响后端计费。
+| 指标 | 数值 | 备注 |
+|---|---|---|
+| 总注册 | 12 | 全部为开发期测试账号（4/13 批量注册，GitHub OAuth） |
+| 真实用户注册 | **0** | — |
+| 付费订阅 | **0** | — |
 
 ---
 
-### 🔴 P0：首页 Hero CTA 指向错误
+## 二、已完成优化（P0 + P1 + 反馈系统）
 
-**问题：** 首页主 CTA "Fuse Your Characters!" 指向 `/ai`，但 48.8% 的用户从首页进入后，实际兴趣是 Dragon Ball 融合（31.4% 的用户直接搜 dragon ball 进入）。入口不匹配导致首页秒退。
+> 代码已推送，线上验证通过（2026-05-16 10:30）
 
-**代码位置：** `components/home/hero-section.tsx:24`
+### ✅ P0-1：免费额度 1→2（游客 2 + 注册 2 = 新用户最多 4 次）
 
-```tsx
-// 当前
-<Link href="/ai" ...>
+**最终方案：** 游客 2 次（IP 维度）+ 注册后 2 积分（用户维度），新用户最多 4 次。
 
-// 改为
-<Link href="/dragon-ball" ...>
-```
+| 文件 | 改动 |
+|---|---|
+| `components/dragon-ball/fusion-studio.tsx` | `DEFAULT_QUOTA` remaining/limit 1→2 |
+| `components/pokemon/fusion-studio.tsx` | 默认 remaining 1→2（2 处） |
+| `lib/rate-limit.ts` | `getAnonymousRateLimit` limit 1→2 |
+| `app/api/get-quota/route.ts` | FALLBACK_QUOTA remaining/limit 1→2 |
+| `app/api/generate-fusion/route.ts` | `usage > 1` → `usage > 2`，`remainingQuota` 同步 |
+| `app/api/fusion/generate/route.ts` | `usage > 1` → `usage > 2` |
+| `app/api/webhooks/new-user/route.ts` | `credits: 1` → `credits: 2` |
+| Supabase 触发器 `handle_new_user()` | `credits: 1` → `credits: 2`（SQL 直接执行） |
 
-**同文件需改的：**
-- 第 24 行主 CTA 链接：`/ai` → `/dragon-ball`
-- 第 41 行右侧图片链接：`/ai` → `/dragon-ball`
-- 按钮文案可考虑改为 "Try Dragon Ball Fusion Free!"
+**线上验证：** ✅ 游客初始 2 次 → 第 3 次弹登录墙
 
-**补充优化：** 首页首屏应增加 `/dragon-ball` 和 `/pokemon` 的独立入口卡片，让用户直接选择感兴趣的生成器。
+### ✅ P0-2：首页 CTA 指向修正
 
----
+| 文件 | 改动 |
+|---|---|
+| `components/home/hero-section.tsx` | 主 CTA `/ai` → `/dragon-ball`，文案同步 |
 
-### 🔴 P0：角色选择死点击 25%
+**线上验证：** ✅ 点击 CTA → 跳转 `/dragon-ball`
 
-**问题：** Clarity AI 明确指出"角色选择过程中的频繁死点击"。40+ 个角色同时渲染，`nextDynamic` + `ssr: false` 导致首次渲染有延迟，用户点击时组件可能尚未 hydrate 完成。
+### ✅ P0-3：角色选择区域移动端折叠
 
-**代码位置：** `components/dragon-ball/fusion-studio.tsx` 第 821 行附近
+| 文件 | 改动 |
+|---|---|
+| `components/dragon-ball/fusion-studio.tsx` | `isGridExpanded` 状态，移动端默认 180px，"Show all X characters ↓" 按钮 |
 
-**执行方案：**
+### ✅ P1-1：React.memo CharacterButton
 
-#### 3a. 移动端默认只显示 12 个热门角色
+| 文件 | 改动 |
+|---|---|
+| `components/dragon-ball/fusion-studio.tsx` | `memo()` 包裹 CharacterButton |
 
-```tsx
-// 在 CharacterButton 列表渲染前加判断
-const VISIBLE_COUNT = typeof window !== 'undefined' && window.innerWidth < 768 ? 12 : 40;
-const [showAll, setShowAll] = useState(false);
-const visibleCharacters = showAll ? DB_CHARACTERS : DB_CHARACTERS.slice(0, VISIBLE_COUNT);
-```
+### ✅ P1-2：图片懒加载优化
 
-- 移动端默认 12 个，加 "Show all characters ↓" 按钮
-- PC 端保持全部显示
+| 文件 | 改动 |
+|---|---|
+| `components/dragon-ball/fusion-studio.tsx` | `priority={index < 4}`，其余 lazy |
 
-#### 3b. 增大点击区域（触屏友好）
+### ✅ P1-3：触屏点击区域 44px
 
-```tsx
-// CharacterButton 组件，确保最小点击区域
-className="... min-h-[44px] min-w-[44px]"  // Apple HIG 最小触屏目标
-```
+| 文件 | 改动 |
+|---|---|
+| `components/dragon-ball/fusion-studio.tsx` | `min-h-[44px] min-w-[44px]` |
 
-#### 3c. 加 loading 状态反馈
+### ✅ P1-4：ChatGPT 导流引导条
 
-```tsx
-// CharacterButton 点击后加视觉反馈
-const [isSelecting, setIsSelecting] = useState(false);
-// onClick 时先 setIsSelecting(true)，渲染 loading spinner
-```
+| 文件 | 改动 |
+|---|---|
+| `components/dragon-ball/fusion-studio.tsx` | 检测 `utm_source=chatgpt.com`，紫色欢迎引导条 |
 
----
+**线上验证：** ✅ `?utm_source=chatgpt.com` → 显示 "Welcome from ChatGPT! 👋"
 
-### 🟡 P1：INP 320ms → 优化到 200ms 以内
+### ✅ 反馈系统：生图满意度 Emoji 反馈
 
-**问题：** 40+ 个角色图片同时渲染，每次交互触发大量 re-render。
+| 文件 | 改动 |
+|---|---|
+| `supabase/migrations/20260516000000_fusion_feedback.sql` | 建表 + 索引 + RLS + 去重 |
+| `app/api/feedback/route.ts` | POST API，IP hash / user_id 去重 |
+| `components/dragon-ball/fusion-studio.tsx` | 😍😐◢ 按钮 UI + "Thanks for your feedback!" |
 
-**执行方案：**
+**线上验证：** ✅ 点击 😍 → 显示 "Thanks for your feedback!"
 
-#### 4a. 虚拟化角色列表
+### ✅ 全站文案同步
 
-只渲染可见区域的角色，滚动时动态加载。使用 `react-window` 或手写 IntersectionObserver：
-
-```tsx
-// 只渲染 viewport 内的角色 + 预加载 2 行
-const [visibleRange, setVisibleRange] = useState({ start: 0, end: 20 });
-// 用 IntersectionObserver 监测滚动，动态更新 range
-```
-
-#### 4b. 图片懒加载优化
-
-```tsx
-// 当前只有前 8 个 priority
-{index < 8 ? 'eager' : 'lazy'}
-
-// 改为：只有前 4 个 eager，其余全部 lazy + loading="lazy"
-<Image loading={index < 4 ? "eager" : "lazy"} ... />
-```
-
-#### 4c. 减少 re-render
-
-```tsx
-// CharacterButton 用 React.memo 包裹
-const CharacterButton = React.memo(({ character, ... }: CharacterButtonProps) => {
-  // ...
-});
-```
+所有 "1 free" / "3 free" 文案已统一为 "2 free"（涉及 6 个文件 12+ 处）。
 
 ---
 
-### 🟡 P1：过度滚动 23%（找不到角色）
+## 三、P2：SEO 与增长（待执行）
 
-**问题：** 40+ 个角色铺满页面，用户需要滚动很久。
+### ✅ P2-1：索引问题排查（已完成）
 
-**执行方案：**
+**诊断报告：** `docs/P2-1-index-diagnosis.md`
 
-#### 5a. 加角色搜索框
+**GSC 数据（28 天）：** 144 已提交 → 28 已索引（19.4%）→ 116 未索引（80.6%）
 
-在角色选择区顶部加搜索输入框：
+**技术检查结果：**
 
-```tsx
-<input
-  type="text"
-  placeholder="Search characters..."
-  onChange={(e) => filterCharacters(e.target.value)}
-/>
-```
+| 检查项 | 结果 |
+|---|---|
+| robots.txt | ✅ `Allow: /`，无屏蔽 |
+| Sitemap | ✅ 15 个 URL，已重新提交（2026-05-16） |
+| canonical 标签 | ✅ 3 个核心页面全部自引用正确 |
+| meta robots | ✅ 全部 `index, follow` |
+| 页面 title/description | ✅ 包含核心关键词 |
+| 页面内容结构 | ✅ h1 + HowTo + FAQ + 热门融合 |
 
-#### 5b. 按分组展示
+**根因判断：** 不是技术问题。1) Google 从 2025/12/22 后就没再爬过大部分页面；2) 114 个页面状态「已发现 - 尚未编入索引」——Google 主动选择不收录；3) 站点权威度低（新站、少外链），Google 认为没有爬取价值。
 
-```tsx
-// 角色分组
-const CHARACTER_GROUPS = [
-  { name: "Z Fighters", characters: [...] },
-  { name: "Villains", characters: [...] },
-  { name: "Support", characters: [...] },
-];
-```
+**已完成的修复：**
+- ✅ Sitemap 重新提交（GSC 上次读取更新为 2026-05-16）
+- ✅ 诊断报告已写入 `docs/P2-1-index-diagnosis.md`
 
-每组可折叠，默认只展开 Z Fighters。
+**待手动执行：**
+- [ ] 在 GSC 网址检查工具中，逐页请求索引：`/`、`/dragon-ball`、`/pokemon`、`/ai`
+- [ ] 等待 1-7 天观察索引状态变化
 
 ---
 
-### 🟡 P1：ChatGPT 导流落地页优化
+### ✅ P2-2：页面内容增厚（已完成）
 
-**问题：** 6 个来自 ChatGPT 的会话中，2 个秒退，3 个短暂交互无转化。用户期望看到 AI 工具，但落地到角色选择界面。
+**结论：** 三个核心页面已有完整的 SEO 内容块，无需额外修改。
 
-**执行方案：**
-
-检测 `utm_source=chatgpt.com` 或 `document.referrer` 包含 `chatgpt`，在 `/dragon-ball` 页面首屏显示简短引导：
-
-```tsx
-const isFromAI = searchParams.get('utm_source') === 'chatgpt.com';
-{isFromAI && (
-  <div className="bg-purple-50 p-3 rounded-lg text-sm">
-    Welcome! Pick two Dragon Ball characters below and hit "FUU-SION-HA!" to create your fusion. No account needed for your first try.
-  </div>
-)}
-```
+| 页面 | SEO 内容 |
+|---|---|
+| `/dragon-ball` | Hero + HowTo(3步) + Popular Fusions(4组) + Features + FAQ(6题) |
+| `/pokemon` | SEO Intro + HowTo + Popular Fusions + Features + FAQ |
+| `/ai` | Hero + About + Features(3项) + Examples(4组) + FAQ(7题) |
 
 ---
 
-### 🟢 P2：SEO 基础建设
+### ✅ P2-3：结构化数据（已完成）
 
-**当前状态：** Google 搜索流量接近为零。
+**结论：** 三个核心页面已有完整的 Schema.org 结构化数据，无需额外修改。
 
-**执行方案：**
-
-#### 7a. 确认 sitemap 和 robots.txt
-
-```bash
-# 检查
-curl https://fusiongenerator.fun/sitemap.xml
-curl https://fusiongenerator.fun/robots.txt
-```
-
-#### 7b. 结构化数据
-
-检查 `/dragon-ball` 页面是否已有 FAQ Schema、HowTo Schema。如有，确认格式正确。
-
-#### 7c. 页面标题优化
-
-当前 `/dragon-ball` 的 title 和 description 需确认是否包含核心关键词：
-- "Dragon Ball Fusion Generator"
-- "AI character fusion"
-- "Dragon Ball Z fusion maker"
-
-#### 7d. 内容深度
-
-每个生成器页面（dragon-ball、pokemon、ai）需要 800+ 字的 SEO 内容，包括：
-- 什么是角色融合
-- 怎么玩
-- 常见问题
-- 示例展示
+| 页面 | Schema 类型 |
+|---|---|
+| `/dragon-ball` | SoftwareApplication + Breadcrumb + WebPage + FAQPage(6题) + HowTo(3步) |
+| `/pokemon` | SoftwareApplication + Breadcrumb + FAQPage |
+| `/ai` | SoftwareApplication + Breadcrumb + WebPage + FAQPage(7题) + HowTo(3步) |
 
 ---
 
-### 🟢 P2：Monetization 检查
+### ✅ P2-4：GA4 事件追踪（已完成）
 
-**当前模式：** 免费 1 次 → 注册 → 付费（Creem 支付）
+**结论：** GA4 已通过 `gtag.js` 集成（`NEXT_PUBLIC_GA_ID`），三个生成器页面 + Auth + Pricing + Dashboard 均有完整事件追踪。
 
-**待确认：**
-- 定价页面是否清晰？
-- VIP 权益是否足够吸引人？
-- 免费 3 次后，付费转化路径是否顺畅？
+**本次新增：**
+- `app/pricing/client-page.tsx` — `checkout_click`, `checkout_redirect`, `checkout_error`, `checkout_redirect_login`
+- `app/dashboard/page.tsx` — `payment_success`（新建 `components/dashboard/payment-success-tracker.tsx`）
 
----
+**已有事件汇总：**
 
-## 三、执行优先级排序
-
-| 序号 | 任务 | 预期影响 | 难度 | 耗时 |
-|---|---|---|---|---|
-| 1 | 免费额度 1→3 | 🔴 直接提升留存 | ⭐ 极低 | 5 分钟 |
-| 2 | 首页 CTA `/ai`→`/dragon-ball` | 🔴 减少首页秒退 | ⭐ 极低 | 5 分钟 |
-| 3 | 移动端角色折叠（默认 12 个） | 🔴 减少死点击 | ⭐⭐ 低 | 30 分钟 |
-| 4 | 触屏点击区域 44px | 🔴 减少死点击 | ⭐ 极低 | 15 分钟 |
-| 5 | React.memo CharacterButton | 🟡 降低 INP | ⭐⭐ 低 | 20 分钟 |
-| 6 | 图片 lazy loading 优化 | 🟡 降低 INP | ⭐ 极低 | 10 分钟 |
-| 7 | 角色搜索框 | 🟡 减少过度滚动 | ⭐⭐ 中 | 1 小时 |
-| 8 | ChatGPT 导流引导条 | 🟡 提升 AI 流量转化 | ⭐⭐ 低 | 30 分钟 |
-| 9 | SEO 基础检查 | 🟢 Google 流量增长 | ⭐⭐ 中 | 1-2 小时 |
-| 10 | 定价页优化 | 🟢 付费转化 | ⭐⭐⭐ 高 | 待定 |
+| 页面 | 事件 |
+|---|---|
+| Dragon Ball | `db_select_char`, `db_generate_success/fail`, `db_auth_modal_show`, `db_auth_gate_click`, `db_fusion_feedback` |
+| Pokemon | `pokemon_select`, `pokemon_generate_success/fail`, `pokemon_auth_gate_open/click` |
+| AI | `ai_upload_success`, `ai_generate_success/fail`, `ai_auth_gate_open/click`, `ai_result_download/share` |
+| Auth | `auth_page_view`, `auth_submit_click`, `auth_form_error` |
+| Pricing | `checkout_click`, `checkout_redirect`, `checkout_error` ← 新增 |
+| Dashboard | `payment_success` ← 新增 |
 
 ---
 
-## 四、今日可执行（30 分钟内完成）
+### 🟢 P2-5：反馈数据监控
 
-只需改 3 个文件，30 分钟内可以全部完成并推送：
+**当前状态：** 反馈系统已上线，等待数据积累
 
-### 文件 1：`components/dragon-ball/fusion-studio.tsx`
+**判定标准（部署 3-5 天后分析）：**
 
-```
-第 21 行：remaining: 1 → remaining: 3
-          limit: 1 → limit: 3
-```
+| 指标 | 阈值 | 含义 |
+|---|---|---|
+| 😍 占比 | > 60% | 生图质量 OK，转化瓶颈在别处 |
+| 😢 占比 | > 20% | ⚠️ 生图质量是核心问题 |
+| 反馈率 | < 10% | 反馈入口不够明显，需要调整 UI |
 
-### 文件 2：`components/home/hero-section.tsx`
-
-```
-第 24 行：href="/ai" → href="/dragon-ball"
-第 41 行：href="/ai" → href="/dragon-ball"
-```
-
-### 文件 3：`components/dragon-ball/fusion-studio.tsx`（CharacterButton 区域）
-
-```
-- 加 min-h-[44px] min-w-[44px] 到按钮 className
-- 移动端默认折叠角色列表
-```
+**数据来源：** Supabase `fusion_feedback` 表
 
 ---
 
-## 五、验证方法
+### 🟢 P2-6：定价页与付费路径检查
+
+**当前模式：** 游客 2 次 → 注册 2 积分 → 付费（Creem 支付）
+
+**待确认项：**
+- [ ] 定价页面是否清晰展示 VIP 权益？
+- [ ] 免费用完后的付费引导是否明确？
+- [ ] 从 auth gate 到支付的路径是否顺畅？
+- [ ] 价格是否有竞争力？（对比同类工具）
+
+---
+
+## 四、P2 执行优先级排序
+
+| 序号 | 任务 | 预期影响 | 难度 | 耗时 | 前置条件 |
+|---|---|---|---|---|---|
+| 1 | P2-1 索引排查 | ✅ 已完成 | ⭐ 低 | 1 小时 | 无 |
+| 2 | P2-4 GA4 事件追踪 | ✅ 已完成 | ⭐⭐ 低 | 30 分钟 | 无 |
+| 3 | P2-2 内容增厚 | ✅ 已完成（页面已有完整内容） | ⭐⭐ 中 | 0 | P2-1 完成后 |
+| 4 | P2-3 结构化数据 | ✅ 已完成（页面已有完整 Schema） | ⭐⭐ 低 | 0 | P2-2 联动 |
+| 5 | P2-5 反馈分析 | 🟡 指导生图优化方向 | ⭐ 低 | 30 分钟 | 等待 3-5 天数据 |
+| 6 | P2-6 定价检查 | 🟢 付费转化 | ⭐⭐ 中 | 1-2 小时 | 无 |
+
+---
+
+## 五、验证清单
+
+### P0/P1 已验证 ✅
+
+| 改动 | 验证方式 | 状态 |
+|---|---|---|
+| 游客 2 次额度 | 无痕模式 → 融合 2 次 → 第 3 次弹登录 | ✅ 2026-05-16 |
+| 首页 CTA | 点击 → `/dragon-ball` | ✅ 2026-05-16 |
+| 注册积分 2 | 新账号注册 → 积分 = 2 | ✅ 触发器已更新 |
+| ChatGPT 引导条 | `?utm_source=chatgpt.com` → 显示引导 | ✅ 2026-05-16 |
+| 反馈按钮 | 融合后点 emoji → "Thanks!" | ✅ 2026-05-16 |
+| 移动端角色折叠 | 手机浏览器 → 180px + "Show all" | ✅ 代码已部署 |
+| 触屏 44px | 手机点击 → 不误触 | ✅ 代码已部署 |
+| React.memo | INP 降低（需 PageSpeed 验证） | ⏳ 待测量 |
+| 图片懒加载 | 首屏资源减少 | ⏳ 待测量 |
+
+### P2 待验证
 
 | 改动 | 验证方式 |
 |---|---|
-| 免费额度 3 次 | 无痕模式打开 → 融合 3 次 → 第 4 次才弹登录 |
-| 首页 CTA | 点击 "Fuse Your Characters!" → 跳转到 /dragon-ball |
-| 角色折叠 | 手机浏览器打开 → 只看到 12 个角色 + "Show all" 按钮 |
-| 点击区域 | 手机上点击角色 → 不会误触相邻角色 |
-| INP | PageSpeed Insights 检查 INP < 200ms |
+| 索引诊断 | 技术检查全部通过，sitemap 已重新提交 | ✅ 2026-05-16 |
+| 索引请求 | 手动请求索引 4 个核心页面 | ⏳ 待手动执行 |
+| 索引增长 | GSC "已索引" 数量增长 | ⏳ 等待 1-7 天 |
+| 内容增厚 | 三个页面已有完整 SEO 内容块 | ✅ 2026-05-16 |
+| 结构化数据 | FAQ + HowTo + SoftwareApp Schema | ✅ 2026-05-16 |
+| GA4 事件 | 全站事件追踪完整（含新增 checkout + payment） | ✅ 2026-05-16 |
+
+
+| 反馈分析 | `fusion_feedback` 表数据 > 100 条 |
 
 ---
 
-## 六、数据追踪
-
-### 当前缺失
-
-- 无 GSC 接入（Google 搜索流量接近 0）
-- 无 GA4 事件追踪（只有 Clarity 录制）
-
-### 建议接入
-
-1. **GSC** — 监控 Google 索引状态和搜索表现
-2. **GA4 事件** — 追踪关键转化：
-   - `fusion_started`（选择角色）
-   - `fusion_completed`（生成成功）
-   - `auth_gate_shown`（弹出登录墙）
-   - `sign_up_completed`（注册成功）
-   - `payment_completed`（付费成功）
-
----
-
-## 七、附录：关键代码位置速查
+## 六、关键代码位置速查
 
 | 功能 | 文件 | 行号 |
 |---|---|---|
@@ -348,6 +323,8 @@ curl https://fusiongenerator.fun/robots.txt
 | CharacterButton | `components/dragon-ball/fusion-studio.tsx` | 90-135 |
 | 角色列表渲染 | `components/dragon-ball/fusion-studio.tsx` | ~821 |
 | 首页 Hero CTA | `components/home/hero-section.tsx` | 24, 41 |
-| 首页结构 | `app/page.tsx` | — |
-| Dragon Ball 页面 | `app/dragon-ball/page.tsx` | — |
-| 支付集成 | Creem（已接入） | — |
+| 反馈 API | `app/api/feedback/route.ts` | — |
+| 反馈 UI | `components/dragon-ball/fusion-studio.tsx` | `feedbackSubmitted` 状态 |
+| 匿名配额 | `lib/rate-limit.ts` | 188 |
+| 注册积分 | `app/api/webhooks/new-user/route.ts` | 33 |
+| 数据库触发器 | Supabase SQL Editor | `handle_new_user()` |

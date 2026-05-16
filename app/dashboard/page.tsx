@@ -6,6 +6,7 @@ import { QuickActionsCard } from "@/components/dashboard/quick-actions-card";
 import { Metadata } from "next";
 
 import { CheckCircle2 } from "lucide-react";
+import { PaymentSuccessTracker } from "@/components/dashboard/payment-success-tracker";
 
 export const metadata: Metadata = {
   title: "Dashboard | Fusion Generator",
@@ -74,13 +75,16 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
       {/* Payment Success Banner */}
       {paymentStatus === 'success' && (
-        <div className="bg-green-500/15 border border-green-500/20 text-green-700 dark:text-green-400 px-6 py-4 rounded-lg flex items-center gap-3 mt-6 sm:mt-8 animate-in fade-in slide-in-from-top-4">
+        <>
+          <PaymentSuccessTracker />
+          <div className="bg-green-500/15 border border-green-500/20 text-green-700 dark:text-green-400 px-6 py-4 rounded-lg flex items-center gap-3 mt-6 sm:mt-8 animate-in fade-in slide-in-from-top-4">
           <CheckCircle2 className="h-6 w-6 flex-shrink-0" />
           <div>
             <h3 className="font-semibold">Subscription Activated!</h3>
             <p className="text-sm opacity-90">Thank you for upgrading to Pro. Your account features have been unlocked.</p>
           </div>
         </div>
+        </>
       )}
 
       {/* Stats Grid */}

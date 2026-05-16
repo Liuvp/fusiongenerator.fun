@@ -51,7 +51,7 @@ export function DBFAQ() {
                 "name": "How many free fusions do I get and does it work on mobile?",
                 "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Visitors get one free trial fusion without login. Registered users use a credit system. The studio is fully responsive and works perfectly on mobile browsers like Chrome and Safari."
+                    "text": "Visitors get 2 free fusions without login. Register to get 2 more starter credits. The studio is fully responsive and works perfectly on mobile browsers like Chrome and Safari."
                 }
             }
         ]

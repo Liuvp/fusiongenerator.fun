@@ -6,6 +6,7 @@ import { Check, Crown, Gift, Sparkles, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/utils/analytics";
 
 import { User } from "@supabase/supabase-js";
 import { useUser } from "@/hooks/use-user";
@@ -21,12 +22,14 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
     const user = clientUser || serverUser;
 
     const handleCheckout = async (plan: string) => {
+        trackEvent("checkout_click", { plan, has_user: !!user });
+
         if (!user && !loading) {
             toast({
                 title: "Login Required",
                 description: "Please login to subscribe.",
             });
-            // Redirect to login page with return URL
+            trackEvent("checkout_redirect_login", { plan });
             router.push(`/sign-in?next=/pricing`);
             return;
         }
@@ -42,12 +45,14 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
             const data = await response.json();
 
             if (data.checkout_url) {
+                trackEvent("checkout_redirect", { plan });
                 window.location.href = data.checkout_url;
             } else {
                 throw new Error(data.error || "No checkout URL returned");
             }
         } catch (error: any) {
             console.error("Checkout error:", error);
+            trackEvent("checkout_error", { plan, error: error.message?.substring(0, 100) });
             toast({
                 title: "Checkout Failed",
                 description: error.message || "Please try again later.",
