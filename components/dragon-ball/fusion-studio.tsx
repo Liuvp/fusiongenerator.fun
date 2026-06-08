@@ -1055,17 +1055,32 @@ export function DBFusionStudio() {
                     </div>
 
                     <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6">
-                        <CharacterSlot char={char1} position={1} onClear={clearSelection} priority={true} />
-                        <div className="flex flex-col items-center gap-1">
+                        <CharacterSlot char={char1} position={1} onClear={clearSelection} onSlotClick={() => { setChar1(undefined); setResult(null); }} priority={true} />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (char1 && char2) {
+                                    setChar1(char2);
+                                    setChar2(char1);
+                                    setResult(null);
+                                } else if (!char1 && !char2) {
+                                    randomize();
+                                }
+                            }}
+                            className="flex flex-col items-center gap-1 group/plus"
+                            aria-label={char1 && char2 ? "Swap fighters" : "Random fighter pair"}
+                            title={char1 && char2 ? "Swap fighters" : "Pick random pair"}
+                        >
                             <div
-                                className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center shadow-sm"
-                                aria-hidden="true"
+                                className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center shadow-sm group-hover/plus:from-orange-200 group-hover/plus:to-yellow-200 group-hover/plus:scale-110 transition-all active:scale-95"
                             >
-                                <span className="text-xl font-bold text-orange-500" aria-hidden="true">+</span>
+                                <span className="text-xl font-bold text-orange-500">{char1 && char2 ? '⇄' : '+'}</span>
                             </div>
-                            <span className="text-[10px] text-orange-400 font-medium">FUSE</span>
-                        </div>
-                        <CharacterSlot char={char2} position={2} onClear={clearSelection} priority={true} />
+                            <span className="text-[10px] text-orange-400 font-medium">
+                                {char1 && char2 ? 'SWAP' : 'RANDOM'}
+                            </span>
+                        </button>
+                        <CharacterSlot char={char2} position={2} onClear={clearSelection} onSlotClick={() => { setChar2(undefined); setResult(null); }} priority={true} />
                     </div>
 
                     <div
@@ -1353,10 +1368,11 @@ interface CharacterSlotProps {
     char?: DBCharacter;
     position: 1 | 2;
     onClear?: () => void;
+    onSlotClick?: () => void;
     priority?: boolean;
 }
 
-const CharacterSlot = ({ char, position, onClear, priority = false }: CharacterSlotProps) => {
+const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false }: CharacterSlotProps) => {
     const color = position === 1
         ? { border: 'border-orange-500', bg: 'bg-orange-500' }
         : { border: 'border-blue-500', bg: 'bg-blue-500' };
@@ -1372,13 +1388,16 @@ const CharacterSlot = ({ char, position, onClear, priority = false }: CharacterS
 
     return (
         <div className="flex flex-col items-center group">
-            <div
+            <button
+                type="button"
+                onClick={() => { if (char && onSlotClick) onSlotClick(); }}
                 className={`
                     relative w-24 h-24 rounded-xl overflow-hidden border-4 shadow-lg
                     ${char ? color.border : 'border-gray-200'} bg-gray-100
+                    ${char && onSlotClick ? 'cursor-pointer hover:brightness-95 active:scale-95 transition-all' : 'cursor-default'}
                 `}
-                role="img"
-                aria-label={char ? `${char.name} character` : `Empty slot ${position}`}
+                aria-label={char ? `${char.name} character — tap to remove` : `Empty slot ${position}`}
+                disabled={!char || !onSlotClick}
             >
                 {char ? (
                     <Image
@@ -1399,15 +1418,15 @@ const CharacterSlot = ({ char, position, onClear, priority = false }: CharacterS
                 {char && onClear && (
                     <button
                         type="button"
-                        onClick={handleClear}
+                        onClick={(e) => { e.stopPropagation(); handleClear(); }}
                         className="absolute top-1 left-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-100 shadow-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
-                        aria-label="Clear current selection"
-                        title="Clear current selection"
+                        aria-label="Clear selection and start over"
+                        title="Clear selection and start over"
                     >
                         x
                     </button>
                 )}
-            </div>
+            </button>
             <div
                 className={`
                     mt-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase

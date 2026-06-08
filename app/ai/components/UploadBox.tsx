@@ -65,7 +65,7 @@ export default function UploadBox({
         },
         maxFiles: 1,
         maxSize: 5 * 1024 * 1024,
-        noClick: true,
+        noClick: Boolean(file), // 有文件时禁用原生点击（由 handleTap 接管），无文件时用原生点击（移动端/平板最可靠）
         noKeyboard: true,
         disabled,
         onDropAccepted: (files) => onUpload(files, side),
