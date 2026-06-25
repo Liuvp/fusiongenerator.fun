@@ -182,7 +182,6 @@ export function DBFusionStudio() {
     // State for interactive feedback
     // ===============================
     const [showAuthOptions, setShowAuthOptions] = useState(false);
-    const [isGridExpanded, setIsGridExpanded] = useState(false);
     const [isShaking, setIsShaking] = useState(false);
     const [isSelectionHintActive, setIsSelectionHintActive] = useState(false);
     const hiddenResultNoticeRef = useRef(false);
@@ -1011,19 +1010,11 @@ export function DBFusionStudio() {
                         </Button>
                     </div>
                     <div
-                        className={`grid grid-cols-4 gap-3 overflow-y-auto pr-1 custom-scrollbar transition-all duration-300 ${isGridExpanded ? 'max-h-[320px]' : 'max-h-[180px] md:max-h-[320px]'}`}
+                        className={`grid grid-cols-4 gap-3 overflow-y-auto pr-1 custom-scrollbar transition-all duration-300 max-h-[320px]`}
                         aria-live="polite"
                     >
                         {characterGrid}
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => setIsGridExpanded(prev => !prev)}
-                        className="mt-3 w-full text-center text-xs text-orange-600 font-medium hover:text-orange-700 md:hidden"
-                        aria-expanded={isGridExpanded}
-                    >
-                        {isGridExpanded ? 'Show less ↑' : `Show all ${DB_CHARACTERS.length} characters ↓`}
-                    </button>
                 </CardContent>
             </Card>
 
@@ -1137,7 +1128,7 @@ export function DBFusionStudio() {
                                 <span>SELECT 2 FIGHTERS ({selectedCount}/2)</span>
                             </span>
                         ) : !hasQuotaAccessValue ? (
-                            user ? "UNLOCK MORE FUSIONS" : "CREATE FREE ACCOUNT"
+                            user ? "UNLOCK MORE FUSIONS" : "SAVE MY FUSIONS (FREE)"
                         ) : (
                             <span className="flex items-center gap-3">
                                 <Sparkles className="w-6 h-6" aria-hidden="true" focusable="false" />
@@ -1156,9 +1147,9 @@ export function DBFusionStudio() {
                     {showAuthOptions && !user && (
                         <div className="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">Keep generating with a free account</h4>
+                                <h4 className="font-bold text-gray-800">You've used your 2 free fusions</h4>
                                 <p className="text-xs text-gray-600">
-                                    Your free guest try is used. Sign in to continue, or create a free account to save future fusions.
+                                    Create a free account to save your fusions and unlock more generations.
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
@@ -1167,7 +1158,7 @@ export function DBFusionStudio() {
                                         href={`/sign-in?redirect_to=${encodeURIComponent(dbReturnTarget)}&reason=quota_limit&source=dragon_ball_fusion`}
                                         onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_in", reason: "quota_limit" })}
                                     >
-                                        Sign In to Continue
+                                        Sign In
                                     </Link>
                                 </Button>
                                 <Button asChild className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-600 border-0">
@@ -1175,10 +1166,17 @@ export function DBFusionStudio() {
                                         href={`/sign-up?redirect_to=${encodeURIComponent(dbReturnTarget)}&reason=quota_limit&source=dragon_ball_fusion`}
                                         onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_up", reason: "quota_limit" })}
                                     >
-                                        Create Free Account
+                                        Save My Fusions (Free)
                                     </Link>
                                 </Button>
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowAuthOptions(false)}
+                                className="mt-3 w-full text-center text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                No thanks, I'll keep browsing
+                            </button>
                         </div>
                     )}
 

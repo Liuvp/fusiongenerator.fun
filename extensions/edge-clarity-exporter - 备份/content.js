@@ -151,7 +151,7 @@
     };
 
     const browserRegex =
-      /\b(ChromeMobile|EdgeMobile|MobileSafari|Edge|Chrome|Firefox|Safari|Opera|Brave|Samsung Internet|Internet Explorer)\b/i;
+      /\b(Edge|Chrome|Firefox|Safari|Opera|Brave|Samsung Internet|Internet Explorer|MobileSafari)\b/i;
     const deviceRegex = /\b(PC|Desktop|Mobile|Tablet|Android|iPhone|iPad|Mac)\b/i;
 
     const userIdLine = lines.find((line) => /^User ID:/i.test(line));
@@ -275,50 +275,17 @@
   }
 
   function parseInsights(text) {
-    if (!text) return [];
+    const part = text.split(/Session insights/i)[1];
+    if (!part) return [];
 
-    // Case A: explicit "too short to generate insights" — no real content.
-    if (/Sorry,?\s*this session is too short/i.test(text)) return [];
-
-    // The Clarity panel emits the string "Session insights" twice:
-    //   1. an icon-button area ("Session Insights Filled IconGenerate" ...)
-    //   2. the real AI-generated insights section, which is always preceded by
-    //      the disclaimer "Your insights are powered by AI ... Share feedback
-    //      so we can improve!" The actual insight sentences live right after
-    //      that disclaimer, ending before "Copy" / "Slang off".
-    // The disclaimer spans up to two lines:
-    //   "Your insights are powered by AI, so mistakes are possible."
-    //   "Share feedback so we can improve!"
-    // Prefer to consume both lines; fall back to just the first line.
-    const disclaimer =
-      /Your insights are powered by AI[\s\S]*?improve!?[\s\S]*?(?:\n|$)|Your insights are powered by AI[\s\S]*?possible\./i;
-    const disclaimerMatch = text.match(disclaimer);
-    const start = disclaimerMatch
-      ? disclaimerMatch.index + disclaimerMatch[0].length
-      : -1;
-
-    // Fallback: if there's no disclaimer, try the *last* "Session insights"
-    // occurrence (the real section), not the first (icon button).
-    let part = "";
-    if (start >= 0) {
-      part = text.slice(start);
-    } else {
-      const matches = [...text.matchAll(/Session insights/gi)];
-      if (matches.length === 0) return [];
-      part = text.slice(matches[matches.length - 1].index);
-    }
-
-    // Trim trailing UI chrome ("Copy", "Slang off", share buttons, etc.).
     const cleaned = part
-      .replace(/^(?:Session insights|Filled IconGenerate|More details|Copy)\s*/i, "")
-      .replace(/(?:^|\n)\s*(?:Copy|Slang off)\s*$/i, "")
       .replace(
-        /(?:Favorite this session|Share recording|View visitor profile|View session info and event timeline)[\s\S]*$/i,
+        /^(?:Filled\s+IconGenerate|IconSorry,.*?insights|Favorite this session|Share recording|View visitor profile|More details|View session info and event timeline|Session insights|Copy)+/i,
         ""
       )
+      .replace(/Your insights are powered by AI[\s\S]*?possible\./i, "")
+      .replace(/Share feedback[\s\S]*?improve\!/i, "")
       .trim();
-
-    if (!cleaned) return [];
 
     const bulletLines = [];
     const bulletRegex = /(?:^|\n)[\u2022\-]\s*(.+?)(?=(?:\n[\u2022\-]\s)|$)/gs;
@@ -335,8 +302,7 @@
       .split(/\n+/)
       .map((line) => normalizeWhitespace(line))
       .filter(Boolean)
-      .filter((line) => !/^Slang off$/i.test(line))
-      .filter((line) => !/^(?:Copy|Slang off|Share feedback|Favorite this session)$/i.test(line));
+      .filter((line) => !/^Slang off$/i.test(line));
     return sentences.slice(0, 8);
   }
 

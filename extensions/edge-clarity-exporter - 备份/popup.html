@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clarity Session Extractor</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>Clarity Session Extractor</h1>
+      <p class="hint">
+        Open a Clarity recordings page, open session detail panels, then extract visible cards.
+      </p>
+
+      <div class="actions">
+        <button id="extractBtn" class="primary">Extract Visible Sessions</button>
+      </div>
+      <div class="actions">
+        <button id="extractAllBtn" class="primary secondary">
+          Extract All (Auto Scroll)
+        </button>
+      </div>
+
+      <div class="actions grid">
+        <button id="copyJsonlBtn" disabled>Copy JSONL</button>
+        <button id="downloadJsonlBtn" disabled>Download JSONL</button>
+        <button id="downloadJsonBtn" disabled>Download JSON</button>
+        <button id="downloadCsvBtn" disabled>Download CSV</button>
+      </div>
+
+      <pre id="summary" class="summary">No data yet.</pre>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

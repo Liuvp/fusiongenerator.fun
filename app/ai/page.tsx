@@ -337,35 +337,42 @@ export default function AIFusionPage() {
                                 tabIndex={0}
                             >
                                 {exampleFusions.map((item, index) => (
-                                    <Card
+                                    <Link
                                         key={index}
-                                        role="listitem"
-                                        className="group w-[260px] flex-shrink-0 snap-start overflow-hidden border-2 bg-card/50 shadow-sm backdrop-blur-sm sm:w-auto"
+                                        href="#fusion-studio"
+                                        scroll={true}
+                                        className="block"
+                                        aria-label={`Try creating a ${item.left} x ${item.right} fusion`}
                                     >
-                                        <CardContent className="p-0">
-                                            <div className="space-y-0">
-                                                <div className="relative aspect-square w-full overflow-hidden bg-muted">
-                                                    <Image
-                                                        src={item.image}
-                                                        alt={`AI Fusion Example: ${item.left} + ${item.right} in ${item.series} style. ${item.desc}`}
-                                                        fill
-                                                        sizes="(max-width: 640px) 260px, (max-width: 1024px) 480px, 450px"
-                                                        quality={70}
-                                                        loading="lazy"
-                                                        decoding="async"
-                                                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                                                    />
+                                        <Card
+                                            role="listitem"
+                                            className="group w-[260px] flex-shrink-0 snap-start overflow-hidden border-2 bg-card/50 shadow-sm backdrop-blur-sm sm:w-auto cursor-pointer hover:border-primary/50 transition-colors"
+                                        >
+                                            <CardContent className="p-0">
+                                                <div className="space-y-0">
+                                                    <div className="relative aspect-square w-full overflow-hidden bg-muted">
+                                                        <Image
+                                                            src={item.image}
+                                                            alt={`AI Fusion Example: ${item.left} + ${item.right} in ${item.series} style. ${item.desc}`}
+                                                            fill
+                                                            sizes="(max-width: 640px) 260px, (max-width: 1024px) 480px, 450px"
+                                                            quality={70}
+                                                            loading="lazy"
+                                                            decoding="async"
+                                                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                                        />
+                                                    </div>
+                                                    <div className="p-4 sm:p-5">
+                                                        <p className="text-xs font-bold uppercase tracking-wider text-primary">
+                                                            {item.left} x {item.right}
+                                                        </p>
+                                                        <p className="text-lg font-bold text-gray-900">{item.series} Fusion</p>
+                                                        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500">{item.desc}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="p-4 sm:p-5">
-                                                    <p className="text-xs font-bold uppercase tracking-wider text-primary">
-                                                        {item.left} x {item.right}
-                                                    </p>
-                                                    <p className="text-lg font-bold text-gray-900">{item.series} Fusion</p>
-                                                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500">{item.desc}</p>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
+                                            </CardContent>
+                                        </Card>
+                                    </Link>
                                 ))}
                             </div>
                             <p className="text-center text-xs text-gray-500 sm:hidden" aria-hidden="true">

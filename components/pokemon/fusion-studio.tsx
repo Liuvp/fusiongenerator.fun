@@ -55,6 +55,9 @@ export function PokeFusionStudio() {
     const [user, setUser] = useState<User | null>(null);
     const [showSettings, setShowSettings] = useState(false);
     const [showAuthOptions, setShowAuthOptions] = useState(false);
+    // Tracks whether the user dismissed the auth gate via "No thanks". Reset
+    // whenever quota access is regained, so the gate can re-open naturally.
+    const [dismissedAuthOptions, setDismissedAuthOptions] = useState(false);
     const [authGateReason, setAuthGateReason] = useState<AuthGateReason | null>(null);
     const [isActionHintActive, setIsActionHintActive] = useState(false);
 
@@ -182,7 +185,9 @@ export function PokeFusionStudio() {
     const isSelectionComplete = !!(pokemon1 && pokemon2);
     const selectedCount = Number(Boolean(pokemon1)) + Number(Boolean(pokemon2));
     const hasQuotaAccessValue = hasQuotaAccess();
-    const shouldShowAuthOptions = !hasQuotaAccessValue || showAuthOptions;
+    // Show the gate when quota is exhausted OR the user opened it manually,
+    // but respect an explicit "No thanks" dismissal until quota access changes.
+    const shouldShowAuthOptions = (!hasQuotaAccessValue || showAuthOptions) && !dismissedAuthOptions;
     const shouldDisableButton = isGenerating;
     const selectionGuidance = useMemo(() => {
         if (selectedCount === 0) {
@@ -220,6 +225,7 @@ export function PokeFusionStudio() {
     useEffect(() => {
         if (hasQuotaAccessValue) {
             setShowAuthOptions(false);
+            setDismissedAuthOptions(false);
             setAuthGateReason(null);
         }
     }, [hasQuotaAccessValue]);
@@ -597,11 +603,9 @@ export function PokeFusionStudio() {
                     {shouldShowAuthOptions && !user && !hasQuotaAccessValue && (
                         <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">Keep generating with a free account</h4>
+                                <h4 className="font-bold text-gray-800">You've used your 2 free fusions</h4>
                                 <p className="text-xs text-gray-600">
-                                    {authGateReason === "api_limit_reached"
-                                        ? "Your free guest try is used. Sign in before your next generation."
-                                        : "Guest access includes 2 free fusions. Sign in or create a free account to keep generating and save your next fusions."}
+                                    Create a free account to save your fusions and unlock more generations.
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
@@ -610,7 +614,7 @@ export function PokeFusionStudio() {
                                         href={`/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}
                                         onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "sign_in", reason: authGateReason ?? "quota_limit" })}
                                     >
-                                        Sign In to Continue
+                                        Sign In
                                     </Link>
                                 </Button>
                                 <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 border-0">
@@ -618,10 +622,20 @@ export function PokeFusionStudio() {
                                         href={`/sign-up?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}
                                         onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "sign_up", reason: authGateReason ?? "quota_limit" })}
                                     >
-                                        Create Free Account
+                                        Save My Fusions (Free)
                                     </Link>
                                 </Button>
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowAuthOptions(false);
+                                    setDismissedAuthOptions(true);
+                                }}
+                                className="mt-3 w-full text-center text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                No thanks, I'll keep browsing
+                            </button>
                         </div>
                     )}
 
