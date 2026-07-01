@@ -5,13 +5,23 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, RefreshCw, Settings2 } from "lucide-react";
+import { Sparkles, RefreshCw, Settings2, Loader2, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/utils/supabase/client";
 import { POKEMON_DATABASE, FUSION_STYLES, PRE_GENERATED_FUSIONS, getPokemonImageUrl, type Pokemon, type FusionStyle } from "@/lib/pokemon-data";
 import { buildFusionPrompt } from "@/lib/prompt-builder";
 import { User } from "@supabase/supabase-js";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { signInAction, signUpAction, signUpWithGoogleAction } from "@/app/actions";
 
 // Sub-components
 import { PokemonGrid } from "./studio/pokemon-grid";
@@ -55,6 +65,11 @@ export function PokeFusionStudio() {
     const [user, setUser] = useState<User | null>(null);
     const [showSettings, setShowSettings] = useState(false);
     const [showAuthOptions, setShowAuthOptions] = useState(false);
+    const [authDialogOpen, setAuthDialogOpen] = useState(false);
+    const [authMode, setAuthMode] = useState<"sign_up" | "sign_in">("sign_up");
+    const [showPassword, setShowPassword] = useState(false);
+    const [formError, setFormError] = useState<string | null>(null);
+    const [pendingForm, setPendingForm] = useState(false);
     // Tracks whether the user dismissed the auth gate via "No thanks". Reset
     // whenever quota access is regained, so the gate can re-open naturally.
     const [dismissedAuthOptions, setDismissedAuthOptions] = useState(false);
@@ -609,21 +624,26 @@ export function PokeFusionStudio() {
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
-                                <Button asChild variant="outline" className="w-full bg-white hover:bg-gray-50 text-gray-700 border-gray-200">
-                                    <Link
-                                        href={`/sign-in?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}
-                                        onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "sign_in", reason: authGateReason ?? "quota_limit" })}
-                                    >
-                                        Sign In
-                                    </Link>
+                                <Button
+                                    variant="outline"
+                                    className="w-full bg-white hover:bg-gray-50 text-gray-700 border-gray-200"
+                                    onClick={() => {
+                                        setAuthMode("sign_in");
+                                        setAuthDialogOpen(true);
+                                        trackStudioEvent("pokemon_auth_gate_click", { cta: "sign_in_dialog", reason: authGateReason ?? "quota_limit" });
+                                    }}
+                                >
+                                    Sign In
                                 </Button>
-                                <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 border-0">
-                                    <Link
-                                        href={`/sign-up?redirect_to=${encodeURIComponent('/pokemon#fusion-studio')}&reason=pokemon_quota&source=pokemon_fusion`}
-                                        onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "sign_up", reason: authGateReason ?? "quota_limit" })}
-                                    >
-                                        Save My Fusions (Free)
-                                    </Link>
+                                <Button
+                                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 border-0"
+                                    onClick={() => {
+                                        setAuthMode("sign_up");
+                                        setAuthDialogOpen(true);
+                                        trackStudioEvent("pokemon_auth_gate_click", { cta: "sign_up_dialog", reason: authGateReason ?? "quota_limit" });
+                                    }}
+                                >
+                                    Save My Fusions (Free)
                                 </Button>
                             </div>
                             <button
@@ -685,6 +705,163 @@ export function PokeFusionStudio() {
                     onTryAnotherPair={randomize}
                 />
             )}
+
+            {/* 内联注册/登录对话框 */}
+            <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {authMode === "sign_up" ? "Save My Fusions (Free)" : "Welcome Back"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {authMode === "sign_up"
+                                ? "Create an account to save your fusion history, get more credits, and pick up where you left off."
+                                : "Sign in to continue your fusion session and access your saved creations."}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4">
+                        {/* Google 登录 */}
+                        <form action={signUpWithGoogleAction}>
+                            <input type="hidden" name="redirect_to" value="/pokemon#fusion-studio" />
+                            <Button
+                                type="submit"
+                                variant="outline"
+                                className="w-full flex items-center justify-center gap-2 h-11"
+                                onClick={() => {
+                                    setPendingForm(true);
+                                    setFormError(null);
+                                    trackStudioEvent("pokemon_auth_dialog_click", { method: "google", mode: authMode });
+                                }}
+                            >
+                                <svg viewBox="0 0 24 24" className="h-5 w-5">
+                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                                </svg>
+                                Continue with Google
+                            </Button>
+                        </form>
+
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-background px-2 text-muted-foreground">
+                                    Or with email
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* 切换登录/注册标签 */}
+                        <div className="flex rounded-lg border p-1 bg-muted/30">
+                            <button
+                                type="button"
+                                onClick={() => { setAuthMode("sign_up"); setFormError(null); }}
+                                className={`flex-1 text-sm font-medium py-1.5 rounded-md transition-colors ${authMode === "sign_up" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                            >
+                                Sign Up
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setAuthMode("sign_in"); setFormError(null); }}
+                                className={`flex-1 text-sm font-medium py-1.5 rounded-md transition-colors ${authMode === "sign_in" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                            >
+                                Sign In
+                            </button>
+                        </div>
+
+                        {/* 密码表单 */}
+                        <form
+                            onSubmit={async (e) => {
+                                e.preventDefault();
+                                setFormError(null);
+                                setPendingForm(true);
+                                const form = e.currentTarget;
+                                const formData = new FormData(form);
+                                formData.set("redirect_to", "/pokemon#fusion-studio");
+                                try {
+                                    const action = authMode === "sign_up" ? signUpAction : signInAction;
+                                    const result = await action(formData) as { redirect?: string } | undefined;
+                                    if (result?.redirect) {
+                                        window.location.href = result.redirect;
+                                    }
+                                } catch (err) {
+                                    setFormError(err instanceof Error ? err.message : "An error occurred. Please try again.");
+                                } finally {
+                                    setPendingForm(false);
+                                }
+                            }}
+                            className="grid gap-3"
+                        >
+                            <input type="hidden" name="redirect_to" value="/pokemon#fusion-studio" />
+                            <div className="grid gap-1.5">
+                                <Label htmlFor="auth-email">Email</Label>
+                                <Input
+                                    id="auth-email"
+                                    name="email"
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    autoCapitalize="none"
+                                    autoComplete="email"
+                                    autoCorrect="off"
+                                    required
+                                    className="h-10"
+                                />
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label htmlFor="auth-password">Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="auth-password"
+                                        name="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder={authMode === "sign_up" ? "Create a password (min 6 chars)" : "Enter your password"}
+                                        autoComplete={authMode === "sign_up" ? "new-password" : "current-password"}
+                                        required
+                                        minLength={6}
+                                        className="pr-10 h-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
+                            </div>
+                            {formError && (
+                                <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{formError}</p>
+                            )}
+                            <Button
+                                type="submit"
+                                disabled={pendingForm}
+                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 border-0"
+                            >
+                                {pendingForm ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        {authMode === "sign_up" ? "Creating account..." : "Signing in..."}
+                                    </>
+                                ) : (
+                                    authMode === "sign_up" ? "Create Free Account" : "Sign In"
+                                )}
+                            </Button>
+                        </form>
+
+                        <p className="text-xs text-center text-muted-foreground">
+                            By continuing, you agree to our{' '}
+                            <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>{' '}
+                            and{' '}
+                            <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+                        </p>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
