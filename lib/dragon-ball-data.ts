@@ -3,7 +3,8 @@ export interface DBCharacter {
     name: string;
     description: string;
     imageUrl: string;
-    thumbnailUrl: string; // ✅ Optimized small version for selection list
+    thumbnailUrl: string;
+    pro?: boolean; // Pro-only character
 }
 
 // 使用 Dragon Ball API 官方图片 (类似于 PokeAPI 的解决方案)
@@ -56,7 +57,8 @@ export const DB_CHARACTERS: DBCharacter[] = [
         name: 'Broly',
         description: 'Legendary Super Saiyan, massive muscular build, green aura, uncontrollable rage',
         imageUrl: '/images/dragon-ball/characters/broly.webp',
-        thumbnailUrl: '/images/dragon-ball/characters/broly-thumb.webp'
+        thumbnailUrl: '/images/dragon-ball/characters/broly-thumb.webp',
+        pro: true
     },
     {
         id: 'trunks',
@@ -84,7 +86,8 @@ export const DB_CHARACTERS: DBCharacter[] = [
         name: 'Jiren',
         description: 'Pride Trooper, grey alien muscular humanoid, massive eyes',
         imageUrl: '/images/dragon-ball/characters/jiren.webp',
-        thumbnailUrl: '/images/dragon-ball/characters/jiren-thumb.webp'
+        thumbnailUrl: '/images/dragon-ball/characters/jiren-thumb.webp',
+        pro: true
     },
     {
         id: 'android-18',
@@ -126,28 +129,32 @@ export const DB_CHARACTERS: DBCharacter[] = [
         name: 'Whis',
         description: 'Angel attendant, blue skin, white hair, holds a magical staff',
         imageUrl: '/images/dragon-ball/characters/whis.webp',
-        thumbnailUrl: '/images/dragon-ball/characters/whis-thumb.webp'
+        thumbnailUrl: '/images/dragon-ball/characters/whis-thumb.webp',
+        pro: true
     },
     {
         id: 'vegetto',
         name: 'Vegetto',
         description: 'Potara fusion of Goku and Vegeta, supreme power, blue gi with orange undershirt',
         imageUrl: '/images/dragon-ball/characters/vegetto.webp',
-        thumbnailUrl: '/images/dragon-ball/characters/vegetto-thumb.webp'
+        thumbnailUrl: '/images/dragon-ball/characters/vegetto-thumb.webp',
+        pro: true
     },
     {
         id: 'gogeta',
         name: 'Gogeta',
         description: 'Metamoran fusion of Goku and Vegeta, wears black and orange vest',
         imageUrl: '/images/dragon-ball/characters/gogeta.webp',
-        thumbnailUrl: '/images/dragon-ball/characters/gogeta-thumb.webp'
+        thumbnailUrl: '/images/dragon-ball/characters/gogeta-thumb.webp',
+        pro: true
     },
     {
         id: 'gotenks',
         name: 'Gotenks',
         description: 'Fusion of Goten and Trunks, wild dual-colored hair, wears fusion vest',
         imageUrl: '/images/dragon-ball/characters/gotenks.webp',
-        thumbnailUrl: '/images/dragon-ball/characters/gotenks-thumb.webp'
+        thumbnailUrl: '/images/dragon-ball/characters/gotenks-thumb.webp',
+        pro: true
     },
     {
         id: 'mr-satan',

@@ -37,6 +37,7 @@ interface FusionResult {
     imageUrl: string;
     char1: DBCharacter;
     char2: DBCharacter;
+    savedId?: string;
 }
 
 interface Quota {
@@ -104,6 +105,7 @@ interface CharacterButtonProps {
     index: number;
     isSelected1: boolean;
     isSelected2: boolean;
+    isProLocked: boolean;
     onSelect: (char: DBCharacter) => void;
 }
 
@@ -112,6 +114,7 @@ const CharacterButton = memo(({
     index,
     isSelected1,
     isSelected2,
+    isProLocked,
     onSelect
 }: CharacterButtonProps) => {
     const isSelected = isSelected1 || isSelected2;
@@ -128,12 +131,14 @@ const CharacterButton = memo(({
                     ? 'border-orange-500 shadow-md ring-2 ring-orange-200 ring-offset-1 scale-105'
                     : isSelected2
                         ? 'border-blue-500 shadow-md ring-2 ring-blue-200 ring-offset-1 scale-105'
-                        : 'border-gray-200 hover:border-orange-300 hover:shadow-sm'
+                        : isProLocked
+                            ? 'border-amber-300 hover:border-amber-400 hover:shadow-sm'
+                            : 'border-gray-200 hover:border-orange-300 hover:shadow-sm'
                 }
             `}
-            aria-label={isSelected ? `${character.name} selected. Tap again to remove.` : `Select ${character.name}`}
+            aria-label={isSelected ? `${character.name} selected. Tap again to remove.` : isProLocked ? `${character.name} - Pro only. Tap to unlock.` : `Select ${character.name}`}
             aria-pressed={isSelected}
-            title={isSelected ? `Remove ${character.name} from the fusion` : `Select ${character.name}`}
+            title={isSelected ? `Remove ${character.name} from the fusion` : isProLocked ? `${character.name} (Pro only)` : `Select ${character.name}`}
         >
             <div className="relative w-full h-full bg-gray-100 flex items-center justify-center p-1">
                 <Image
@@ -144,10 +149,11 @@ const CharacterButton = memo(({
                     className={`
                         object-contain p-1 transition-transform duration-300
                         ${isSelected ? 'scale-110' : 'group-hover:scale-110'}
+                        ${isProLocked && !isSelected ? 'opacity-75' : ''}
                     `}
                     priority={index < 4}
                     loading={index < 4 ? "eager" : "lazy"}
-                    unoptimized={true} // Avoid blurry downscaling if Next.js image optimization is aggressive
+                    unoptimized={true}
                 />
                 {isSelected && (
                     <div className={`
@@ -157,6 +163,14 @@ const CharacterButton = memo(({
                     `}>
                         {isSelected1 ? '1' : '2'}
                     </div>
+                )}
+                {isProLocked && !isSelected && (
+                    <div className="absolute top-1 left-1 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-xs text-white shadow-md">
+                        🔒
+                    </div>
+                )}
+                {isProLocked && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-amber-500/10 to-transparent pointer-events-none" />
                 )}
             </div>
         </button>
@@ -201,6 +215,10 @@ export function DBFusionStudio() {
     const [isSelectionHintActive, setIsSelectionHintActive] = useState(false);
     const hiddenResultNoticeRef = useRef(false);
     const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
+    const [proCharDialogOpen, setProCharDialogOpen] = useState(false);
+    const [proCharName, setProCharName] = useState("");
     const dbReturnTarget = "/dragon-ball?auth=welcome&from=dragon_ball_fusion#fusion-studio";
     const showAuthReturnBanner = searchParams.get("auth") === "welcome";
 
@@ -463,6 +481,17 @@ export function DBFusionStudio() {
     // 交互函数
     // ===============================
     const selectCharacter = useCallback((char: DBCharacter): void => {
+        // Pro character lock check
+        if (char.pro && !quota.isVIP) {
+            setProCharName(char.name);
+            setProCharDialogOpen(true);
+            trackStudioEvent("db_pro_char_blocked", {
+                char_id: char.id,
+                is_logged_in: Boolean(user),
+            });
+            return;
+        }
+
         const selectedBefore = Number(Boolean(char1)) + Number(Boolean(char2));
         console.log("Selecting:", char.name, "Current:", { c1: char1?.name, c2: char2?.name });
 
@@ -713,11 +742,18 @@ export function DBFusionStudio() {
 
             // 设置结果
             setFeedbackSubmitted(false);
-            setResult({
+            setIsSaved(false);
+            const newResult: FusionResult = {
                 imageUrl: data.imageUrl,
                 char1: char1!,
                 char2: char2!
-            });
+            };
+            setResult(newResult);
+
+            // 自动保存到历史记录（已登录用户）
+            if (user) {
+                autoSaveFusion(newResult);
+            }
 
             if (typeof document !== "undefined" && document.hidden) {
                 hiddenResultNoticeRef.current = true;
@@ -811,27 +847,54 @@ export function DBFusionStudio() {
     const shareResult = useCallback(async (): Promise<void> => {
         if (!result) return;
 
-        const shareData = {
-            title: `${result.char1.name} × ${result.char2.name} Fusion`,
-            text: `Check out this Dragon Ball fusion created with Fusion Generator!`,
-            url: window.location.href
-        };
+        const shareUrl = window.location.href;
+        const shareText = `Check out this Dragon Ball fusion: ${result.char1.name} × ${result.char2.name}! 🔥 Created with FusionGenerator.fun`;
 
         try {
-            if (navigator.share && navigator.canShare(shareData)) {
-                await navigator.share(shareData);
-            } else {
-                await navigator.clipboard.writeText(window.location.href);
-                toast({
-                    title: "Link Copied!",
-                    description: "Paste to share with friends",
-                    duration: 2000
+            // Try Web Share API first
+            if (navigator.share && navigator.canShare({ title: `${result.char1.name} × ${result.char2.name} Fusion`, text: shareText, url: shareUrl })) {
+                await navigator.share({
+                    title: `${result.char1.name} × ${result.char2.name} Fusion`,
+                    text: shareText,
+                    url: shareUrl
                 });
+
+                // Grant +1 credit for share
+                if (!user) {
+                    try {
+                        await fetch('/api/share-reward', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ platform: 'share' }),
+                        });
+                    } catch { /* ignore */ }
+                }
+            } else {
+                // Fallback: Twitter intent
+                const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+                window.open(twitterUrl, '_blank', 'width=600,height=400');
+
+                // Grant +1 credit for share
+                if (!user) {
+                    try {
+                        await fetch('/api/share-reward', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ platform: 'twitter' }),
+                        });
+                    } catch { /* ignore */ }
+                }
             }
+
+            toast({
+                title: "Thanks for sharing!",
+                description: user ? "You're awesome!" : "+1 free fusion credit unlocked!",
+                duration: 3000
+            });
         } catch {
             console.warn("Share failed");
         }
-    }, [result, toast]);
+    }, [result, toast, user]);
 
     const submitFeedback = useCallback(async (rating: number): Promise<void> => {
         if (!result || feedbackSubmitted) return;
@@ -862,6 +925,69 @@ export function DBFusionStudio() {
     }, [result, feedbackSubmitted, user]);
 
     // ===============================
+    // 自动保存融合到历史记录
+    // ===============================
+    const autoSaveFusion = useCallback(async (fusionResult: FusionResult): Promise<void> => {
+        if (!user) return;
+
+        try {
+            const response = await fetch('/api/save-fusion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fusionType: 'dragon_ball',
+                    char1Id: fusionResult.char1.id,
+                    char1Name: fusionResult.char1.name,
+                    char2Id: fusionResult.char2.id,
+                    char2Name: fusionResult.char2.name,
+                    styleId: 'potara',
+                    styleName: 'Potara Fusion',
+                    imageUrl: fusionResult.imageUrl,
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setResult(prev => prev ? { ...prev, savedId: data.id } : null);
+                setIsSaved(true);
+                toast({
+                    title: "Fusion saved!",
+                    description: "View your collection in Dashboard.",
+                    duration: 3000
+                });
+            }
+        } catch (error) {
+            console.warn('Auto-save failed:', error);
+        }
+    }, [user]);
+
+    // 手动收藏/取消收藏
+    const toggleFavorite = useCallback(async (): Promise<void> => {
+        if (!result?.savedId) return;
+
+        try {
+            const response = await fetch('/api/save-fusion', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: result.savedId,
+                    isFavorite: !isSaved,
+                }),
+            });
+
+            if (response.ok) {
+                setIsSaved(!isSaved);
+                toast({
+                    title: isSaved ? "Removed from favorites" : "Added to favorites",
+                    duration: 2000
+                });
+            }
+        } catch (error) {
+            console.warn('Toggle favorite failed:', error);
+        }
+    }, [result?.savedId, isSaved, toast]);
+
+    // ===============================
     // 渲染函数 - 优化：使用提取的组件
     // ===============================
     const characterGrid = useMemo(() => {
@@ -872,10 +998,11 @@ export function DBFusionStudio() {
                 index={index}
                 isSelected1={char1?.id === character.id}
                 isSelected2={char2?.id === character.id}
+                isProLocked={Boolean(character.pro) && !quota.isVIP}
                 onSelect={selectCharacter}
             />
         ));
-    }, [char1, char2, selectCharacter]);
+    }, [char1, char2, selectCharacter, quota.isVIP]);
 
     // 步骤指示器
     const steps = useMemo(() => (
@@ -1257,6 +1384,35 @@ export function DBFusionStudio() {
                         aria-label="Fusion result"
                     >
                         <CardContent className="p-0">
+                            {/* 注册引导横幅 - 未登录用户，图片正上方 */}
+                            {!user && (
+                                <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 px-4 py-3 text-center">
+                                    <p className="text-white font-bold text-sm sm:text-base">
+                                        🔥 Love this fusion? Create a free account to save it + get more free fusions!
+                                    </p>
+                                    <div className="mt-2 flex items-center justify-center gap-2">
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs h-8 px-4 shadow-lg"
+                                            onClick={() => {
+                                                setAuthMode("sign_up");
+                                                setAuthDialogOpen(true);
+                                                trackStudioEvent("db_result_banner_click", { cta: "sign_up" });
+                                            }}
+                                        >
+                                            Sign Up Free
+                                        </Button>
+                                        <button
+                                            type="button"
+                                            className="text-white/80 hover:text-white text-xs underline"
+                                            onClick={() => trackStudioEvent("db_result_banner_dismiss")}
+                                        >
+                                            No thanks
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                             <div className="relative aspect-square w-full bg-gradient-to-br from-gray-50 to-gray-100">
                                 <Image
                                     src={result.imageUrl}
@@ -1299,8 +1455,22 @@ export function DBFusionStudio() {
                                         title="Download fusion image"
                                     >
                                         <Download className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                        Download HD
+                                        {quota.isVIP ? "Download HD" : "Download (Watermarked)"}
                                     </Button>
+                                    {!quota.isVIP && (
+                                        <Button
+                                            type="button"
+                                            asChild
+                                            variant="default"
+                                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                                            title="Download HD Pro without watermark"
+                                        >
+                                            <Link href="/pricing?source=dragon_ball_hd_download">
+                                                <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
+                                                HD Pro 👑
+                                            </Link>
+                                        </Button>
+                                    )}
                                     <Button
                                         type="button"
                                         aria-label="Continue generating another Dragon Ball fusion"
@@ -1348,6 +1518,21 @@ export function DBFusionStudio() {
                                         </Link>
                                     </Button>
                                 </div>
+                                {/* Save button for logged-in users */}
+                                {user && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <Button
+                                            type="button"
+                                            onClick={toggleFavorite}
+                                            disabled={isSaving}
+                                            variant={isSaved ? "default" : "outline"}
+                                            className={isSaved ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white" : ""}
+                                            title={isSaved ? "Remove from favorites" : "Save to favorites"}
+                                        >
+                                            {isSaved ? "★ Saved to History" : "☆ Save to History"}
+                                        </Button>
+                                    </div>
+                                )}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <Button type="button" onClick={randomize} variant="outline">
                                         Try Another Popular Pair
@@ -1529,6 +1714,50 @@ export function DBFusionStudio() {
                             and{' '}
                             <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
                         </p>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Pro Character Lock Dialog */}
+            <Dialog open={proCharDialogOpen} onOpenChange={setProCharDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <span className="text-2xl">🔒</span>
+                            Unlock {proCharName}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {proCharName} is a Legendary warrior. Upgrade to Pro to fuse {proCharName} and unleash ultimate power!
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+                            <p className="text-sm text-amber-900 font-semibold">Pro unlocks:</p>
+                            <ul className="mt-2 space-y-1 text-xs text-amber-800">
+                                <li>• 6 legendary characters (Broly, Jiren, Whis, Vegito, Gogeta, Gotenks)</li>
+                                <li>• Unlimited daily fusions</li>
+                                <li>• Watermark-free HD downloads</li>
+                                <li>• Commercial license</li>
+                            </ul>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setProCharDialogOpen(false)}
+                                className="w-full"
+                            >
+                                Maybe Later
+                            </Button>
+                            <Button
+                                asChild
+                                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
+                                onClick={() => trackStudioEvent("db_pro_char_dialog_upgrade", { char_name: proCharName })}
+                            >
+                                <Link href={`/pricing?source=pro_char_${proCharName.toLowerCase()}`}>
+                                    Upgrade to Pro
+                                </Link>
+                            </Button>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>

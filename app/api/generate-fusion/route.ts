@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
         const selectedSystemPrompt = isDragonBall ? DRAGON_BALL_SYSTEM_PROMPT : SYSTEM_PROMPT;
         const selectedNegativePrompt = isDragonBall ? DRAGON_BALL_NEGATIVE_PROMPT : NEGATIVE_PROMPT;
 
-        const watermarkInstruction = !user ? " Add subtle watermark text 'FusionGenerator.fun' in bottom right corner." : "";
+        const watermarkInstruction = !isVIP ? " Add subtle watermark text 'FusionGenerator.fun' in bottom right corner." : "";
 
         // 三层Prompt拼接
         const fullPrompt = `${selectedSystemPrompt}

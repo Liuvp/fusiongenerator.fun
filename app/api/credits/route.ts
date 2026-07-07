@@ -46,7 +46,7 @@ export async function GET() {
         .insert({
           user_id: user.id,
           email: user.email || 'unknown@example.com',
-          credits: 1, // 新用户赠送1积分（与免费额度策略一致）
+          credits: 1, // 新用户赠送1积分
           creem_customer_id: `new_user_${user.id}`,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
