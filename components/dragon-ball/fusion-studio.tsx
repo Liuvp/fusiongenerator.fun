@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, Download, RefreshCw, Share2, Loader2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/utils/supabase/client";
-import { DB_CHARACTERS, DBCharacter, getRandomCharacters } from "@/lib/dragon-ball-data";
+import { DB_CHARACTERS, DB_FUSION_STYLES, DBCharacter, getRandomCharacters } from "@/lib/dragon-ball-data";
 import { User } from "@supabase/supabase-js";
 import {
     Dialog,
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { signInAction, signUpAction, signInWithGoogleAction, signUpWithGoogleAction } from "@/app/actions";
+import { signInAction, signUpAction, signInWithGoogleAction, signUpWithGoogleAction, inlineSignInAction, inlineSignUpAction } from "@/app/actions";
 
 // ===============================
 // 常量定义
@@ -45,6 +45,7 @@ interface Quota {
     remaining: number;
     limit: number;
     isVIP: boolean;
+    type?: "monthly_limit" | "credits" | "credits_fallback";
 }
 
 interface LocalStorageState {
@@ -77,7 +78,7 @@ const trackStudioEvent = (eventName: string, payload: StudioEventPayload = {}): 
 // 工具函数
 // ===============================
 const getRemainingDisplay = (quota: Quota): string =>
-    quota.isVIP ? "∞" : quota.remaining.toString();
+    quota.isVIP ? `${Math.max(0, quota.limit - quota.used)}` : quota.remaining.toString();
 
 const hasQuotaAccess = (quota: Quota, user: User | null): boolean => {
     // VIP 用户永远有访问权限
@@ -93,8 +94,8 @@ const hasQuotaAccess = (quota: Quota, user: User | null): boolean => {
         return quota.remaining > 0;
     }
 
-    // 未登录且配额未加载：允许尝试（会在 API 层面检查）
-    return true;
+    // 未登录且配额未加载：禁止尝试（API 层面也会检查，但前端不应放行）
+    return false;
 };
 
 // ===============================
@@ -106,6 +107,7 @@ interface CharacterButtonProps {
     isSelected1: boolean;
     isSelected2: boolean;
     isProLocked: boolean;
+    disabled: boolean;
     onSelect: (char: DBCharacter) => void;
 }
 
@@ -115,6 +117,7 @@ const CharacterButton = memo(({
     isSelected1,
     isSelected2,
     isProLocked,
+    disabled,
     onSelect
 }: CharacterButtonProps) => {
     const isSelected = isSelected1 || isSelected2;
@@ -123,10 +126,12 @@ const CharacterButton = memo(({
         <button
             type="button"
             onClick={() => onSelect(character)}
+            disabled={disabled}
             className={`
                 group relative aspect-square rounded-xl overflow-hidden border-2 min-h-[44px] min-w-[44px]
                 transition-all duration-200 active:scale-95 touch-manipulation
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2
+                disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100
                 ${isSelected1
                     ? 'border-orange-500 shadow-md ring-2 ring-orange-200 ring-offset-1 scale-105'
                     : isSelected2
@@ -201,6 +206,8 @@ export function DBFusionStudio() {
     const [quota, setQuota] = useState<Quota>(DEFAULT_QUOTA);
     const [user, setUser] = useState<User | null>(null);
     const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+    const [quotaLoaded, setQuotaLoaded] = useState(false);
+    const quotaLoadedRef = useRef(false);
 
     // ===============================
     // State for interactive feedback
@@ -210,6 +217,7 @@ export function DBFusionStudio() {
     const [authMode, setAuthMode] = useState<"sign_up" | "sign_in">("sign_up");
     const [showPassword, setShowPassword] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
+    const [resultBannerDismissed, setResultBannerDismissed] = useState(false);
     const [pendingForm, setPendingForm] = useState(false);
     const [isShaking, setIsShaking] = useState(false);
     const [isSelectionHintActive, setIsSelectionHintActive] = useState(false);
@@ -217,10 +225,59 @@ export function DBFusionStudio() {
     const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
-    const [proCharDialogOpen, setProCharDialogOpen] = useState(false);
-    const [proCharName, setProCharName] = useState("");
+    const [selectedStyleId, setSelectedStyleId] = useState<string>('potara');
+    const [authBannerDismissed, setAuthBannerDismissed] = useState(false);
     const dbReturnTarget = "/dragon-ball?auth=welcome&from=dragon_ball_fusion#fusion-studio";
-    const showAuthReturnBanner = searchParams.get("auth") === "welcome";
+    const showAuthReturnBanner = searchParams.get("auth") === "welcome" && !authBannerDismissed;
+
+    // Auto-dismiss welcome banner when user starts selecting characters
+    useEffect(() => {
+        if (char1 || char2) setAuthBannerDismissed(true);
+    }, [char1, char2]);
+
+    // Handle payment success: show toast + scroll to studio
+    // Only fire after quota is loaded (to correctly show Pro vs Refill toast) and only once
+    const paymentToastShownRef = useRef(false);
+    useEffect(() => {
+        if (searchParams.get("payment") !== "success" || paymentToastShownRef.current) return;
+        paymentToastShownRef.current = true;
+
+        // Show immediate confirmation — don't wait for webhook
+        toast({
+            title: "Payment received! 🎉",
+            description: "Your plan is being activated — this usually takes a few seconds.",
+            duration: 6000,
+        });
+        scrollAndCleanup();
+
+        // Background poll to update quota state (silent, no additional toast)
+        let attempts = 0;
+        const maxAttempts = 6;
+        const poll = () => {
+            attempts++;
+            fetch('/api/get-quota').then(r => r.json()).then(data => {
+                if (data?.quota) {
+                    setQuota(data.quota);
+                } else if (attempts < maxAttempts) {
+                    setTimeout(poll, 3000);
+                }
+            }).catch(() => {
+                if (attempts < maxAttempts) {
+                    setTimeout(poll, 3000);
+                }
+            });
+        };
+        setTimeout(poll, 2000); // First poll after 2s (give webhook time)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams, toast, quota.isVIP, quotaLoaded]);
+
+    function scrollAndCleanup() {
+        const el = document.getElementById("fusion-studio");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        const url = new URL(window.location.href);
+        url.searchParams.delete("payment");
+        window.history.replaceState({}, "", url.pathname + url.search + "#fusion-studio");
+    }
 
     // 检查是否选完
     const isSelectionComplete = useMemo(() => !!(char1 && char2), [char1, char2]);
@@ -271,9 +328,16 @@ export function DBFusionStudio() {
         }
 
         if (quota.isVIP) {
+            // VIP user exhausted monthly quota, using refill pack credits
+            if (quota.type === "credits_fallback") {
+                return {
+                    title: `${quota.remaining} refill credit${quota.remaining === 1 ? "" : "s"} remaining`,
+                    description: "Monthly limit reached. Using refill pack credits."
+                };
+            }
             return {
-                title: "VIP unlocked: unlimited fusions",
-                description: "Generate as many Dragon Ball fusions as you want."
+                title: "Pro unlocked: 300 fusions/month",
+                description: "Generate up to 300 Dragon Ball fusions per month."
             };
         }
 
@@ -285,14 +349,14 @@ export function DBFusionStudio() {
                 }
                 : {
                     title: `${quota.remaining} free fusion${quota.remaining === 1 ? "" : "s"} left`,
-                    description: "Sign in to unlock more credits when your free quota runs out."
+                    description: "Sign in to save your fusions and get 2 starter credits."
                 };
         }
 
             return user
                 ? {
                     title: "No credits left",
-                    description: "Upgrade to VIP for unlimited Dragon Ball fusions."
+                    description: "Upgrade to Pro for 300 fusions/month."
                 }
                 : {
                 title: "Keep generating with a free account",
@@ -432,7 +496,11 @@ export function DBFusionStudio() {
                 const response = await fetch('/api/get-quota');
                 if (response.ok) {
                     const quotaData = await response.json();
-                    if (isMounted) setQuota(quotaData.quota);
+                    if (isMounted) {
+                        setQuota(quotaData.quota);
+                        quotaLoadedRef.current = true;
+                        setQuotaLoaded(true);
+                    }
                 }
             } catch (error) {
                 if (isMounted) {
@@ -459,6 +527,11 @@ export function DBFusionStudio() {
                         }
                     } catch (error) {
                         console.error("Failed to fetch quota:", error);
+                    } finally {
+                        if (isMounted) {
+                            quotaLoadedRef.current = true;
+                            setQuotaLoaded(true);
+                        }
                     }
                 } else if (event === 'SIGNED_OUT') {
                     setUser(null);
@@ -481,19 +554,7 @@ export function DBFusionStudio() {
     // 交互函数
     // ===============================
     const selectCharacter = useCallback((char: DBCharacter): void => {
-        // Pro character lock check
-        if (char.pro && !quota.isVIP) {
-            setProCharName(char.name);
-            setProCharDialogOpen(true);
-            trackStudioEvent("db_pro_char_blocked", {
-                char_id: char.id,
-                is_logged_in: Boolean(user),
-            });
-            return;
-        }
-
         const selectedBefore = Number(Boolean(char1)) + Number(Boolean(char2));
-        console.log("Selecting:", char.name, "Current:", { c1: char1?.name, c2: char2?.name });
 
         // 允许反选：点击已选中的角色取消选中
         if (char1?.id === char.id) {
@@ -543,7 +604,7 @@ export function DBFusionStudio() {
     }, [char1, char2, toast]);
 
     const randomize = useCallback((): void => {
-        const [c1, c2] = getRandomCharacters(2);
+        const [c1, c2] = getRandomCharacters(2, false);
         setChar1(c1);
         setChar2(c2);
         setResult(null);
@@ -628,7 +689,7 @@ export function DBFusionStudio() {
             } else {
                 toast({
                     title: "Quota Exceeded",
-                    description: "Upgrade to VIP for unlimited fusions!",
+                    description: "Upgrade to Pro for 300 fusions/month!",
                     variant: "destructive",
                     duration: 3000
                 });
@@ -676,7 +737,7 @@ export function DBFusionStudio() {
                 body: JSON.stringify({
                     char1: char1!.id,
                     char2: char2!.id,
-                    style: 'potara'
+                    style: selectedStyleId
                 }),
             });
 
@@ -701,13 +762,19 @@ export function DBFusionStudio() {
                     || normalizedError.includes("quota")
                     || normalizedError.includes("credit")
                 ) {
+                    // Distinguish burst rate limit vs quota exceeded
+                    const reason = data.reason;
+                    const isBurst = response.status === 429 && reason === "burst";
+
                     toast({
-                        title: "Limit Reached",
-                        description: user
-                            ? "Upgrade to VIP for unlimited fusions."
-                            : "Sign in to unlock more fusion credits.",
+                        title: isBurst ? "Slow down!" : "Limit Reached",
+                        description: isBurst
+                            ? "You're going too fast. Wait a moment and try again."
+                            : user
+                                ? "Upgrade to Pro for 300 fusions/month."
+                                : "Sign in to unlock more fusion credits.",
                         variant: "destructive",
-                        duration: 3000
+                        duration: isBurst ? 2000 : 3000
                     });
 
                     // 延迟跳转，给用户时间看 Toast
@@ -716,7 +783,12 @@ export function DBFusionStudio() {
                         status_code: response.status,
                         is_logged_in: Boolean(user),
                         remaining_quota: quota.remaining,
+                        limit_type: isBurst ? "burst" : "quota",
                     });
+
+                    // Burst is temporary (1 min cooldown) — don't force auth gate
+                    if (isBurst) return;
+
                     openAuthGate(user ? "member_quota_exceeded" : "api_limit_reached");
 
                     return; // 中断后续逻辑
@@ -812,6 +884,7 @@ export function DBFusionStudio() {
         quota.isVIP,
         quota.remaining,
         selectedCount,
+        selectedStyleId,
         toast,
         user,
     ]);
@@ -822,7 +895,7 @@ export function DBFusionStudio() {
         try {
             const a = document.createElement('a');
             a.href = result.imageUrl;
-            a.download = `fusion-${result.char1.name}-${result.char2.name}-${Date.now()}.jpg`;
+            a.download = `fusion-${result.char1.name}-${result.char2.name}-${Date.now()}.png`;
             a.target = '_blank';
             document.body.appendChild(a);
             a.click();
@@ -940,8 +1013,8 @@ export function DBFusionStudio() {
                     char1Name: fusionResult.char1.name,
                     char2Id: fusionResult.char2.id,
                     char2Name: fusionResult.char2.name,
-                    styleId: 'potara',
-                    styleName: 'Potara Fusion',
+                    styleId: selectedStyleId,
+                    styleName: DB_FUSION_STYLES.find(s => s.id === selectedStyleId)?.name || 'Potara Fusion',
                     imageUrl: fusionResult.imageUrl,
                 }),
             });
@@ -959,7 +1032,7 @@ export function DBFusionStudio() {
         } catch (error) {
             console.warn('Auto-save failed:', error);
         }
-    }, [user]);
+    }, [selectedStyleId, user]);
 
     // 手动收藏/取消收藏
     const toggleFavorite = useCallback(async (): Promise<void> => {
@@ -998,11 +1071,12 @@ export function DBFusionStudio() {
                 index={index}
                 isSelected1={char1?.id === character.id}
                 isSelected2={char2?.id === character.id}
-                isProLocked={Boolean(character.pro) && !quota.isVIP}
+                isProLocked={false}
+                disabled={isGenerating}
                 onSelect={selectCharacter}
             />
         ));
-    }, [char1, char2, selectCharacter, quota.isVIP]);
+    }, [char1, char2, selectCharacter, isGenerating]);
 
     // 步骤指示器
     const steps = useMemo(() => (
@@ -1075,7 +1149,15 @@ export function DBFusionStudio() {
 
             {/* 步骤指示器 */}
             {showAuthReturnBanner && (
-                <div className="mb-6 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                <div className="mb-6 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900 relative">
+                    <button
+                        type="button"
+                        onClick={() => setAuthBannerDismissed(true)}
+                        className="absolute top-2 right-2 text-orange-400 hover:text-orange-600 transition-colors"
+                        aria-label="Dismiss welcome banner"
+                    >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
                     <p className="font-semibold">You&apos;re back in Dragon Ball Fusion Studio</p>
                     <p className="mt-1 text-xs text-orange-800">
                         Sign-in worked. Pick 2 fighters and keep going right where you left off.
@@ -1094,25 +1176,25 @@ export function DBFusionStudio() {
 
             {showGuestQuotaUsedBanner && (
                 <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                    <p className="font-semibold">This browser already used its free guest fusion</p>
+                    <p className="font-semibold">You've used your free guest fusions</p>
                     <p className="mt-1 text-xs text-amber-800">
                         Sign in once to keep generating without getting bounced between pages.
                     </p>
                     <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        <Link
-                            href={`/sign-in?redirect_to=${encodeURIComponent(dbReturnTarget)}&reason=quota_limit&source=dragon_ball_fusion`}
+                        <button
+                            type="button"
+                            onClick={() => { setAuthMode("sign_in"); setAuthDialogOpen(true); trackStudioEvent("db_auth_gate_click", { cta: "sign_in_banner", reason: "quota_limit" }); }}
                             className="inline-flex items-center justify-center rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100"
-                            onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_in_banner", reason: "quota_limit" })}
                         >
                             Sign In to Continue
-                        </Link>
-                        <Link
-                            href={`/sign-up?redirect_to=${encodeURIComponent(dbReturnTarget)}&reason=quota_limit&source=dragon_ball_fusion`}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setAuthMode("sign_up"); setAuthDialogOpen(true); trackStudioEvent("db_auth_gate_click", { cta: "sign_up_banner", reason: "quota_limit" }); }}
                             className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-3 py-2 text-sm font-semibold text-white hover:from-orange-600 hover:to-red-600"
-                            onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "sign_up_banner", reason: "quota_limit" })}
                         >
                             Create Free Account
-                        </Link>
+                        </button>
                     </div>
                 </div>
             )}
@@ -1232,6 +1314,30 @@ export function DBFusionStudio() {
                         <p className="mt-1 text-gray-500">{selectionGuidance.description}</p>
                     </div>
 
+                    {/* Fusion Style Selector — hidden for now, defaults to 'potara'
+                    {isSelectionComplete && (
+                        <div className="mb-4">
+                            <p className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Fusion Style</p>
+                            <div className="flex flex-wrap gap-2">
+                                {DB_FUSION_STYLES.map((style) => (
+                                    <button
+                                        key={style.id}
+                                        type="button"
+                                        onClick={() => setSelectedStyleId(style.id)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                                            selectedStyleId === style.id
+                                                ? 'bg-orange-500 text-white shadow-md'
+                                                : 'bg-white text-gray-600 border border-gray-200 hover:border-orange-300 hover:text-orange-600'
+                                        }`}
+                                    >
+                                        {style.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    */}
+
                     <Button
                         type="button"
                         onClick={generateFusion}
@@ -1289,9 +1395,9 @@ export function DBFusionStudio() {
                     {showAuthOptions && !user && (
                         <div className="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">You've used your 2 free fusions</h4>
+                                <h4 className="font-bold text-gray-800">You&apos;ve used your 2 free fusions</h4>
                                 <p className="text-xs text-gray-600">
-                                    Create a free account to save your fusions and unlock more generations.
+                                    Create a free account to save your fusions and get 2 starter credits, or upgrade to Pro for 300 fusions/month.
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
@@ -1314,16 +1420,14 @@ export function DBFusionStudio() {
                                         trackStudioEvent("db_auth_gate_click", { cta: "sign_up_dialog", reason: "quota_limit" });
                                     }}
                                 >
-                                    Save My Fusions (Free)
+                                    Sign Up Free
                                 </Button>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => setShowAuthOptions(false)}
-                                className="mt-3 w-full text-center text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                No thanks, I'll keep browsing
-                            </button>
+                            <Button asChild variant="ghost" className="w-full mt-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 text-xs">
+                                <Link href="/pricing?source=dragon_ball_quota_anon" onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "pricing_skip", reason: "quota_limit" })}>
+                                    Skip - Upgrade to Pro directly 🚀
+                                </Link>
+                            </Button>
                         </div>
                     )}
 
@@ -1333,17 +1437,39 @@ export function DBFusionStudio() {
                             <div className="text-center mb-4 space-y-1">
                                 <h4 className="font-bold text-gray-800">Fusion Energy Depleted!</h4>
                                 <p className="text-xs text-gray-600">
-                                    Become a Super Saiyan (VIP) for unlimited generations.
+                                    {quota.isVIP
+                                        ? "You've used all 300 monthly fusions. Buy a Refill Pack to keep generating."
+                                        : "You've used all free credits. Upgrade to keep fusing without limits."
+                                    }
                                 </p>
                             </div>
-                            <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-blue-700 border-0">
-                                <Link
-                                    href="/pricing?source=dragon_ball_fusion_quota"
-                                    onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "pricing", reason: "member_quota_exceeded" })}
-                                >
-                                    Upgrade to VIP 🚀
-                                </Link>
-                            </Button>
+                            <div className="space-y-2">
+                                {quota.isVIP ? (
+                                    <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-blue-700 border-0">
+                                        <Link
+                                            href="/pricing?source=dragon_ball_fusion_refill"
+                                            onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "refill", reason: "pro_quota_exceeded" })}
+                                        >
+                                            Buy Refill Pack - 100 Fusions for $4.99 💎
+                                        </Link>
+                                    </Button>
+                                ) : (
+                                    <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-blue-700 border-0">
+                                        <Link
+                                            href="/pricing?source=dragon_ball_fusion_quota"
+                                            onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "pricing", reason: "member_quota_exceeded" })}
+                                        >
+                                            Upgrade to Pro - 300 Fusions/month 🚀
+                                        </Link>
+                                    </Button>
+                                )}
+                                <p className="text-[10px] text-center text-gray-500">
+                                    {quota.isVIP
+                                        ? "Continue fusing with more credits · No waiting for next month"
+                                        : "300 fusions/month · No watermark · HD download · Commercial license"
+                                    }
+                                </p>
+                            </div>
                         </div>
                     )}
                 </CardContent>
@@ -1385,10 +1511,10 @@ export function DBFusionStudio() {
                     >
                         <CardContent className="p-0">
                             {/* 注册引导横幅 - 未登录用户，图片正上方 */}
-                            {!user && (
+                            {!user && !resultBannerDismissed && (
                                 <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 px-4 py-3 text-center">
                                     <p className="text-white font-bold text-sm sm:text-base">
-                                        🔥 Love this fusion? Create a free account to save it + get more free fusions!
+                                        🔥 Love this fusion? Create a free account to save it and get 2 starter credits!
                                     </p>
                                     <div className="mt-2 flex items-center justify-center gap-2">
                                         <Button
@@ -1406,7 +1532,7 @@ export function DBFusionStudio() {
                                         <button
                                             type="button"
                                             className="text-white/80 hover:text-white text-xs underline"
-                                            onClick={() => trackStudioEvent("db_result_banner_dismiss")}
+                                            onClick={() => { setResultBannerDismissed(true); trackStudioEvent("db_result_banner_dismiss"); }}
                                         >
                                             No thanks
                                         </button>
@@ -1537,14 +1663,9 @@ export function DBFusionStudio() {
                                     <Button type="button" onClick={randomize} variant="outline">
                                         Try Another Popular Pair
                                     </Button>
-                                    <Button type="button" asChild variant="outline">
-                                        <Link href="/pokemon?source=dragon_ball_result">
-                                            Try Pokemon Studio
-                                        </Link>
-                                    </Button>
                                     <Button type="button" asChild className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 border-0">
                                         <Link href="/pricing?source=dragon_ball_result_next_step">
-                                            Unlock Unlimited
+                                            Unlock Pro
                                         </Link>
                                     </Button>
                                 </div>
@@ -1570,26 +1691,25 @@ export function DBFusionStudio() {
                         </DialogTitle>
                         <DialogDescription>
                             {authMode === "sign_up"
-                                ? "Create an account to save your fusion history, get more credits, and pick up where you left off."
+                                ? "Create an account to save your fusion history and get 2 starter credits."
                                 : "Sign in to continue your fusion session and access your saved creations."}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4">
                         {/* Google 登录 */}
-                        <form action={signUpWithGoogleAction}>
+                        <form action={authMode === "sign_in" ? signInWithGoogleAction : signUpWithGoogleAction}>
                             <input type="hidden" name="redirect_to" value={dbReturnTarget} />
                             <Button
                                 type="submit"
-                                variant="outline"
-                                className="w-full flex items-center justify-center gap-2 h-11"
+                                className="w-full flex items-center justify-center gap-2 h-12 text-base font-semibold bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-300 hover:border-gray-400 shadow-sm"
                                 onClick={() => {
                                     setPendingForm(true);
                                     setFormError(null);
                                     trackStudioEvent("db_auth_dialog_click", { method: "google", mode: authMode });
                                 }}
                             >
-                                <svg viewBox="0 0 24 24" className="h-5 w-5">
+                                <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0">
                                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -1597,6 +1717,11 @@ export function DBFusionStudio() {
                                 </svg>
                                 Continue with Google
                             </Button>
+                            {authMode === "sign_up" && (
+                                <p className="text-xs text-center text-green-700 font-medium">
+                                    Instant access — no email verification needed
+                                </p>
+                            )}
                         </form>
 
                         <div className="relative">
@@ -1638,9 +1763,21 @@ export function DBFusionStudio() {
                                 const formData = new FormData(form);
                                 formData.set("redirect_to", dbReturnTarget);
                                 try {
-                                    const action = authMode === "sign_up" ? signUpAction : signInAction;
-                                    const result = await action(formData) as { redirect?: string } | undefined;
-                                    if (result?.redirect) {
+                                    // Use inline-safe actions — return results, never throw redirect()
+                                    const action = authMode === "sign_up" ? inlineSignUpAction : inlineSignInAction;
+                                    const result = await action(formData);
+                                    if (result.error) {
+                                        setFormError(result.error);
+                                    } else if (result.success) {
+                                        // Registration success — show inline message
+                                        setFormError(null);
+                                        setAuthMode("sign_in");
+                                        toast({
+                                            title: "Account created! 🎉",
+                                            description: result.success,
+                                            duration: 8000,
+                                        });
+                                    } else if (result.redirect) {
                                         window.location.href = result.redirect;
                                     }
                                 } catch (err) {
@@ -1689,6 +1826,13 @@ export function DBFusionStudio() {
                                     </button>
                                 </div>
                             </div>
+                            {authMode === "sign_in" && (
+                                <div className="text-right">
+                                    <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground hover:underline" onClick={() => setAuthDialogOpen(false)}>
+                                        Forgot password?
+                                    </Link>
+                                </div>
+                            )}
                             {formError && (
                                 <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{formError}</p>
                             )}
@@ -1706,6 +1850,11 @@ export function DBFusionStudio() {
                                     authMode === "sign_up" ? "Create Free Account" : "Sign In"
                                 )}
                             </Button>
+                            {authMode === "sign_up" && (
+                                <p className="text-[10px] text-center text-muted-foreground">
+                                    Both Google and email sign-up are instant.
+                                </p>
+                            )}
                         </form>
 
                         <p className="text-xs text-center text-muted-foreground">
@@ -1718,49 +1867,7 @@ export function DBFusionStudio() {
                 </DialogContent>
             </Dialog>
 
-            {/* Pro Character Lock Dialog */}
-            <Dialog open={proCharDialogOpen} onOpenChange={setProCharDialogOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <span className="text-2xl">🔒</span>
-                            Unlock {proCharName}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {proCharName} is a Legendary warrior. Upgrade to Pro to fuse {proCharName} and unleash ultimate power!
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100">
-                            <p className="text-sm text-amber-900 font-semibold">Pro unlocks:</p>
-                            <ul className="mt-2 space-y-1 text-xs text-amber-800">
-                                <li>• 6 legendary characters (Broly, Jiren, Whis, Vegito, Gogeta, Gotenks)</li>
-                                <li>• Unlimited daily fusions</li>
-                                <li>• Watermark-free HD downloads</li>
-                                <li>• Commercial license</li>
-                            </ul>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            <Button
-                                variant="outline"
-                                onClick={() => setProCharDialogOpen(false)}
-                                className="w-full"
-                            >
-                                Maybe Later
-                            </Button>
-                            <Button
-                                asChild
-                                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
-                                onClick={() => trackStudioEvent("db_pro_char_dialog_upgrade", { char_name: proCharName })}
-                            >
-                                <Link href={`/pricing?source=pro_char_${proCharName.toLowerCase()}`}>
-                                    Upgrade to Pro
-                                </Link>
-                            </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+
         </div >
     );
 }
@@ -1820,15 +1927,17 @@ const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false 
                     </div>
                 )}
                 {char && onClear && (
-                    <button
-                        type="button"
+                    <span
+                        role="button"
+                        tabIndex={0}
                         onClick={(e) => { e.stopPropagation(); handleClear(); }}
-                        className="absolute top-1 left-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-100 shadow-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); handleClear(); } }}
+                        className="absolute top-1 left-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-100 shadow-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
                         aria-label="Clear selection and start over"
                         title="Clear selection and start over"
                     >
                         x
-                    </button>
+                    </span>
                 )}
             </button>
             <div

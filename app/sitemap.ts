@@ -24,8 +24,6 @@ type StaticRoute = {
 const staticRoutes: StaticRoute[] = [
   { url: "", file: "app/page.tsx", changeFrequency: "weekly", priority: 1.0 },
   { url: "/dragon-ball", file: "app/dragon-ball/page.tsx", changeFrequency: "daily", priority: 0.9 },
-  { url: "/pokemon", file: "app/pokemon/page.tsx", changeFrequency: "weekly", priority: 0.8 },
-  { url: "/ai", file: "app/ai/page.tsx", changeFrequency: "weekly", priority: 0.8 },
   { url: "/gallery", file: "app/gallery/page.tsx", changeFrequency: "weekly", priority: 0.8 },
   { url: "/blog", file: "app/blog/page.tsx", changeFrequency: "weekly", priority: 0.8 },
   { url: "/blog/top-dragon-ball-fusions", file: "app/blog/top-dragon-ball-fusions/page.tsx", changeFrequency: "monthly", priority: 0.6 },
@@ -50,11 +48,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
 
     const blogEntries = getAllPosts().map((post) => ({
-      url: `${baseUrl}/blog/${post.slug}`,
-      lastModified: post.publishedDate,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    }));
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: post.publishedDate,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      }));
 
     const deduped = new Map<string, MetadataRoute.Sitemap[number]>();
     for (const entry of [...staticEntries, ...blogEntries]) {
@@ -74,11 +72,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     const blogEntries = getAllPosts().map((post) => ({
-      url: `${baseUrl}/blog/${post.slug}`,
-      lastModified: post.publishedDate,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    }));
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: post.publishedDate,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      }));
 
     return [...staticEntries, ...blogEntries];
   }

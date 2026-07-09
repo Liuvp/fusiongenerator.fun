@@ -109,7 +109,7 @@ export default function TopDragonBallFusionsPage() {
                         <Link href="/dragon-ball">Try Dragon Ball Fusion</Link>
                     </Button>
                     <Button asChild size="lg" variant="outline">
-                        <Link href="/ai">Custom AI Fusion</Link>
+                        <Link href="/dragon-ball">More Fusions</Link>
                     </Button>
                 </div>
             </div>

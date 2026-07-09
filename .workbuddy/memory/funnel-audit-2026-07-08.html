@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>转化漏斗全链路复查 · 2026-07-08</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#fff; --ink:#1f2430; --muted:#6b7280;
+    --line:#e5e7eb; --p0:#dc2626; --p1:#d97706; --p2:#2563eb; --ok:#16a34a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;padding:32px 16px}
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+  .note{background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 16px;border-radius:10px;font-size:14px;margin-bottom:24px}
+  .funnel{display:flex;gap:10px;margin:0 0 28px;flex-wrap:wrap}
+  .stage{flex:1;min-width:160px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;position:relative}
+  .stage h3{margin:0 0 6px;font-size:15px}
+  .stage .cnt{font-size:13px;color:var(--muted)}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .d0{background:var(--p0)}.d1{background:var(--p1)}.d2{background:var(--p2)}
+  section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:18px}
+  section h2{margin:0 0 14px;font-size:18px;display:flex;align-items:center;gap:8px}
+  .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;color:#fff}
+  .t0{background:var(--p0)}.t1{background:var(--p1)}.t2{background:var(--p2)}.tok{background:var(--ok)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em}
+  code{background:#f1f5f9;padding:1px 6px;border-radius:5px;font-size:12.5px;color:#0f172a}
+  .file{color:#0f766e;font-weight:600}
+  .ok{color:var(--ok);font-weight:600}
+  ul{margin:6px 0 0;padding-left:18px}
+  li{margin:3px 0}
+  .legend{font-size:12.5px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>转化漏斗全链路复查报告</h1>
+  <div class="sub">fusiongenerator.fun · 访问 → 使用 → 注册 → 付费 · 审查日期 2026-07-08（基于当前代码，逐项亲验）</div>
+
+  <div class="note">
+    ⚠️ <b>重要更正：</b>上一轮核对中我确认 <code>layout.tsx</code> / <code>page.tsx</code> 的 title 已去掉 Pokemon，但<b>当前磁盘状态显示这些改动被回退了</b>——Pokemon 仍出现在全局 title、首页 metadata、footer、terms/privacy/site-map 等多处。本次重新审查以当前代码为准。
+  </div>
+
+  <div class="funnel">
+    <div class="stage"><h3>① 访问 / 落地</h3><div class="cnt"><span class="dot d1"></span>1 主题（Pokemon 残留）</div></div>
+    <div class="stage"><h3>② 使用 / dragon-ball</h3><div class="cnt"><span class="dot d0"></span>Pro 角色泄漏(Critical) + PII/Unlimited</div></div>
+    <div class="stage"><h3>③ 注册</h3><div class="cnt"><span class="dot d1"></span>邮箱验证弹回</div></div>
+    <div class="stage"><h3>④ 转化付费</h3><div class="cnt"><span class="dot d0"></span>Webhook 重复发额度(P0)</div></div>
+  </div>
+
+  <!-- P0 -->
+  <section>
+    <h2><span class="tag t0">P0</span> 直接影响收入 / 合规，建议立即修</h2>
+    <table>
+      <tr><th>问题</th><th>文件 : 行</th><th>说明 / 修复建议</th></tr>
+      <tr>
+        <td><b>Webhook 重复累加发放 Pro 额度</b><br>（无幂等，白送额度+漏钱）</td>
+        <td class="file">app/api/webhooks/creem/route.ts:107-156</td>
+        <td>订阅激活/续费时 <code>credits: currentCredits + grantAmount</code>（月 300 / 年 3600）。Creem webhook 为<b>至少一次投递</b>且每期续费重发 → 同一订阅被反复 +300/3600。而 Pro 实际走 Redis 月度配额、不消耗该字段，dashboard 会显示永不减少的虚高数字。<br><b>修复：</b>用 <code>creem_subscription_id</code> 做幂等——加 <code>welcome_credited</code> 标志，或仅在订阅状态由非 active→active 时发一次。</td>
+      </tr>
+      <tr>
+        <td><b>PII 打印到服务端日志</b></td>
+        <td class="file">creem/route.ts:49 · generate-fusion/route.ts:209-212 · new-user/route.ts:38</td>
+        <td>打印含用户邮箱的完整 webhook payload、生成接口的 <code>user.email</code>/<code>clientIP</code>/<code>fullPrompt</code>、注册 webhook 的 email。明文 PII 落日志 = GDPR/CCPA 合规风险。<br><b>修复：</b>删除或脱敏（仅记录 user.id 哈希/计数），生产关闭 debug 日志。</td>
+      </tr>
+    </table>
+  </section>
+
+  <!-- P1 -->
+  <section>
+    <h2><span class="tag t1">P1</span> 显著影响转化 / 品牌一致性</h2>
+    <table>
+      <tr><th>问题</th><th>文件 : 行</th><th>说明 / 修复建议</th></tr>
+      <tr>
+        <td><b>全局/首页 title 去 Pokemon 被回退</b></td>
+        <td class="file">layout.tsx:29,33,42 · page.tsx:14,21,38,51,62 · footer.tsx:40 · terms/privacy/site-map/gallery</td>
+        <td>当前仍写 <code>"Dragon Ball &amp; Pokemon AI Fusions"</code>。与"只做 Dragon Ball"战略冲突，且稀释 Dragon Ball 关键词权重。需<b>重新</b>改为 "Dragon Ball AI Fusions"，并批量替换散落的 "Dragon Ball and Pokemon" 文案。</td>
+      </tr>
+      <tr>
+        <td><b>定价 "Save 17%" 算错</b></td>
+        <td class="file">pricing/client-page.tsx:95</td>
+        <td>月 $9.99×12 = $119.88，年 $79.99 → 实际省 <b>33%</b>，非 17%。17% 会低估年付吸引力、少卖锁定收入。<br><b>修复：</b>改 "Save 33%"；并人工核对 Creem 后台三档价 = $9.99 / $79.99 / $4.99。</td>
+      </tr>
+      <tr>
+        <td><b>dragon-ball 残留 "Unlimited fusions" 文案（7 处）</b></td>
+        <td class="file">fusion-studio.tsx:279, 299, 635, 711, 1299, 1550, 1741</td>
+        <td>Pro 实为 <b>300/月硬上限</b>，但 toast/弹窗/结果页/锁定弹窗仍写 "unlimited fusions"。用户冲"无限"付费后撞月度限额会觉得自己被坑，伤续费。<br><b>修复：</b>统一改 "300 fusions/month"（升级按钮本体已改，这 7 处漏了）。</td>
+      </tr>
+      <tr>
+        <td><b>Dashboard 对 Pro 显示用不到的 credits</b></td>
+        <td class="file">credits-balance-card.tsx（全文件）· dashboard/page.tsx:93</td>
+        <td>卡片只显示 <code>customers.credits</code> 裸数字（Pro=300/3600），但 Pro 生成不消耗该字段（走 Redis）。用户看到"Available Credits: 300"却被告知"300/month"，虚高且概念混乱。<br><b>修复：</b>Pro 用户改显 "Pro · 300/month（已用 X）"，不要显示一次性 credit 数；webhook 停止向 customers.credits 注入 Pro 额度。</td>
+      </tr>
+      <tr>
+        <td><b>邮箱注册弹回登录页 + 强制验证</b></td>
+        <td class="file">actions.ts:57-61</td>
+        <td>注册成功跳 <code>/sign-in</code> 提示查邮件验证。这是漏斗最大注册掉点（很多用户不查邮件即流失）。已知产品取舍——Google 为主按钮、邮箱为次，且验证邮件已携带 redirect_to。<br><b>可选优化：</b>若业务允许，关 Supabase 邮箱确认或验证后自动登录回 redirect_to。</td>
+      </tr>
+      <tr>
+        <td><b>Footer / site-map 仍提 Pokemon</b></td>
+        <td class="file">footer.tsx:40 · site-map/page.tsx:7,30,36,38,112</td>
+        <td>与单一工作室定位冲突；site-map 是 SEO 集散页仍在扩散 Pokemon 信号。</td>
+      </tr>
+    </table>
+  </section>
+
+  <!-- P2 -->
+  <section>
+    <h2><span class="tag t2">P2</span> 影响较小 / 死代码</h2>
+    <table>
+      <tr><th>问题</th><th>文件 : 行</th><th>说明</th></tr>
+      <tr><td>Pro 满额仍提示 "Upgrade to Pro"</td><td class="file">generate-fusion:108,159 · fusion-studio:724</td><td>已是 Pro 却让"升级到 Pro"（无解）。应提示"本月已用 300，下月重置"+联系支持。</td></tr>
+      <tr><td>Refill product id 硬编码兜底</td><td class="file">creem/route.ts:167</td><td><code>prod_2u5vQK9gqpiGF8mjKsZksb</code> 写死，env 缺失即误判。建议缺失即报警返回 500。</td></tr>
+      <tr><td>Checkout 残留 DEBUG 日志</td><td class="file">checkout/route.ts:38-43,59,74</td><td>遗留调试 console.log，建议清理。</td></tr>
+      <tr><td>两张 quota 卡片死代码</td><td class="file">generation-quota-card.tsx · pokemon-quota-card.tsx</td><td>已无人渲染，含 <code>limit:0</code> 除零隐患 + Pokemon 文案。建议删除。</td></tr>
+      <tr><td>/api/fusion/generate 仅被隐藏 /ai 调用</td><td class="file">ai/client-page.tsx:507</td><td>随 /ai 下线或归档，避免两套生成逻辑分歧。</td></tr>
+      <tr><td>Free 卡 "Try all fusion generators"</td><td class="file">pricing/client-page.tsx:120</td><td>暗示多工作室，与聚焦矛盾。改 "Try Dragon Ball Fusion free"。</td></tr>
+      <tr><td>FAQ 问题标题仍 "Unlimited"</td><td class="file">pricing/client-page.tsx:365</td><td>答案已改 300/月，标题可一并改口径。</td></tr>
+      <tr><td>注册页 metadata 提 Pokemon</td><td class="file">sign-up/page.tsx:13</td><td>description 仍含 Pokemon，建议去。</td></tr>
+      <tr><td>批量 "Dragon Ball and Pokemon" 文案</td><td class="file">about/contact/terms/privacy/gallery/blog 等</td><td>多页 metadata 残留，建议批量替换。</td></tr>
+    </table>
+    <div class="legend">注：① 软隐藏达标——全站已无指向 /pokemon、/ai 的<b>可点击前台链接</b>（header/footer/nav/dashboard/画廊/博客）；② /pokemon、/ai 路由与页面仍可通过 URL 直接访问（软隐藏设计，可接受）。</div>
+  </section>
+
+  <!-- Cross-audit verification -->
+  <section>
+    <h2><span class="tag tok">交叉核验</span> 第三方审计 16 项 · 逐条亲验结论</h2>
+    <p class="sub" style="margin-top:0">以下 16 项来自另一份 AI 审计，我逐项读取当前代码核验。<b>事实基本全部成立</b>；仅有 2 处需校正严重程度（#3 降、#1 升）。</p>
+    <table>
+      <tr><th style="width:34px">#</th><th style="width:64px">原评级</th><th>问题</th><th>我的核验结论与处置</th></tr>
+      <tr>
+        <td>1</td><td class="file">Critical</td>
+        <td>Pro 角色泄漏：Random / Swap 绕过 Pro 锁</td>
+        <td><span class="ok">✅ 真实，且比原描述更严重。</span> <code>lib/dragon-ball-data.ts:61,90,133,141,149,157</code> 中 broly/jiren/whis/vegito/gogeta/gotenks 均为 <code>pro:true</code>；<code>getRandomCharacters:244</code> 不过滤 pro 角色；<code>randomize:549 / swapLeftFighter:562 / swapRightFighter:576</code> 直接 <code>setChar1/2</code>，绕过 <code>selectCharacter:489</code> 的锁；<b>API <code>generate-fusion/route.ts:152</code> 也不二次校验 pro</b> → 免费用户经 Random/Swap 拿到 Pro 角色后真的能生成融合图（仅带水印）。这是实打实的变现泄漏。<br><b>修：</b>① <code>getRandomCharacters</code> 对免费用户过滤 <code>pro</code>；② <code>generateFusion</code> 生成前加 <code>(char1?.pro||char2?.pro) &amp;&amp; !isVIP</code> 拦截。</td>
+      </tr>
+      <tr>
+        <td>2</td><td class="file">Critical</td>
+        <td>Refill 重复加积分</td>
+        <td><span class="ok">✅ 真实。</span> <code>creem/route.ts:162-201</code> 中 <code>checkout.captured + checkout.completed + invoice.paid</code> 三事件都会执行 <code>credits: current + 100</code> 且无幂等。与我此前发现的 subscription 路径（+300/3600 无幂等）同源，<b>合为 P0 漏钱</b>。<br><b>修：</b>用 checkout/subscription id 做一次性去重（已发则跳过）。</td>
+      </tr>
+      <tr>
+        <td>3</td><td class="file">Critical</td>
+        <td>注册后丢了 redirect_to</td>
+        <td><span class="ok">⚠️ 真实但非 Critical，降为 P2。</span> <code>actions.ts:57-61</code> 成功分支确实没传 <code>getAuthRedirectParams(redirect_to)</code>，但<b>验证邮件的 <code>emailRedirectTo</code> 已内嵌 redirect_to</b>，仅"不点邮件、手动登录"这一种兜底路径丢上下文。影响很小。</td>
+      </tr>
+      <tr>
+        <td>4</td><td class="file">High</td>
+        <td>cta.tsx:31 "Unlimited generations"</td>
+        <td><span class="ok">✅ 真实。</span> 首页 CTA 区写 "Pro: Unlimited generations" 与 300/月矛盾，误导。</td>
+      </tr>
+      <tr>
+        <td>5</td><td class="file">High</td>
+        <td>pricing/client-page.tsx:192 "Pro Unlimited"</td>
+        <td><span class="ok">✅ 真实。</span> 套餐标题 "Pro Unlimited" 与 300/月矛盾。</td>
+      </tr>
+      <tr>
+        <td>6</td><td class="file">High</td>
+        <td>subscription-status-card.tsx:160 "unlimited fusions"</td>
+        <td><span class="ok">✅ 真实。</span> "Get unlimited fusions… with Pro" 与 300/月矛盾。</td>
+      </tr>
+      <tr>
+        <td>7</td><td class="file">High</td>
+        <td>匿名生成失败也扣 quota</td>
+        <td><span class="ok">✅ 真实。</span> <code>generate-fusion/route.ts:62</code> <code>redis.incr</code> 在生成前执行，Fal API 失败（:231）抛错不回滚 → 匿名用户白丢 1/2 次。<br><b>修：</b>失败回滚 <code>decr</code>，或在生成成功后再 incr。</td>
+      </tr>
+      <tr>
+        <td>8</td><td class="file">High</td>
+        <td>fusion-studio.tsx:1414 "No thanks" 不隐藏 banner</td>
+        <td><span class="ok">✅ 真实。</span> 该按钮仅 <code>trackStudioEvent</code>，未 <code>setState</code> 关闭 banner，结果页推广条常驻。</td>
+      </tr>
+      <tr>
+        <td>9</td><td class="file">High</td>
+        <td>fusion-studio.tsx:308 配额 banner 仅双空位显示</td>
+        <td><span class="ok">✅ 真实（Minor）。</span> <code>showGuestStartBanner / showGuestQuotaUsedBanner</code> 都要求 <code>!char1 &amp;&amp; !char2</code>，一旦选角即消失；匿名用户用尽 2 次后再选角也看不到"额度已用完"提示。</td>
+      </tr>
+      <tr>
+        <td>10</td><td class="file">High</td>
+        <td>dashboard/page.tsx:61 credits_history 硬编码空</td>
+        <td><span class="ok">✅ 真实。</span> <code>const recentCreditsHistory: any[] = []</code> → 永远显示 "No recent activity"，像坏了。</td>
+      </tr>
+      <tr>
+        <td>11</td><td class="file">High</td>
+        <td>generate-fusion/route.ts:125 注释"1 Credit"实际 2</td>
+        <td><span class="ok">✅ 真实（极小）。</span> 注释错（"Auto-create with 1 Credit"），代码 <code>credits: 2</code> 正确，仅改注释。</td>
+      </tr>
+      <tr>
+        <td>12</td><td class="file">Medium</td>
+        <td>generation-quota-card.tsx 死代码 + NaN</td>
+        <td><span class="ok">✅ 死代码确认。</span> 全仓 grep 仅定义、无人 import 渲染。其 <code>quota.remaining/quota.limit</code>（limit:0 时 NaN）及 "Daily" 文案隐患仅在被渲染时触发 → 降为 P3 清理项，删除即可。</td>
+      </tr>
+      <tr>
+        <td>13</td><td class="file">Medium</td>
+        <td>generate-fusion/route.ts:257-266 扣款失败静默放行</td>
+        <td><span class="ok">✅ 真实。</span> <code>updateError</code> 仅 <code>console.error</code>，未 <code>throw/return</code> → Supabase 扣款失败时用户照样拿到图、白嫖。<br><b>修：</b>失败时回滚额度并提示，或终止返回 500。</td>
+      </tr>
+      <tr>
+        <td>14</td><td class="file">Medium</td>
+        <td>checkout/route.ts:38-43 console.log 泄漏 env key 名</td>
+        <td><span class="ok">✅ 真实（小）。</span> <code>Object.keys(process.env)</code> 打印全部环境变量名（含 SUPABASE_SERVICE_ROLE_KEY 等存在性），虽未打印值，仍属信息泄漏，应删。</td>
+      </tr>
+      <tr>
+        <td>15</td><td class="file">Medium</td>
+        <td>creem/route.ts:167 硬编码 product id 兜底</td>
+        <td><span class="ok">✅ 真实（小）。</span> <code>process.env.CREEM_PRODUCT_ID_REFILL || "prod_..."</code> 有 env 兜底，风险低；建议缺失即 500 报警而非静默用写死值。</td>
+      </tr>
+      <tr>
+        <td>16</td><td class="file">Medium</td>
+        <td>actions.ts:138,146,158 resetPasswordAction 缺 return</td>
+        <td><span class="ok">✅ 真实 bug。</span> 三处 <code>encodedRedirect</code> 前均无 <code>return</code> → 校验失败不退出、继续 <code>updateUser</code>；末尾 <code>:165</code> 也无 return → 成功时也可能不重定向。<br><b>修：</b>每个 <code>encodedRedirect</code> 前加 <code>return</code>。</td>
+      </tr>
+    </table>
+    <div class="legend">校正小结：① <b>#3 降 P2</b>——验证邮件已带 redirect_to，仅手动登录兜底丢上下文；② <b>#1 升严重度</b>——不仅是"可随机到付费角色"，而是 API 不二次校验，免费生成真的会成功，属变现泄漏；③ 与我前次审计合并后，<b>P0 漏钱项</b> = Creem 两路无幂等（subscription +300/3600、refill +100×3 事件）。</div>
+  </section>
+
+  <!-- Healthy -->
+  <section>
+    <h2><span class="tag tok">已确认健康</span> 无需改的坚实基础</h2>
+    <ul>
+      <li><span class="ok">✅</span> 三档额度门禁一致：匿名 2/IP、登录免费 2 credits、Pro 300/月（前端展示与后端一致）。</li>
+      <li><span class="ok">✅</span> Pro 用户不被 402 卡门（VIP 跳过 credits 门禁，走 Redis 月度配额）。</li>
+      <li><span class="ok">✅</span> 配额弹窗闭环正确：匿名 "Skip→Pro"、已登录 "Upgrade to Pro" 均跳对页面。</li>
+      <li><span class="ok">✅</span> 软隐藏达标：无前台 /pokemon、/ai 入口链接。</li>
+      <li><span class="ok">✅</span> 登录 <code>redirect_to</code> 闭环：定价未登录→登录后正确回 /pricing 再结账。</li>
+      <li><span class="ok">✅</span> Google 为主注册按钮、邮箱为次；赠分口径一致（注册页 "2 free starter credits" ↔ webhook 2 ↔ 自动建 2）。</li>
+      <li><span class="ok">✅</span> <code>config/subscriptions.ts</code> 死配置已删；全仓无 TODO/FIXME 残留。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>建议执行顺序</h2>
+    <ol>
+      <li><b>先堵钱/合规漏洞（P0）：</b>给 Creem webhook 加幂等（welcome_credited 标志）+ 删除 PII 日志。</li>
+      <li><b>再修转化与品牌（P1）：</b>重新去 Pokemon（title/footer/site-map）+ 改 "Save 33%" + 清 dragon-ball 7 处 Unlimited + Dashboard Pro 额度显示。</li>
+      <li><b>最后清理（P2）：</b>死组件/死路由、Pro 满额提示、refill 硬编码、DEBUG 日志、批量文案替换。</li>
+    </ol>
+  </section>
+</div>
+</body>
+</html>

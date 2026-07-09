@@ -24,33 +24,34 @@ export async function POST(req: Request) {
 
     /** 2️⃣ 校验 webhook 签名 */
     const secret = process.env.CREEM_WEBHOOK_SECRET;
-    if (secret) {
-      const expectedSignature = crypto
-        .createHmac("sha256", secret)
-        .update(body, "utf8")
-        .digest("hex");
+    if (!secret) {
+      console.error("❌ CREEM_WEBHOOK_SECRET not configured — refusing all webhooks");
+      return new Response("Server misconfiguration: webhook secret missing", { status: 500 });
+    }
 
-      // 安全对比（防 timing attack）
-      const isValid =
-        signature.length === expectedSignature.length &&
-        crypto.timingSafeEqual(
-          Buffer.from(signature),
-          Buffer.from(expectedSignature)
-        );
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(body, "utf8")
+      .digest("hex");
 
-      if (!isValid) {
-        console.error("❌ Invalid Creem webhook signature");
-        return new Response("Invalid signature", { status: 401 });
-      }
+    // 安全对比（防 timing attack）
+    const isValid =
+      signature.length === expectedSignature.length &&
+      crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(expectedSignature)
+      );
+
+    if (!isValid) {
+      console.error("❌ Invalid Creem webhook signature");
+      return new Response("Invalid signature", { status: 401 });
     }
 
     /** 3️⃣ 解析事件 */
     const event = JSON.parse(body);
-    console.log("🔍 [DEBUG] Creem Webhook Payload:", JSON.stringify(event, null, 2));
 
     // Fix: Creem uses 'eventType', not 'type'
     const eventType = event.eventType;
-    console.log("✅ Creem Webhook Type:", eventType);
 
     /** 4️⃣ 处理订阅类事件 */
     switch (eventType) {
@@ -103,55 +104,31 @@ export async function POST(req: Request) {
           return new Response("Database error", { status: 500 });
         }
 
-        // Grant credits for new active subscriptions
+        // ⚠️ DO NOT grant DB credits on subscription.active
+        // Monthly quota is managed by Redis (quota:pro:{userId}:{YYYY-MM}).
+        // Granting 300 credits here would be orphaned — VIP never consumes DB credits,
+        // and when subscription expires, user would inherit them as free credits.
+        // Try update first (safe, no overwrite). If row doesn't exist, upsert with credits: 0.
+        // New-user webhook will grant 2 free credits if it finds credits=0.
         if (eventType === 'subscription.active' && subscription.status === 'active') {
-          try {
-            const { data: customer } = await supabase
+          const creemCustId = subscription.customer?.id || subscription.customer;
+          if (creemCustId) {
+            const { data: existing } = await supabase
               .from('customers')
-              .select('credits')
+              .update({ creem_customer_id: creemCustId })
               .eq('user_id', userId)
-              .single();
+              .select('id')
+              .maybeSingle();
 
-            const currentCredits = customer?.credits || 0;
-
-            // Determine grant amount based on Product ID (Monthly vs Yearly)
-            let grantAmount = 300; // Default Monthly
-            const pid = subscription.product?.id || subscription.product_id;
-            const monthlyId = process.env.CREEM_PRODUCT_ID_MONTHLY;
-            const yearlyId = process.env.CREEM_PRODUCT_ID_YEARLY;
-
-            if (yearlyId && pid === yearlyId) {
-              grantAmount = 3600;
-              console.log("📅 Yearly subscription detected. Plan: 3600 credits.");
-            } else {
-              // Assume Monthly or fallback
-              grantAmount = 300;
-              console.log(`📅 Monthly subscription detected (PID: ${pid}). Plan: 300 credits.`);
-            }
-
-            if (customer) {
-              const { error: creditError } = await supabase
+            if (!existing) {
+              // Row doesn't exist — create with credits: 0 (new-user webhook will grant 2 later)
+              await supabase
                 .from('customers')
-                .update({
-                  credits: currentCredits + grantAmount,
-                  creem_customer_id: subscription.customer?.id || subscription.customer
-                })
-                .eq('user_id', userId);
-              if (creditError) console.error("Failed to update credits:", creditError);
-              else console.log(`✅ Updated credits to ${currentCredits + grantAmount} for user ${userId}`);
-            } else {
-              const { error: creditError } = await supabase
-                .from('customers')
-                .insert({
-                  user_id: userId,
-                  credits: grantAmount,
-                  creem_customer_id: subscription.customer?.id || subscription.customer
-                });
-              if (creditError) console.error("Failed to insert credits:", creditError);
-              else console.log(`✅ Inserted ${grantAmount} credits for new customer ${userId}`);
+                .upsert(
+                  { user_id: userId, creem_customer_id: creemCustId, credits: 0 },
+                  { onConflict: "user_id" }
+                );
             }
-          } catch (e) {
-            console.error("Credit grant error processing:", e);
           }
         }
 
@@ -160,42 +137,126 @@ export async function POST(req: Request) {
       }
 
       case "checkout.captured":
-      case "checkout.completed": // Based on log "eventType": "checkout.completed"
+      case "checkout.completed":
       case "invoice.paid": {
         const payload = event.object;
-        // Check if it is the Refill Product
-        const refillId = process.env.CREEM_PRODUCT_ID_REFILL || "prod_2u5vQK9gqpiGF8mjKsZksb";
+        const refillId = process.env.CREEM_PRODUCT_ID_REFILL;
+        if (!refillId) {
+          console.error("CREEM_PRODUCT_ID_REFILL not configured");
+          break;
+        }
 
         const currentProductId = payload.product?.id || payload.product_id;
 
-        // Log for debugging
-        console.log(`💰 Payment Event: ${eventType}, Product: ${currentProductId}`);
-
         if (currentProductId === refillId) {
           const userId = payload.metadata?.user_id || payload.customer?.metadata?.user_id;
-          if (userId) {
-            const { data: customer } = await supabase.from('customers').select('credits').eq('user_id', userId).single();
-            const current = customer?.credits || 0;
+          // checkout_id groups events from the same purchase (checkout.completed + invoice.paid share this)
+          const checkoutId = payload.checkout_id || payload.id;
 
-            // Grant +100
+          if (userId) {
+            const { data: customer } = await supabase
+              .from('customers')
+              .select('credits, last_refill_at, last_refill_checkout_id')
+              .eq('user_id', userId)
+              .single();
+
+            const lastGrant = customer?.last_refill_at;
+            const lastCheckout = customer?.last_refill_checkout_id;
+            const elapsed = lastGrant ? Date.now() - new Date(lastGrant).getTime() : Infinity;
+
+            // Dedup layer 1: same checkout_id = same purchase, different event types
+            if (lastCheckout === checkoutId) {
+              break;
+            }
+            // Dedup layer 2: 5-min cooldown = rapid successive purchases
+            if (elapsed < 5 * 60 * 1000) {
+              break;
+            }
+
+            // Dedup layer 3: Redis TTL per user+product (covers checkout_id mismatch across event types)
+            try {
+              const { Redis } = await import('@upstash/redis');
+              const redis = Redis.fromEnv();
+              const redisKey = `refill_granted:${userId}:${refillId}`;
+              const alreadyGranted = await redis.get(redisKey);
+              if (alreadyGranted) {
+                break;
+              }
+              // Set 10-min TTL after successful grant (below)
+              // (we set it after the grant succeeds, not here)
+            } catch (e) {
+              // Redis unavailable — rely on DB-based dedup (layers 1+2)
+            }
+
+            const current = customer?.credits || 0;
             const creemCustId = payload.customer?.id || payload.customer;
+            const now = new Date().toISOString();
 
             if (customer) {
               await supabase.from('customers').update({
                 credits: current + 100,
-                creem_customer_id: creemCustId
+                creem_customer_id: creemCustId,
+                last_refill_at: now,
+                last_refill_checkout_id: checkoutId,
               }).eq('user_id', userId);
-              console.log(`✅ Updated Refill Credits (+100) and Customer ID for ${userId}`);
             } else {
-              await supabase.from('customers').insert({
+              // Upsert to handle race condition with new-user webhook
+              await supabase.from('customers').upsert({
                 user_id: userId,
                 credits: 100,
-                creem_customer_id: creemCustId
-              });
-              console.log(`✅ Inserted Refill Credits (100) for ${userId}`);
+                creem_customer_id: creemCustId,
+                last_refill_at: now,
+                last_refill_checkout_id: checkoutId,
+              }, { onConflict: "user_id" });
             }
-          } else {
-            console.warn("⚠️ Refill payment received but no user_id found in metadata");
+
+            // Set Redis dedup key (layer 3) — 10 min TTL
+            try {
+              const { Redis } = await import('@upstash/redis');
+              const redis = Redis.fromEnv();
+              await redis.set(`refill_granted:${userId}:${refillId}`, 1, { ex: 600 });
+            } catch (e) { /* non-blocking */ }
+          }
+        }
+        break;
+      }
+
+      /** 4️⃣ Refund / Dispute handling */
+      case "charge.refunded":
+      case "charge.dispute.created": {
+        const payload = event.object;
+        const userId = payload.metadata?.user_id || payload.customer?.metadata?.user_id;
+        const refundAmount = payload.amount_refunded || payload.amount || 0;
+
+        if (userId) {
+          const { data: customer } = await supabase
+            .from('customers')
+            .select('credits')
+            .eq('user_id', userId)
+            .single();
+
+          if (customer) {
+            // Deduct refill credits if refunded (100 credits per refill pack, don't go below 0)
+            const deduction = Math.min(customer.credits, 100);
+            if (deduction > 0) {
+              await supabase
+                .from('customers')
+                .update({ credits: customer.credits - deduction })
+                .eq('user_id', userId);
+              console.log(`💸 Refund: deducted ${deduction} credits for user ${userId}`);
+            }
+          }
+
+          // If subscription refunded, mark as canceled
+          const productId = payload.product?.id || payload.product_id;
+          const monthlyId = process.env.CREEM_PRODUCT_ID_MONTHLY;
+          const yearlyId = process.env.CREEM_PRODUCT_ID_YEARLY;
+          if (productId === monthlyId || productId === yearlyId) {
+            await supabase
+              .from('subscriptions')
+              .update({ status: 'canceled', updated_at: new Date().toISOString() })
+              .eq('user_id', userId);
+            console.log(`💸 Refund: subscription canceled for user ${userId}`);
           }
         }
         break;

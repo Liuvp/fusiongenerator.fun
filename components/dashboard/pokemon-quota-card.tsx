@@ -69,7 +69,7 @@ export function PokemonQuotaCard() {
                     {quota.isVIP && (
                         <Badge variant="default" className="gap-1">
                             <Crown className="h-3 w-3" />
-                            VIP
+                            Pro
                         </Badge>
                     )}
                 </CardTitle>
@@ -95,9 +95,9 @@ export function PokemonQuotaCard() {
                 {/* Status Message */}
                 <div className={`text-sm ${isLow ? 'text-orange-600 dark:text-orange-400' : 'text-muted-foreground'}`}>
                     {quota.remaining === 0 ? (
-                        <p>❌ Daily limit reached. {quota.isVIP ? 'Resets tomorrow.' : 'Upgrade to VIP for more!'}</p>
+                        <p>❌ {quota.isVIP ? 'Monthly limit reached. Resets next month.' : 'Daily limit reached. Upgrade to Pro for more!'}</p>
                     ) : quota.remaining === 1 ? (
-                        <p>⚠️ Last generation remaining today</p>
+                        <p>⚠️ {quota.isVIP ? 'Last generation remaining this month' : 'Last generation remaining today'}</p>
                     ) : (
                         <p>✅ {quota.remaining} generations available</p>
                     )}
@@ -106,9 +106,9 @@ export function PokemonQuotaCard() {
                 {/* Plan Info */}
                 <div className="pt-2 border-t text-xs text-muted-foreground">
                     {quota.isVIP ? (
-                        <p>VIP Plan: {quota.limit} generations per day</p>
+                        <p>Pro Plan: Unlimited generations per day</p>
                     ) : (
-                        <p>Free Plan: {quota.limit} generations per day · <a href="/pricing" className="text-primary hover:underline">Upgrade to VIP</a></p>
+                        <p>Free Plan: {quota.limit} generations per day · <a href="/pricing" className="text-primary hover:underline">Upgrade to Pro</a></p>
                     )}
                 </div>
             </CardContent>

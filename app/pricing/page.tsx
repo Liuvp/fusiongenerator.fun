@@ -7,7 +7,7 @@ export const revalidate = 3600; // 每小时重新验证
 
 export const metadata: Metadata = {
   title: "Fusion Generator Pricing – Free & Pro AI Character Fusions",
-  description: "View Fusion Generator pricing plans. Create AI character fusions for free, or upgrade for unlimited HD images, faster generation, and priority access.",
+  description: "View Fusion Generator pricing plans. Create AI character fusions for free, or upgrade for 300 fusions/month, HD images, faster generation, and priority access.",
 
   alternates: {
     canonical: "/pricing", // ✅ 相对路径
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
   openGraph: {
     title: "Fusion Generator Pricing – Free & Pro AI Character Fusions",
-    description: "View Fusion Generator pricing plans. Create AI character fusions for free, or upgrade for unlimited HD images, faster generation, and priority access.",
+    description: "View Fusion Generator pricing plans. Create AI character fusions for free, or upgrade for 300 fusions/month, HD images, faster generation, and priority access.",
     url: "/pricing", // ✅ 相对路径
     locale: "en_US",
     type: "website",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     site: "@fusiongenerator",
     creator: "@fusiongenerator",
     title: "Fusion Generator Pricing – Free & Pro AI Character Fusions",
-    description: "View Fusion Generator pricing plans. Create AI character fusions for free, or upgrade for unlimited HD images, faster generation, and priority access.",
+    description: "View Fusion Generator pricing plans. Create AI character fusions for free, or upgrade for 300 fusions/month, HD images, faster generation, and priority access.",
     images: ["/images/pricing-preview.png"], // ✅ 确保这个图片存在
   },
 

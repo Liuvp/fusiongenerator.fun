@@ -8,9 +8,7 @@ export function Footer() {
     {
       title: "Fusion Generator",
       links: [
-        { label: "AI Fusion", href: "/ai" },
         { label: "Dragon Ball", href: "/dragon-ball" },
-        { label: "Pokemon", href: "/pokemon" },
         { label: "Gallery", href: "/gallery" },
       ],
     },

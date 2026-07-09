@@ -241,8 +241,9 @@ export const POPULAR_COMBINATIONS = [
     { char1: "Piccolo", char2: "Gohan", style: "ui" }
 ];
 
-export function getRandomCharacters(count: number = 2): DBCharacter[] {
-    const shuffled = [...DB_CHARACTERS].sort(() => 0.5 - Math.random());
+export function getRandomCharacters(count: number = 2, excludePro: boolean = false): DBCharacter[] {
+    const pool = excludePro ? DB_CHARACTERS.filter(c => !c.pro) : DB_CHARACTERS;
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
 }
 

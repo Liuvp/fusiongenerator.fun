@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dragon Ball 漏斗复检报告 · 2026-07-08</title>
+<style>
+  :root { --bg:#f7f8fa; --card:#fff; --ink:#1f2430; --muted:#6b7280; --line:#e5e7eb;
+          --red:#dc2626; --redbg:#fef2f2; --amber:#d97706; --amberbg:#fffbeb; --green:#16a34a; --greenbg:#f0fdf4; --blue:#2563eb; --bluebg:#eff6ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif; line-height:1.6; }
+  .wrap { max-width:960px; margin:0 auto; padding:32px 20px 64px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:24px; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  .sub { color:var(--muted); font-size:14px; }
+  h2 { font-size:19px; margin:34px 0 12px; padding-left:10px; border-left:4px solid var(--blue); }
+  h3 { font-size:16px; margin:20px 0 8px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin:14px 0; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:#fafafa; font-weight:600; }
+  .tag { display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:700; }
+  .t-red { background:var(--redbg); color:var(--red); }
+  .t-amber { background:var(--amberbg); color:var(--amber); }
+  .t-green { background:var(--greenbg); color:var(--green); }
+  .t-blue { background:var(--bluebg); color:var(--blue); }
+  code { background:#f1f5f9; padding:1px 6px; border-radius:5px; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px 16px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.5; }
+  .evi { font-size:13px; color:var(--muted); margin:6px 0 0; }
+  .banner { border-radius:12px; padding:16px 18px; margin:16px 0; font-weight:600; }
+  .b-red { background:var(--redbg); color:var(--red); border:1px solid #fecaca; }
+  ul { margin:8px 0 8px 2px; padding-left:20px; }
+  li { margin:5px 0; }
+  .foot { margin-top:40px; color:var(--muted); font-size:12px; border-top:1px solid var(--line); padding-top:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🔍 Dragon Ball 转化漏斗复检报告</h1>
+    <div class="sub">范围：访问 /dragon-ball → 使用免费功能 → 注册 → 转化付费(Pro) · 复检日期：2026-07-08 · 方法：逐文件读源码核对（非凭记忆）</div>
+  </header>
+
+  <div class="banner b-red">
+    🔴 致命回归（P0）：Pro 角色付费墙已完全失效 —— 免费/匿名用户当前可以真实生成 Broly、Jiren 等高价值角色，且后端已无 403 兜底。这是上一轮已修复的 Critical 项被回退。
+  </div>
+
+  <h2>一、漏斗各阶段健康度</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>阶段</th><th>状态</th><th>关键证据</th></tr></thead>
+      <tbody>
+        <tr><td>① 访问 /dragon-ball</td><td><span class="tag t-green">健康</span></td><td>metadata 已无 Pokémon；SSG + JSON-LD 正常；Hero→Studio→CTA 链路完整</td></tr>
+        <tr><td>② 使用免费功能</td><td><span class="tag t-green">基本健康</span></td><td>匿名 2 次/IP（generate-fusion:105、get-quota 一致）；爆刷 3/min 保护；额度用尽弹登录/注册门</td></tr>
+        <tr><td>③ 注册 / 登录</td><td><span class="tag t-green">健康</span></td><td>注册后跳 /sign-in 并保留 redirect_to（actions.ts:64-69）；Google 主按钮、免邮箱校验；dbReturnTarget 回 /dragon-ball#fusion-studio</td></tr>
+        <tr><td>④ 转化付费(Pro)</td><td><span class="tag t-green">健康</span></td><td>checkout 成功回 /dragon-ball#fusion-studio（checkout:51-54）；webhook 3 层幂等；订阅同步 subscriptions 表；额度显示 "300 fusions/month"</td></tr>
+        <tr><td>⑤ Pro 角色墙</td><td><span class="tag t-red">失效</span></td><td>前端无锁定/无过滤 + 后端无 403 —— 详见第二节</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>二、🔴 P0 致命回归：Pro 付费墙完全失效</h2>
+  <div class="card">
+    <h3>影响</h3>
+    <ul>
+      <li><b>直接漏钱 + 贬低付费层</b>：免费/匿名用户可真实生成 Pro 专属角色（Broly、Jiren、Whis、Vegito、Gogeta、Gotenks，见 <code>lib/dragon-ball-data.ts:61/90/133/141/149/157</code> 标 <code>pro:true</code>）。Pro 订阅失去存在意义。</li>
+      <li>上一轮审计已确认修复（前端 4 路过滤 + 后端 403 兜底），<b>当前代码全部回退</b>。</li>
+    </ul>
+
+    <h3>证据（当前源码，逐条核对）</h3>
+    <ul>
+      <li>后端无校验：<code>app/api/generate-fusion/route.ts</code> 全文检索 <code>PRO_REQUIRED</code> / <code>char1.pro</code> / <code>char2.pro</code> → <b>0 命中</b>。角色查到后直接进 Fal 生成，不做 pro 判断。</li>
+      <li>角色网格不锁定：<code>components/dragon-ball/fusion-studio.tsx:1066</code> → <code>isProLocked={false}</code>（硬编码）。Pro 角色与免费角色外观无差异、不可识别。</li>
+      <li>手动选择不过滤：<code>selectCharacter</code>（:548-596）无 <code>character.pro</code> 判断，任何用户都能选中 Pro 角色。</li>
+      <li>随机按钮含 Pro：<code>randomize</code>（:599）→ <code>getRandomCharacters(2, false)</code>，第二参数应为 <code>!quota.isVIP</code> 却写死 <code>false</code>。</li>
+      <li>交换按钮含 Pro：<code>swapLeftFighter</code>（:611）/ <code>swapRightFighter</code>（:625）用 <code>DB_CHARACTERS.filter(id !== ...)</code>，<b>未排除 pro</b>。</li>
+      <li>前端无 PRO_REQUIRED 处理：generateFusion 错误分支（:753-784）仅识别 burst/quota/rate，无 pro 专属提示 —— 即便以后加回后端 403，前端也必须配套处理，否则用户只看到笼统报错。</li>
+    </ul>
+
+    <h3>建议修复（前端+后端必须同步）</h3>
+    <p class="evi">A. 后端兜底（最关键，杜绝任何前端绕过）：在 generate-fusion/route.ts 角色查到后、进 Fal 前插入 ——</p>
+<pre>// 角色查到后（约 line 243 之后）
+if ((char1.pro || char2.pro) && !isVIP) {
+  return NextResponse.json(
+    { error: "This character is Pro-only. Upgrade to Pro to fuse it.",
+      code: "PRO_REQUIRED", upgradeUrl: "/pricing" },
+    { status: 403 }
+  );
+}</pre>
+    <p class="evi">B. 前端数据层：<code>randomize</code> 改 <code>getRandomCharacters(2, !quota.isVIP)</code>；swap 两函数 filter 加 <code>&& (!f.pro || quota.isVIP)</code>。</p>
+    <p class="evi">C. 前端交互层：<code>characterGrid</code> 改 <code>isProLocked={!!character.pro && !quota.isVIP}</code>；<code>selectCharacter</code> 入口加 <code>if (character.pro && !quota.isVIP) { toast("Pro only…"); return; }</code>。</p>
+    <p class="evi">D. 前端错误层：generateFusion catch 中识别 <code>PRO_REQUIRED</code> → 弹升级对话框（复用现有 upgrade 弹层）。</p>
+  </div>
+
+  <h2>三、🟡 P2 中等问题：付费页命名与"无限"话术矛盾</h2>
+  <div class="card">
+    <ul>
+      <li><b>计划名不一致</b>：站点其余处统称 <code>Pro</code>（工作室升级弹窗 "Upgrade to Pro - 300 Fusions/month 🚀"、Dashboard "Pro unlocked"），但 <code>app/pricing/client-page.tsx:217</code> 计划卡标题为 <b>"Pro Unlimited"</b>，按钮 <b>"Get Pro Unlimited"</b>（:281）。用户从工作室点升级跳到定价页，看到的名字对不上，且埋点/回链易错位。</li>
+      <li><b>"无限"话术与 300/月硬上限冲突</b>：
+        <ul>
+          <li>:375 脚注 <code>*Unlimited usage is subject to fair use and system capacity limits.</code> —— 与全站 "300 fusions/month" 定位直接矛盾，且可能引发 "买到无限实际被限 300" 的争议/退款。</li>
+          <li>:217 / :281 "Pro Unlimited" 命名同样隐含无限。</li>
+        </ul>
+      </li>
+      <li><b>Free 卡文案</b>：:145 "Try all fusion generators" 暗示可访问 Pokémon/AI，但二者已软隐藏。建议改为 "Try Dragon Ball fusions free"。</li>
+    </ul>
+    <p class="evi">建议：定价页计划名统一为 "Pro"（与全站一致）；删除/改写 "Unlimited" 脚注为 "300 fast fusions per month, fair-use applies"；Free 卡去掉 "all fusion generators"。</p>
+  </div>
+
+  <h2>四、🟢 P3 微小残留（非阻断）</h2>
+  <div class="card">
+    <ul>
+      <li>认证页 metadata 仍含 "create unlimited Dragon Ball and Pokemon fusions"（<code>sign-in/page.tsx:13</code>、<code>sign-up/page.tsx:13</code>）。noindex 页，影响低，但话术已过时。</li>
+      <li>邮箱注册路径需邮件验证才生效积分：内联注册成功仅提示 "Check your email"，用户易误以为已登录。Google 路径免验证是正确主推方向，可接受，但可考虑在提示里强调 "验证后自动回到工作台"。</li>
+      <li><code>get-quota</code> 免费用户返回 <code>limit:0</code>；Dashboard 的 generation-quota-card 若用 limit 做分母可能 NaN（属 Dashboard 非核心漏斗，已知待修）。</li>
+      <li>Pro 月度耗尽走 refill 兜底时，<code>quotaStatusCopy</code> 仍显示 "Pro unlocked: 300 fusions/month"（仅看 isVIP），与实际用加油包积分略不符，提示文案小瑕疵。</li>
+    </ul>
+  </div>
+
+  <h2>五、确认健康、请勿改动的部分</h2>
+  <div class="card">
+    <ul>
+      <li>Creem webhook 幂等：签名校验 + 订阅按账期去重 + refill 三层去重（checkout_id / 5分钟冷却 / Redis 10分钟 TTL），上一轮 P0 漏钱风险已闭环（creem/route.ts）。</li>
+      <li>PII 日志：generate-fusion / new-user / creem / checkout 均无 email/IP/prompt 明文打印。</li>
+      <li>匿名 2 次免费 + 爆刷保护 + 额度弹窗（登录/注册/跳 Pro）闭环，且 redirect_to 全程保留回 /dragon-ball。</li>
+      <li>Pro 月度 300 额度后端对齐（rate-limit.ts 自然月滚动 key + 月底过期），free 用户 2 credits 统一。</li>
+      <li>软隐藏：导航/页脚/前台均无 Pokémon/AI 入口，路由与内容保留。</li>
+    </ul>
+  </div>
+
+  <div class="foot">
+    生成：WorkBuddy 漏斗复检 · 所有结论均基于 2026-07-08 当前源码逐行核对。最优先级 = 第二节 P0（Pro 墙回归），其余为一致性打磨。
+  </div>
+</div>
+</body>
+</html>

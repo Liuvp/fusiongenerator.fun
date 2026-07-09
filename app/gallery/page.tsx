@@ -48,7 +48,7 @@ export default function Page() {
         </p>
         <div className="mt-4 flex items-center justify-center gap-3">
           <Button asChild variant="default">
-            <Link href="/ai">Try the Generator</Link>
+            <Link href="/dragon-ball">Try the Generator</Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/pricing">View Pricing</Link>

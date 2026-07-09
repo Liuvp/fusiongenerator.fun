@@ -53,17 +53,35 @@ export async function GET(request: NextRequest) {
         const isVIP = !!subscription;
 
         if (isVIP) {
-            // VIP: 查 Redis (只读)
-            const { getVIPQuotaReadOnly } = await import('@/lib/rate-limit');
-            const vipQuota = await getVIPQuotaReadOnly(user.id);
+            // VIP: 查 Redis 月度配额 (只读)
+            const { getProQuotaReadOnly } = await import('@/lib/rate-limit');
+            const vipQuota = await getProQuotaReadOnly(user.id);
+
+            let remaining = vipQuota.remaining;
+            let type = 'monthly_limit';
+
+            // VIP fallback: Redis 月度配额耗尽时，检查 DB credits（加油包积分）
+            if (vipQuota.remaining <= 0) {
+                const { data: customer } = await supabase
+                    .from("customers")
+                    .select("credits")
+                    .eq("user_id", user.id)
+                    .single();
+
+                const dbCredits = customer?.credits || 0;
+                if (dbCredits > 0) {
+                    remaining = dbCredits;
+                    type = 'credits_fallback'; // Pro 月度用完，用加油包积分
+                }
+            }
 
             return NextResponse.json({
                 quota: {
                     used: vipQuota.value,
-                    remaining: vipQuota.remaining,
+                    remaining,
                     limit: vipQuota.limit,
                     isVIP: true,
-                    type: 'daily_limit'
+                    type,
                 }
             });
         } else {

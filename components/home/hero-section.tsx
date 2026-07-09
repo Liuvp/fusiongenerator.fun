@@ -12,7 +12,7 @@ export function HeroSection() {
             </h1>
             <p className="text-lg md:text-xl text-purple-100 max-w-xl">
               Fusion Generator is an AI-powered character fusion tool that allows you to combine two characters into one unique fusion image. <br className="hidden md:inline" />
-              You can create Dragon Ball fusions, Pokemon fusions, or custom AI character mixes instantly without design skills.
+              You can create Dragon Ball fusions instantly without design skills.
             </p>
 
             <div className="relative max-w-lg mt-8">

@@ -55,8 +55,9 @@ export function GenerationQuotaCard() {
         return null;
     }
 
-    const percentage = (quota.remaining / quota.limit) * 100;
-    const isLow = percentage < 30;
+    const isCreditsBased = !quota.isVIP && quota.limit === 0;
+    const percentage = isCreditsBased ? (quota.remaining > 0 ? 100 : 0) : (quota.remaining / quota.limit) * 100;
+    const isLow = isCreditsBased ? quota.remaining <= 1 : percentage < 30;
 
     return (
         <Card>
@@ -64,12 +65,12 @@ export function GenerationQuotaCard() {
                 <CardTitle className="flex items-center justify-between">
                     <span className="flex items-center gap-2">
                         <Zap className="h-5 w-5" />
-                        Daily AI Generations
+                        {quota.isVIP ? "Monthly Generations" : isCreditsBased ? "Fusion Credits" : "Daily AI Generations"}
                     </span>
                     {quota.isVIP && (
                         <Badge variant="default" className="gap-1">
                             <Crown className="h-3 w-3" />
-                            VIP
+                            Pro
                         </Badge>
                     )}
                 </CardTitle>
@@ -78,9 +79,9 @@ export function GenerationQuotaCard() {
                 {/* Progress Bar */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Remaining Today</span>
+                        <span className="text-muted-foreground">{isCreditsBased ? "Credits Remaining" : "Remaining Today"}</span>
                         <span className="font-medium">
-                            {quota.remaining}/{quota.limit}
+                            {isCreditsBased ? `${quota.remaining}` : `${quota.remaining}/${quota.limit}`}
                         </span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -95,11 +96,11 @@ export function GenerationQuotaCard() {
                 {/* Status Message */}
                 <div className={`text-sm ${isLow ? 'text-orange-600 dark:text-orange-400' : 'text-muted-foreground'}`}>
                     {quota.remaining === 0 ? (
-                        <p>❌ Daily limit reached. {quota.isVIP ? 'Resets tomorrow.' : 'Upgrade to VIP for more!'}</p>
+                        <p>❌ {quota.isVIP ? 'Monthly limit reached. Resets next month.' : isCreditsBased ? 'No credits left. Purchase a Refill Pack or upgrade to Pro.' : 'Daily limit reached. Upgrade to Pro for more!'}</p>
                     ) : quota.remaining === 1 ? (
-                        <p>⚠️ Last generation remaining today</p>
+                        <p>⚠️ {quota.isVIP ? 'Last generation remaining this month' : isCreditsBased ? 'Last free fusion credit' : 'Last generation remaining today'}</p>
                     ) : (
-                        <p>✅ {quota.remaining} generations available</p>
+                        <p>✅ {quota.remaining} {isCreditsBased ? 'fusion credits' : 'generations'} available</p>
                     )}
                 </div>
 
@@ -107,18 +108,20 @@ export function GenerationQuotaCard() {
                 <div className="pt-2 border-t text-xs text-muted-foreground">
                     <p className="mb-1">
                         {quota.isVIP ? (
-                            <>VIP Plan: {quota.limit} AI generations per day</>
+                            <>Pro Plan: 300 generations per month</>
+                        ) : isCreditsBased ? (
+                            <>Free Plan: 2 starter credits (one-time)</>
                         ) : (
-                            <>Free Plan: {quota.limit} AI generations per day</>
+                            <>Free Plan: {quota.limit} generations per day</>
                         )}
                     </p>
                     <p className="text-xs opacity-75">
-                        Includes: Pokemon Fusion, Dragon Ball Fusion, Name Generation & More
+                        Includes: Dragon Ball Fusion & More
                     </p>
                     {!quota.isVIP && (
                         <p className="mt-2">
                             <a href="/pricing" className="text-primary hover:underline font-medium">
-                                Upgrade to VIP for {10} generations/day →
+                                Upgrade to Pro →
                             </a>
                         </p>
                     )}

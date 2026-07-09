@@ -96,7 +96,7 @@ export function DBHowToUse() {
                     </li>
                     <li className="flex items-center gap-2">
                         <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-orange-400" />
-                        Register to get starter credits for more fusions
+                        Register to save your fusions and get 2 starter credits
                     </li>
                     <li className="flex items-center gap-2">
                         <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-orange-400" />

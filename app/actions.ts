@@ -14,6 +14,7 @@ export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
   const redirectTo = formData.get("redirect_to")?.toString();
+  const source = formData.get("source")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
@@ -39,12 +40,18 @@ export const signUpAction = async (formData: FormData) => {
     },
   });
 
-    if (error) {
+  if (error) {
     console.error(error.code + " " + error.message);
     let errorMessage = error.message;
     if (error.message.toLowerCase().includes("already registered")) {
       errorMessage =
         "This email already has an account. Sign in instead, or continue with Google if you used Google before.";
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        errorMessage,
+        { ...getAuthRedirectParams(redirectTo), email, existing: "true" },
+      );
     }
     return encodedRedirect(
       "error",
@@ -54,11 +61,25 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
-  return encodedRedirect(
-    "success",
-    "/dashboard",
-    "Thanks for signing up! Please check your email for a verification link.",
-  );
+  // Auto sign-in after successful registration (email confirmation disabled)
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (signInError) {
+    // Fallback to sign-in page if auto-login fails
+    return encodedRedirect(
+      "success",
+      "/sign-in",
+      "Account created! You can now sign in.",
+      { redirect_to: redirectTo, source },
+    );
+  }
+
+  // Redirect directly to studio after successful registration + auto-login
+  const destination = redirectTo || "/dragon-ball";
+  redirect(destination);
 };
 
 export const signInAction = async (formData: FormData) => {
@@ -135,7 +156,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   const confirmPassword = formData.get("confirmPassword") as string;
 
   if (!password || !confirmPassword) {
-    encodedRedirect(
+    return encodedRedirect(
       "error",
       "/dashboard/reset-password",
       "Password and confirm password are required",
@@ -143,7 +164,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   }
 
   if (password !== confirmPassword) {
-    encodedRedirect(
+    return encodedRedirect(
       "error",
       "/dashboard/reset-password",
       "Passwords do not match",
@@ -155,14 +176,14 @@ export const resetPasswordAction = async (formData: FormData) => {
   });
 
   if (error) {
-    encodedRedirect(
+    return encodedRedirect(
       "error",
       "/dashboard/reset-password",
       "Password update failed",
     );
   }
 
-  encodedRedirect("success", "/dashboard/reset-password", "Password updated");
+  return encodedRedirect("success", "/dashboard/reset-password", "Password updated");
 };
 
 export const signOutAction = async () => {
@@ -171,6 +192,7 @@ export const signOutAction = async () => {
   return redirect("/sign-in");
 };
 
+// Google OAuth不分登录/注册 — 同一函数处理两种场景
 export const signInWithGoogleAction = async (formData: FormData) => {
   const redirectTo = formData?.get("redirect_to")?.toString();
   const supabase = await createClient();
@@ -206,40 +228,8 @@ export const signInWithGoogleAction = async (formData: FormData) => {
   }
 };
 
-export const signUpWithGoogleAction = async (formData: FormData) => {
-  const redirectTo = formData?.get("redirect_to")?.toString();
-  const supabase = await createClient();
-  const origin = (await headers()).get("origin");
-
-  let callbackUrl = `${origin}/auth/callback`;
-  if (redirectTo) {
-    callbackUrl += `?redirect_to=${encodeURIComponent(redirectTo)}`;
-  }
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: callbackUrl,
-      queryParams: {
-        access_type: "offline",
-        prompt: "consent",
-      },
-    },
-  });
-
-  if (error) {
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      error.message,
-      getAuthRedirectParams(redirectTo),
-    );
-  }
-
-  if (data.url) {
-    return redirect(data.url);
-  }
-};
+// Alias — Google OAuth is the same for sign-in and sign-up
+export const signUpWithGoogleAction = signInWithGoogleAction;
 
 export async function createCheckoutSession(
   productId: string,
@@ -291,3 +281,77 @@ export async function createCheckoutSession(
     throw error;
   }
 }
+
+// ============================================================================
+// Inline-safe actions — return results instead of redirect()
+// Used by fusion-studio inline auth dialog to avoid page navigation
+// ============================================================================
+
+type InlineActionResult = { redirect?: string; error?: string; success?: string };
+
+export const inlineSignUpAction = async (formData: FormData): Promise<InlineActionResult> => {
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const redirectTo = formData.get("redirect_to")?.toString();
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin");
+
+  if (!email || !password) {
+    return { error: "Email and password are required" };
+  }
+
+  let emailRedirectTo = `${origin}/auth/callback`;
+  if (redirectTo) {
+    emailRedirectTo += `?redirect_to=${encodeURIComponent(redirectTo)}`;
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo },
+  });
+
+  if (error) {
+    if (error.message.toLowerCase().includes("already registered")) {
+      return { error: "This email already has an account. Sign in instead, or continue with Google." };
+    }
+    return { error: error.message };
+  }
+
+  // Auto sign-in after successful registration (email confirmation disabled)
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (signInError) {
+    // Fallback: user created but auto-login failed, ask them to sign in manually
+    return { success: "Account created! You can now sign in." };
+  }
+
+  // Return redirect target — client will navigate to studio
+  return { redirect: redirectTo || "/dragon-ball" };
+};
+
+export const inlineSignInAction = async (formData: FormData): Promise<InlineActionResult> => {
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const redirectTo = formData.get("redirect_to")?.toString();
+  const supabase = await createClient();
+
+  if (!email || !password) {
+    return { error: "Email and password are required" };
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    if (error.message.includes("Invalid login credentials")) {
+      return { error: "Email or password is incorrect. If this email was created with Google, use Continue with Google instead." };
+    }
+    return { error: error.message };
+  }
+
+  // Return redirect target — client will navigate
+  return { redirect: redirectTo || "/dragon-ball" };
+};

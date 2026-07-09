@@ -29,8 +29,6 @@ const sitemapData: {
   main: [
     { url: "/", title: "Home", description: "Generate Dragon Ball and Pokemon character fusions with AI" },
     { url: "/dragon-ball", title: "Dragon Ball Fusion Generator", description: "Create DBZ character fusions like Goku and Vegeta" },
-    { url: "/pokemon", title: "Pokemon Fusion Generator", description: "Mix Pokemon species with AI fusion technology" },
-    { url: "/ai", title: "Custom AI Fusion", description: "Upload your own images for custom AI fusions" },
     { url: "/gallery", title: "Fusion Gallery", description: "Browse community-created fusion characters" },
   ],
   content: [

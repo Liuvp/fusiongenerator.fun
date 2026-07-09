@@ -23,7 +23,7 @@ type QuotaSnapshot = {
     remaining: number;
     limit: number;
     isVIP: boolean;
-    type?: "anonymous" | "credits" | "daily_limit";
+    type?: "anonymous" | "credits" | "monthly_limit";
 } | null;
 
 const randomPrompts = [
@@ -330,7 +330,7 @@ export default function AIFusionStudioPage() {
 
         if (quota.isVIP) {
             return {
-                title: "VIP active: unlimited generations",
+                title: "Pro active: unlimited generations",
                 description: "You can generate and download without free-tier limits.",
                 tone: "positive" as const,
             };
@@ -960,8 +960,10 @@ export default function AIFusionStudioPage() {
                 {authGate?.kind === "guest_limit" && (
                     <div className="mt-2 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                         <div className="text-center mb-4 space-y-1">
-                            <h4 className="font-bold text-gray-800">{authGate.title}</h4>
-                            <p className="text-xs text-gray-600">{authGate.description}</p>
+                            <h4 className="font-bold text-gray-800">You&apos;ve used your 2 free fusions</h4>
+                            <p className="text-xs text-gray-600">
+                                Create a free account to get 2 more credits, or upgrade to Pro for unlimited fusions.
+                            </p>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <Link
@@ -974,7 +976,7 @@ export default function AIFusionStudioPage() {
                                     })
                                 }
                             >
-                                Sign In to Continue
+                                Sign In
                             </Link>
                             <Link
                                 href={`/sign-up?redirect_to=${encodeURIComponent(aiReturnTarget)}&source=ai_studio&reason=free_limit`}
@@ -986,30 +988,49 @@ export default function AIFusionStudioPage() {
                                     })
                                 }
                             >
-                                Create Free Account
+                                Sign Up Free
                             </Link>
                         </div>
+                        <Link
+                            href="/pricing?source=ai_studio&reason=free_limit"
+                            className="inline-flex w-full items-center justify-center mt-2 px-3 py-2 text-xs font-semibold text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg"
+                            onClick={() =>
+                                trackStudioEvent("ai_auth_gate_click", {
+                                    kind: "guest_limit",
+                                    cta: "pricing_skip",
+                                })
+                            }
+                        >
+                            Skip - Upgrade to Pro directly 🚀
+                        </Link>
                     </div>
                 )}
 
                 {authGate?.kind === "member_credits" && (
                     <div className="mt-2 p-4 bg-purple-50 border border-purple-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                         <div className="text-center mb-4 space-y-1">
-                            <h4 className="font-bold text-gray-800">{authGate.title}</h4>
-                            <p className="text-xs text-gray-600">{authGate.description}</p>
+                            <h4 className="font-bold text-gray-800">Fusion Energy Depleted!</h4>
+                            <p className="text-xs text-gray-600">
+                                You&apos;ve used all free credits. Upgrade to keep fusing without limits.
+                            </p>
                         </div>
-                        <Link
-                            href="/pricing?source=ai_studio&reason=insufficient_credits"
-                            className="inline-flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:from-purple-700 hover:to-indigo-700"
-                            onClick={() =>
-                                trackStudioEvent("ai_auth_gate_click", {
-                                    kind: "member_credits",
-                                    cta: "pricing",
-                                })
-                            }
-                        >
-                            Upgrade to Continue
-                        </Link>
+                        <div className="space-y-2">
+                            <Link
+                                href="/pricing?source=ai_studio&reason=insufficient_credits"
+                                className="inline-flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-3 py-2 text-sm font-semibold text-white hover:from-purple-700 hover:to-blue-700"
+                                onClick={() =>
+                                    trackStudioEvent("ai_auth_gate_click", {
+                                        kind: "member_credits",
+                                        cta: "pricing",
+                                    })
+                                }
+                            >
+                                Upgrade to Pro - 300 Fusions/month 🚀
+                            </Link>
+                            <p className="text-[10px] text-center text-gray-500">
+                                300 fusions/month · No watermark · HD download · Commercial license
+                            </p>
+                        </div>
                     </div>
                 )}
             </div>

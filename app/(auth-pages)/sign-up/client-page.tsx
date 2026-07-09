@@ -23,6 +23,7 @@ export default function ClientPage({
     const hasExistingAccountError =
         "error" in searchParams &&
         /already has an account|already registered/i.test(searchParams.error);
+    const existingEmail = "email" in searchParams ? (searchParams as any).email as string : "";
     const trackedErrorRef = useRef<string | null>(null);
     const source = searchParams.source || "direct";
     const reason = searchParams.reason || "none";
@@ -117,38 +118,19 @@ export default function ClientPage({
             )}
 
             <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                <p className="text-sm font-semibold mb-3 text-center">What you&apos;ll get:</p>
-                <div className="grid gap-2">
-                    <div className="flex items-center gap-2 text-sm">
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span>2 free starter credits after signup</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span>Save your fusion history and gallery</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span>Jump back into the fusion you were making</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span>Continue with email or Google</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span>Upgrade later if you want more credits or Pro</span>
-                    </div>
+                <div className="flex items-center justify-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>2 free starter credits after signup</span>
                 </div>
             </div>
 
             <div className="grid gap-6">
                 <form action={signUpWithGoogleAction} className="grid gap-3">
                     <input type="hidden" name="redirect_to" value={redirectTo || ""} />
+                    <input type="hidden" name="source" value={source || ""} />
                     <Button
                         type="submit"
-                        variant="outline"
-                        className="w-full flex items-center justify-center gap-2 h-11"
+                        className="w-full flex items-center justify-center gap-2 h-12 text-base font-semibold bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-300 hover:border-gray-400 shadow-sm"
                         onClick={() =>
                             trackEvent("auth_submit_click", {
                                 page: "sign_up",
@@ -158,7 +140,7 @@ export default function ClientPage({
                             })
                         }
                     >
-                        <svg viewBox="0 0 24 24" className="h-5 w-5">
+                        <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0">
                             <path
                                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                                 fill="#4285F4"
@@ -178,9 +160,6 @@ export default function ClientPage({
                         </svg>
                         Continue with Google
                     </Button>
-                    <p className="text-xs text-center text-muted-foreground">
-                        Fastest option if you may have signed in with Google before.
-                    </p>
                 </form>
                 <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -188,12 +167,13 @@ export default function ClientPage({
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
                         <span className="bg-background px-2 text-muted-foreground">
-                            Or use email
+                            Or continue with email
                         </span>
                     </div>
                 </div>
                 <form className="grid gap-4">
                     <input type="hidden" name="redirect_to" value={redirectTo || ""} />
+                    <input type="hidden" name="source" value={source || ""} />
 
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>
@@ -252,15 +232,19 @@ export default function ClientPage({
                         Create free account with email
                     </SubmitButton>
                     <FormMessage message={searchParams} />
-                    {hasExistingAccountError && (
+                    {hasExistingAccountError && (() => {
+                        const signInUrl = existingEmail
+                            ? `/sign-in?email=${encodeURIComponent(existingEmail)}&redirect_to=${encodeURIComponent(redirectTo || '')}`
+                            : buildAuthHref("/sign-in");
+                        return (
                         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                             <p className="font-medium">Looks like you already signed up.</p>
                             <p className="mt-1 text-amber-800">
                                 The fastest fix is to sign in instead. If you originally used Google, choose Continue with Google above.
                             </p>
                             <Link
-                                href={buildAuthHref("/sign-in")}
-                                className="mt-3 inline-flex font-semibold underline underline-offset-4"
+                                href={signInUrl}
+                                className="mt-3 inline-flex items-center gap-1 font-semibold text-blue-700 underline underline-offset-4 hover:text-blue-800"
                                 onClick={() =>
                                     trackEvent("auth_switch_flow_click", {
                                         page: "sign_up",
@@ -271,10 +255,11 @@ export default function ClientPage({
                                     })
                                 }
                             >
-                                Go to sign in
+                                Go to sign in {existingEmail && <span className="text-xs text-blue-500">({existingEmail})</span>}
                             </Link>
                         </div>
-                    )}
+                        );
+                    })()}
                 </form>
                 <div className="text-xs text-muted-foreground text-center">
                     By signing up, you agree to our{" "}
@@ -307,15 +292,9 @@ export default function ClientPage({
 
                 <div className="pt-4 border-t">
                     <p className="text-xs text-muted-foreground text-center mb-2">Want to explore first?</p>
-                    <div className="grid grid-cols-3 gap-2">
-                        <Link href="/pokemon" className="text-xs text-center p-2 rounded-md border hover:bg-muted/50 transition-colors">
-                            Pokemon
-                        </Link>
+                    <div className="flex justify-center">
                         <Link href="/dragon-ball" className="text-xs text-center p-2 rounded-md border hover:bg-muted/50 transition-colors">
                             Dragon Ball
-                        </Link>
-                        <Link href="/ai" className="text-xs text-center p-2 rounded-md border hover:bg-muted/50 transition-colors">
-                            AI Fusion
                         </Link>
                     </div>
                 </div>

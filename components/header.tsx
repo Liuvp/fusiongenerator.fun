@@ -52,8 +52,6 @@ export default function Header({ user: initialUser }: { user: any }) {
   const mainNavItems: NavItem[] = [
     { label: "Home", href: "/" },
     { label: "Dragon Ball", href: "/dragon-ball" },
-    { label: "Pokemon", href: "/pokemon" },
-    { label: "AI Fusion", href: "/ai" },
     { label: "Gallery", href: "/gallery" },
     { label: "Blog", href: "/blog" },
     { label: "Pricing", href: "/pricing", isButton: true },
@@ -100,7 +98,7 @@ export default function Header({ user: initialUser }: { user: any }) {
               {!isDashboard && (
                 <>
                   <Button asChild size="sm" variant="default">
-                    <Link href="/profile">Profile</Link>
+                    <Link href="/dashboard">Profile</Link>
                   </Button>
                   <Button asChild size="sm" variant="outline">
                     <Link href="/dashboard">Dashboard</Link>

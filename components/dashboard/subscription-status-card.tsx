@@ -157,7 +157,7 @@ export function SubscriptionStatusCard({
       )}
       {!subscription && (
         <p className="mt-4 text-sm text-muted-foreground">
-          Get unlimited fusions, priority processing, and exclusive features with Pro.
+          Get 300 fast fusions per month, priority processing, and exclusive features with Pro.
         </p>
       )}
       <div className="mt-4">

@@ -10,7 +10,7 @@ export type AuthSearchParams = Message & {
 
 export const metadata: Metadata = {
   title: "Sign Up - Fusion Generator",
-  description: "Create your free Fusion Generator account today. Mix and match Dragon Ball heroes, Pokemon, and more to create unique AI fusions.",
+  description: "Create your free Fusion Generator account today. Create unique Dragon Ball AI fusions and save your gallery.",
   robots: {
     index: false,
     follow: false,

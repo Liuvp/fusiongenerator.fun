@@ -312,7 +312,7 @@ export default function GalleryPage() {
                 <p className="text-sm text-muted-foreground">Want more? Generate your own unique fusion.</p>
                 <div className="mt-3">
                     <Button asChild>
-                        <Link href="/ai">Create Your Own Fusion</Link>
+                        <Link href="/dragon-ball">Create Your Own Fusion</Link>
                     </Button>
                 </div>
             </div>
@@ -340,7 +340,7 @@ export default function GalleryPage() {
                             </div>
                             <div className="pt-2">
                                 <Button asChild variant="outline" className="w-full">
-                                    <Link href="/ai">Generate a Similar Fusion</Link>
+                                    <Link href="/dragon-ball">Generate a Similar Fusion</Link>
                                 </Button>
                                 <Button
                                     variant="ghost"

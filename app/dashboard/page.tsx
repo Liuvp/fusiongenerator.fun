@@ -59,6 +59,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
   const credits = customer?.credits || 0;
   const recentCreditsHistory: any[] = [];
+  const isVIP = !!subscription && ['active', 'trialing'].includes(subscription.status);
 
   return (
     <div className="flex-1 w-full flex flex-col gap-6 sm:gap-8 px-4 sm:px-8 container">
@@ -90,10 +91,12 @@ export default async function DashboardPage(props: DashboardPageProps) {
       {/* Stats Grid */}
       <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
         <SubscriptionStatusCard subscription={subscription} />
-        <CreditsBalanceCard
-          credits={credits}
-          recentHistory={recentCreditsHistory}
-        />
+        {!isVIP && (
+          <CreditsBalanceCard
+            credits={credits}
+            recentHistory={recentCreditsHistory}
+          />
+        )}
         <QuickActionsCard />
       </div>
 

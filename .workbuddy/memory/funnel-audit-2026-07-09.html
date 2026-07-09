@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dragon Ball 转化漏斗全链路复检报告 · 2026-07-09</title>
+<style>
+  :root{ --bg:#f7f7f8; --card:#fff; --ink:#1a1a1a; --muted:#6b7280; --line:#e5e7eb;
+         --red:#dc2626; --amber:#d97706; --green:#16a34a; --blue:#2563eb; --violet:#7c3aed; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.6}
+  .wrap{max-width:980px;margin:0 auto;padding:32px 20px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  h2{font-size:19px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  h3{font-size:15px;margin:18px 0 8px}
+  .tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;color:#fff}
+  .p0{background:var(--red)} .p1{background:var(--amber)} .p2{background:var(--blue)} .ok{background:var(--green)}
+  code{background:#f3f4f6;padding:1px 6px;border-radius:6px;font-size:12.5px;font-family:"SFMono-Regular",Consolas,monospace}
+  pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12.5px;line-height:1.5}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#fafafa;font-weight:600}
+  .x{color:var(--red);font-weight:700} .v{color:var(--green);font-weight:700}
+  .file{color:var(--violet);font-size:12px}
+  ul{margin:8px 0;padding-left:20px} li{margin:4px 0}
+  .note{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;font-size:13.5px;margin:10px 0}
+  .fix{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 14px;font-size:13.5px;margin:10px 0}
+  .score{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 2px}
+  .pill{flex:1;min-width:130px;background:#fafafa;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .pill b{display:block;font-size:13px;color:var(--muted);font-weight:600}
+  .pill span{font-size:18px;font-weight:800}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Dragon Ball 转化漏斗 · 全链路复检报告</h1>
+  <div class="sub">2026-07-09 · 逐文件读源码核验（不依赖记忆）· 范围：访问 → 使用功能 → 注册 → 转化付费</div>
+
+  <!-- 概览 -->
+  <div class="card">
+    <h2>漏斗健康速览</h2>
+    <div class="score">
+      <div class="pill"><b>① 访问 / 落地</b><span style="color:var(--green)">健康</span></div>
+      <div class="pill"><b>② 使用免费功能</b><span style="color:var(--red)">⚠ 付费墙失效</span></div>
+      <div class="pill"><b>③ 注册 / 登录</b><span style="color:var(--green)">健康</span></div>
+      <div class="pill"><b>④ 转化付费</b><span style="color:var(--green)">健康</span></div>
+    </div>
+    <p class="sub" style="margin-top:10px">后端配额、支付幂等、PII、auth 闭环均稳健；唯一阻断性问题是 <b>Pro 付费墙整体回归</b>（免费/匿名用户可真实生成 Pro 专属角色）。</p>
+  </div>
+
+  <!-- P0 -->
+  <div class="card">
+    <h2><span class="tag p0">P0 · 阻断</span> Pro 付费墙全链路失效（资金漏损 · 回归）</h2>
+    <p><b>现象：</b>6 个标 <code>pro:true</code> 的 Dragon Ball 角色（<code>broly / jiren / whis / vegetto / gogeta / gotenks</code>，见 <span class="file">lib/dragon-ball-data.ts:61,90,133,141,149,157</span>）本应仅 Pro 订阅可用，现在<b>免费/匿名用户也能真实生成</b>（免费端带水印，但图是真生成的）。Pro 订阅卖点被直接架空。</p>
+
+    <h3>证据（4 处前端 + 1 处后端，全部确认）</h3>
+    <table>
+      <tr><th>位置</th><th>当前代码</th><th>问题</th></tr>
+      <tr>
+        <td><span class="file">app/api/generate-fusion/route.ts:242-251</span></td>
+        <td><code>const char1 = DB_CHARACTERS.find(c =&gt; c.id === char1Id);</code><br/>（无任何 <code>char.pro</code> / <code>isVIP</code> 校验）</td>
+        <td class="x">后端无二次校验 —— 最致命。即便前端完美，API 仍对任何人生成 Pro 角色。</td>
+      </tr>
+      <tr>
+        <td><span class="file">components/dragon-ball/fusion-studio.tsx:1074</span></td>
+        <td><code>&lt;CharacterButton ... isProLocked={false} /&gt;</code></td>
+        <td class="x">角色网格写死 <code>false</code> → Pro 角色无 🔒、无灰禁，与免费角色一模一样、可点击。</td>
+      </tr>
+      <tr>
+        <td><span class="file">fusion-studio.tsx:607</span></td>
+        <td><code>const [c1, c2] = getRandomCharacters(2, false);</code></td>
+        <td class="x"><code>excludePro=false</code> → “随机”会把 Broly+Jiren 配给免费用户。<br/><span class="file">（getRandomCharacters 签名 dragon-ball-data.ts:244-245）</span></td>
+      </tr>
+      <tr>
+        <td><span class="file">fusion-studio.tsx:619 / 633</span></td>
+        <td><code>DB_CHARACTERS.filter(f =&gt; f.id !== char2?.id)</code></td>
+        <td class="x">swapLeft/Right 不排除 pro → 一键换人能把 Pro 角色换进来。</td>
+      </tr>
+      <tr>
+        <td><span class="file">fusion-studio.tsx:556-604</span></td>
+        <td><code>selectCharacter</code> 仅处理选中/反选</td>
+        <td class="x">点击 Pro 角色直接 <code>setChar1/setChar2</code>，无 <code>char.pro &amp;&amp; !isVIP</code> 拦截。</td>
+      </tr>
+    </table>
+
+    <div class="fix">
+      <b>建议修复（前后端同步，缺一不可）：</b>
+      <pre>// A. 后端兜底（generate-fusion/route.ts，char 解析后）
+const char1 = DB_CHARACTERS.find(c => c.id === char1Id);
+const char2 = DB_CHARACTERS.find(c => c.id === char2Id);
+if ((char1?.pro || char2?.pro) && !isVIP) {
+  return NextResponse.json({ error: 'Pro character requires Pro plan', code: 'PRO_REQUIRED' }, { status: 403 });
+}
+
+// B. 前端网格锁（fusion-studio.tsx:1074）
+isProLocked={!!character.pro && !quota?.isVIP}
+
+// C. randomize（fusion-studio.tsx:607）依赖 quota
+const [c1, c2] = getRandomCharacters(2, !quota?.isVIP);
+
+// D. swapLeft/Right（619/633）追加 .filter(f => !f.pro || isVIP)
+// E. selectCharacter（556）点击 Pro 且非 VIP 时 openUpgrade() 而非选中</pre>
+      <p style="margin:8px 0 0;color:var(--muted)">注：<code>CharacterButton</code> 组件本身已支持 <code>isProLocked</code>（🔒 + 琥珀色样式，见 139-179 行），只需把正确值传进去即可，无需改组件。</p>
+    </div>
+  </div>
+
+  <!-- P1 -->
+  <div class="card">
+    <h2><span class="tag p1">P1 · 品牌/SEO</span> 全站 metadata 仍泄漏 "Pokemon"，与软隐藏策略冲突</h2>
+    <p>战略已决定“聚焦 /dragon-ball，软隐藏 /pokemon、/ai”，但<b>站点的默认标题/描述仍主打 Pokemon</b>，会出现在所有未自定义 metadata 的页面（首页、登录、注册、博客、画廊、关于、联系等）的浏览器标签与搜索结果里，与定位自相矛盾。</p>
+    <table>
+      <tr><th>位置</th><th>当前文本</th></tr>
+      <tr><td><span class="file">app/layout.tsx:29,31,33,35,42,44</span></td><td><code>"Fusion Generator - Dragon Ball &amp; Pokemon AI Fusions"</code> / <code>"Dragon Ball and Pokemon character fusions"</code></td></tr>
+      <tr><td><span class="file">app/page.tsx:14,16,21,23,38,40</span></td><td><code>"Fusion Generator - Create Dragon Ball &amp; Pokemon AI Fusions"</code></td></tr>
+    </table>
+    <div class="fix">建议统一改为 <code>"Dragon Ball Fusion Generator"</code>（与 /dragon-ball 页 title 一致，<span class="file">app/dragon-ball/page.tsx:44</span> 已是该值）。<b>已验证健康项：</b>导航 <code>mainNavItems</code> 无 Pokemon/AI 入口（<span class="file">components/header.tsx:52-58</span>）；<code>sitemap.ts</code> 不含 "pokemon" 字符串（已 grep 无命中）。</div>
+  </div>
+
+  <!-- P2 -->
+  <div class="card">
+    <h2><span class="tag p2">P2 · 文案</span> "Unlimited / per day" 与全站 "300/月" 口径矛盾</h2>
+    <table>
+      <tr><th>位置</th><th>当前文本</th><th>矛盾点</th></tr>
+      <tr><td><span class="file">app/pricing/page.tsx:10,18,39</span></td><td><code>"...upgrade for unlimited HD images, faster generation..."</code></td><td>定价页<b>可见内容</b>已是 300/月（client-page 已修正），但<b>meta 描述</b>仍写 unlimited → 搜索摘要与落地页不符。</td></tr>
+      <tr><td><span class="file">components/dashboard/generation-quota-card.tsx:110</span></td><td><code>"Pro Plan: Unlimited generations per day"</code></td><td>Pro 实为 300/<b>月</b>，且"Unlimited"与 300 硬上限冲突（同文件 97-101 行已写 "Resets next month"）。</td></tr>
+      <tr><td><span class="file">generation-quota-card.tsx:116</span></td><td><code>"Includes: Pokemon Fusion, Dragon Ball Fusion..."</code></td><td>软隐藏路径仍被列在 Dashboard（与聚焦策略不一致）。</td></tr>
+      <tr><td><span class="file">app/contact/client-page.tsx:130 · app/about/client-page.tsx:166</span></td><td><code>"...unlimited access / unlimited creations..."</code></td><td>低频页面，建议择机对齐 300/月。</td></tr>
+    </table>
+    <div class="note">软隐藏路径 <code>app/ai/*</code>、<code>components/pokemon/*</code> 内的 "unlimited" 属预期内（路径本身未在前台曝光），不计入本次阻断项，仅记录为后续清理债务。</div>
+  </div>
+
+  <!-- 已验证健康 -->
+  <div class="card">
+    <h2><span class="tag ok">已验证健康</span> 本次复检通过的项</h2>
+    <ul>
+      <li><b>支付幂等（3 层）</b>：Creem webhook 对 refill 用 <code>checkout_id</code> 去重 + 5 分钟冷却 + Redis 10 分钟 TTL（<span class="file">creem/route.ts:167-218</span>）；subscription 路径仅 upsert 状态、不发积分。多事件同笔购买不会双计。</li>
+      <li><b>PII 合规</b>：<code>generate-fusion</code> 调试日志已删除（:300）；creem/checkout 仅打印环境变量名（非 secret）；new-user webhook 不打印 email，仅用于发信（:14,79）。</li>
+      <li><b>匿名使用门禁</b>：每 IP 2 次免费 + 每分钟 3 次突发保护 + 失败回退计数（<span class="file">generate-fusion:70-113, 387-402</span>）。</li>
+      <li><b>免费积分</b>：新用户赠 2（<span class="file">new-user:37-53</span>、<span class="file">credits/route.ts:49</span>），CAS 扣减 + 失败退款（generate-fusion:359-386）。</li>
+      <li><b>Pro 月度 300</b>：Redis 自然月滚动 TTL，耗尽回落 DB 加油包积分（rate-limit.ts:110-145；generate-fusion:127-176）。</li>
+      <li><b>定价可见内容</b>：计划名 "Pro"、$9.99/mo、"300 Fast Fusions/mo"、"Save 33%"（≈$119.88→$79.99）、按钮 "Get Pro"（pricing/client-page.tsx:120,217,236,281）。</li>
+      <li><b>注册→登录闭环</b>：<code>dbReturnTarget = /dragon-ball?auth=welcome#fusion-studio</code>（fusion-studio:230），actions 透传 <code>redirect_to</code>，callback 防开放重定向（actions.ts / auth/callback/route.ts）。Google 主路径直返工作室。</li>
+      <li><b>配额弹窗</b>：匿名 "Skip - Upgrade to Pro directly 🚀"（:1428）；已登录 "Upgrade to Pro - 300 Fusions/month 🚀"（:1462）。</li>
+      <li><b>导航软隐藏</b>：<code>mainNavItems</code> 仅 Home/Dragon Ball/Gallery/Blog/Pricing（header.tsx:52-58）。</li>
+    </ul>
+  </div>
+
+  <!-- 优先级总表 -->
+  <div class="card">
+    <h2>修复优先级总表</h2>
+    <table>
+      <tr><th>优先级</th><th>问题</th><th>影响</th><th>文件</th></tr>
+      <tr><td><span class="tag p0">P0</span></td><td>Pro 付费墙失效（免费可生成 Pro 角色）</td><td class="x">直接漏钱 + 削弱 Pro 转化</td><td>generate-fusion/route.ts · fusion-studio.tsx · dragon-ball-data.ts</td></tr>
+      <tr><td><span class="tag p1">P1</span></td><td>全站 metadata 泄漏 Pokemon</td><td>品牌/SEO 与聚焦策略冲突</td><td>app/layout.tsx · app/page.tsx</td></tr>
+      <tr><td><span class="tag p2">P2</span></td><td>"Unlimited / per day" 文案矛盾</td><td>用户预期不符、搜索摘要错</td><td>pricing/page.tsx · generation-quota-card.tsx · contact/about</td></tr>
+    </table>
+    <div class="note" style="margin-top:14px"><b>唯一阻断性项是 P0。</b>其余为品牌/文案一致性，不阻断转化但建议择机处理。P0 修复量小（后端约 4 行 + 前端 4 处传参），建议立即执行。</div>
+  </div>
+</div>
+</body>
+</html>

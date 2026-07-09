@@ -30,8 +30,33 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                 description: "Please login to subscribe.",
             });
             trackEvent("checkout_redirect_login", { plan });
-            router.push(`/sign-in?next=/pricing`);
+            router.push(`/sign-in?redirect_to=${encodeURIComponent('/pricing')}&source=pricing&reason=checkout_required`);
             return;
+        }
+
+        // Determine where to return after payment based on source param
+        const source = new URLSearchParams(window.location.search).get("source") || "";
+        const redirectPaths: Record<string, string> = {
+            'dragon_ball_fusion_quota': '/dragon-ball',
+            'dragon_ball_hd_download': '/dragon-ball',
+            'dragon_ball_result_next_step': '/dragon-ball',
+            'pokemon_quota': '/pokemon',
+            'pokemon_hd': '/pokemon',
+            'ai_studio': '/ai',
+        };
+        let redirectPath = redirectPaths[source];
+        if (!redirectPath) {
+            // No known source — try referrer path, fallback to /dragon-ball
+            try {
+                const referrer = document.referrer;
+                if (referrer) {
+                    const refUrl = new URL(referrer);
+                    if (refUrl.origin === window.location.origin && refUrl.pathname !== '/pricing') {
+                        redirectPath = refUrl.pathname;
+                    }
+                }
+            } catch {}
+            redirectPath = redirectPath || '/dragon-ball';
         }
 
         setIsLoading(true);
@@ -39,7 +64,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
             const response = await fetch("/api/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ plan }),
+                body: JSON.stringify({ plan, redirect_path: redirectPath }),
             });
 
             const data = await response.json();
@@ -92,7 +117,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                 />
                             </button>
                             <span className={`text-sm ${billingInterval === "yearly" ? "font-bold text-foreground" : "text-muted-foreground"}`}>
-                                Yearly <span className="text-green-500 font-bold ml-1">(Save 17%)</span>
+                                Yearly <span className="text-green-500 font-bold ml-1">(Save 33%)</span>
                             </span>
                         </div>
                     </section>
@@ -117,7 +142,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                                     <span className="text-5xl font-bold text-foreground">$0</span>
                                                     <span className="text-muted-foreground text-lg">forever</span>
                                                 </div>
-                                                <p className="text-muted-foreground">Try all fusion generators</p>
+                                                <p className="text-muted-foreground">Try Dragon Ball fusions free</p>
                                             </div>
                                         </div>
                                         <div className="p-6 pt-0 space-y-6 flex-1 flex flex-col">
@@ -126,7 +151,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">2 free fusions daily</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">2 free fusions to start</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
@@ -155,7 +180,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                             </div>
                                             <div className="pt-4 mt-auto">
                                                 <Link
-                                                    href="/ai"
+                                                    href="/dragon-ball"
                                                     className="inline-flex items-center justify-center whitespace-nowrap rounded-md ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-background hover:text-accent-foreground px-4 py-2 w-full h-12 text-lg font-medium transition-all duration-200 border-primary/20 text-primary hover:bg-primary/5"
                                                 >
                                                     Start Creating Free
@@ -176,7 +201,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                     <div className="rounded-lg bg-card text-card-foreground shadow-xl h-full transition-all duration-300 transform hover:scale-105 border-2 border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10 flex flex-col relative overflow-hidden">
                                         {billingInterval === "yearly" && (
                                             <div className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse shadow-sm">
-                                                SAVE 17%
+                                                SAVE 33%
                                             </div>
                                         )}
                                         <div className="absolute top-0 right-0 p-2">
@@ -185,11 +210,11 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
 
                                         <div className="flex flex-col space-y-1.5 p-6 text-center pb-4">
                                             <div className="flex items-center justify-center mb-4">
-                                                <div className="p-4 rounded-full bg-primary/20 ring-4 ring-primary/10" aria-label="Pro Unlimited Plan Icon" role="img">
+                                                <div className="p-4 rounded-full bg-primary/20 ring-4 ring-primary/10" aria-label="Pro Plan Icon" role="img">
                                                     <Crown className="h-8 w-8 text-primary" aria-hidden="true" />
                                                 </div>
                                             </div>
-                                            <h3 className="tracking-tight text-3xl font-bold text-foreground">Pro Unlimited</h3>
+                                            <h3 className="tracking-tight text-3xl font-bold text-foreground">Pro</h3>
                                             <div className="space-y-2 mt-2">
                                                 <div className="flex items-baseline justify-center gap-1">
                                                     <span className="text-5xl font-extrabold text-foreground">
@@ -218,8 +243,8 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                                         <Check className="h-3 w-3 text-primary" />
                                                     </div>
                                                     <div className="text-left">
-                                                        <span className="font-semibold text-foreground">Unlimited Relax Mode</span>
-                                                        <p className="text-xs text-muted-foreground">Keep creating even after fast usage</p>
+                                                        <span className="font-semibold text-foreground">300 Generations / Month</span>
+                                                        <p className="text-xs text-muted-foreground">High monthly allowance with fast GPU priority</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-start gap-3">
@@ -249,11 +274,11 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                                 >
                                                     {isLoading ? (
                                                         <>
-                                                            <Loader2 className="nr-2 h-4 w-4 animate-spin" />
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                                             Redirecting...
                                                         </>
                                                     ) : (
-                                                        "Get Pro Unlimited"
+                                                        "Get Pro"
                                                     )}
                                                 </button>
                                                 <p className="text-xs text-center text-muted-foreground mt-3">
@@ -347,7 +372,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                     </li>
                                 </ul>
                                 <p className="text-xs text-muted-foreground/80 mt-4 italic">
-                                    *Unlimited usage is subject to fair use and system capacity limits.
+                                    *300 fusions per month, subject to fair use.
                                 </p>
                             </div>
 
@@ -362,8 +387,8 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                         <p className="text-base text-muted-foreground mt-1">Pro users get access to our high-speed GPU cluster. Images generate in seconds, skipping the free queue completely.</p>
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-foreground">Is the "Unlimited" really unlimited?</p>
-                                        <p className="text-base text-muted-foreground mt-1">Yes! You have a high allowance of Fast Generations. If you exceed it, you can still generate unlimited images in Relax Mode (slightly slower).</p>
+                                        <p className="font-semibold text-foreground">How many generations do I get per month?</p>
+                                        <p className="text-base text-muted-foreground mt-1">Pro includes 300 fast generations per month with HD quality, no watermark, and priority queue. The quota resets each month.</p>
                                     </div>
                                     <div>
                                         <p className="font-semibold text-foreground">Can I use images commercially?</p>

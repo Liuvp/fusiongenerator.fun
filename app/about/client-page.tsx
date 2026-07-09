@@ -44,7 +44,7 @@ export default function AboutPage() {
                                 <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">An AI Character Fusion Tool for Creative Fans Worldwide</span>
                             </h1>
                             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                                <Link href="/" className="text-foreground font-semibold hover:text-primary transition-colors">Fusion Generator</Link> is the ultimate platform for creating amazing Dragon Ball fusions, Pokemon fusions, and AI-powered character mashups. We make fusion creativity accessible, fun, and limitless.
+                                <Link href="/" className="text-foreground font-semibold hover:text-primary transition-colors">Fusion Generator</Link> is the ultimate platform for creating amazing Dragon Ball fusions with AI-powered character mashups. We make fusion creativity accessible, fun, and limitless.
                             </p>
                         </div>
 
@@ -73,7 +73,7 @@ export default function AboutPage() {
                                 </div>
                                 <div className="p-6 pt-0">
                                     <p className="text-muted-foreground">
-                                        Join thousands of Dragon Ball and Pokemon fans creating, sharing, and celebrating amazing fusion art. Our gallery showcases the best community creations from around the world.
+                                        Join thousands of Dragon Ball fans creating, sharing, and celebrating amazing fusion art. Our gallery showcases the best community creations from around the world.
                                     </p>
                                 </div>
                             </div>
@@ -102,13 +102,13 @@ export default function AboutPage() {
                                 </h2>
                                 <div className="space-y-6 text-muted-foreground">
                                     <p>
-                                        Fusion Generator was born from a simple question: "What if we could fuse any two characters together?" As lifelong fans of Dragon Ball and Pokemon, we've always been fascinated by the concept of fusion - the idea that two characters could combine to create something entirely new and powerful.
+                                        Fusion Generator was born from a simple question: "What if we could fuse any two characters together?" As lifelong fans of Dragon Ball, we've always been fascinated by the concept of fusion - the idea that two characters could combine to create something entirely new and powerful.
                                     </p>
                                     <p>
                                         Traditional fusion art required hours of manual work and artistic skill. We wanted to democratize this creative process, making it accessible to everyone regardless of their artistic ability. Using advanced AI technology, we've built a platform that can generate fusion characters in seconds while maintaining quality and creativity.
                                     </p>
                                     <p>
-                                        Today, Fusion Generator supports Dragon Ball fusions (from Goku and Vegeta to Frieza and Cell), Pokemon fusions (covering all generations 1-9), and even custom AI-powered character fusions. Whether you're creating for fun, inspiration, or professional projects, we're here to help you bring your fusion visions to life.
+                                        Today, Fusion Generator supports Dragon Ball fusions (from Goku and Vegeta to Frieza and Cell). Whether you're creating for fun, inspiration, or professional projects, we're here to help you bring your fusion visions to life.
                                     </p>
                                 </div>
                             </div>
@@ -141,7 +141,7 @@ export default function AboutPage() {
                                     <div>
                                         <h3 className="font-semibold mb-2">Multiple Fusion Types</h3>
                                         <p className="text-muted-foreground">
-                                            Create Dragon Ball Z fusions, Pokemon infinite fusions, or custom AI character mashups - all in one platform.
+                                            Create Dragon Ball Z fusions with AI - all in one platform.
                                         </p>
                                     </div>
                                 </div>
@@ -163,7 +163,7 @@ export default function AboutPage() {
                                     <div>
                                         <h3 className="font-semibold mb-2">Free to Start</h3>
                                         <p className="text-muted-foreground">
-                                            Everyone gets 5 free fusions daily. No credit card required. Upgrade anytime for unlimited creations and HD quality.
+                                            Everyone gets 2 free fusions to start. No credit card required. Upgrade anytime for 300 fusions/month and HD quality.
                                         </p>
                                     </div>
                                 </div>
@@ -236,7 +236,7 @@ export default function AboutPage() {
                         >
                             <h2 className="text-2xl font-bold mb-4">Ready to Create Your First Fusion?</h2>
                             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                                Join thousands of creators making amazing Dragon Ball and Pokemon fusions. Start for free today - no signup required!
+                                Join thousands of creators making amazing Dragon Ball fusions. Start for free today - no signup required!
                             </p>
                             <div className="flex flex-wrap gap-4 justify-center">
                                 <Link
@@ -245,13 +245,6 @@ export default function AboutPage() {
                                 >
                                     <Zap className="mr-2 h-4 w-4" />
                                     Create Dragon Ball Fusion
-                                </Link>
-                                <Link
-                                    href="/pokemon"
-                                    className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8"
-                                >
-                                    <Sparkles className="mr-2 h-4 w-4" />
-                                    Create Pokemon Fusion
                                 </Link>
                             </div>
                         </div>

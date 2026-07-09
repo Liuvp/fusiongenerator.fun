@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as fal from "@fal-ai/serverless-client";
 import { SYSTEM_PROMPT, NEGATIVE_PROMPT, DRAGON_BALL_SYSTEM_PROMPT, DRAGON_BALL_NEGATIVE_PROMPT } from '@/lib/prompt-builder';
-import { checkIPRateLimit, checkUserDailyQuota, checkVIPUserDailyQuota, getClientIP } from '@/lib/rate-limit';
+import { checkIPRateLimit, checkUserDailyQuota, checkProUserMonthlyQuota, getClientIP } from '@/lib/rate-limit';
 import { createClient } from '@/utils/supabase/server';
 import { DB_CHARACTERS, DB_FUSION_STYLES, buildDBPrompt } from '@/lib/dragon-ball-data';
 import { POKEMON_DATABASE, buildPokemonPrompt } from '@/lib/pokemon-data';
@@ -12,12 +12,37 @@ fal.config({
 });
 
 // In-memory fallback for rate limiting (when Redis fails)
-const fallbackCache = new Map<string, number>();
+// TTL: 30 minutes, Max entries: 10,000
+const fallbackCache = new Map<string, { count: number; expires: number }>();
+const FALLBACK_TTL = 30 * 60 * 1000; // 30 minutes
+const FALLBACK_MAX_ENTRIES = 10_000;
+
+function fallbackGet(ip: string): number {
+    const entry = fallbackCache.get(ip);
+    if (!entry || entry.expires < Date.now()) {
+        fallbackCache.delete(ip);
+        return 0;
+    }
+    return entry.count;
+}
+
+function fallbackSet(ip: string, count: number): void {
+    // Evict oldest entries if at capacity
+    if (fallbackCache.size >= FALLBACK_MAX_ENTRIES) {
+        const oldestKey = fallbackCache.keys().next().value;
+        if (oldestKey) fallbackCache.delete(oldestKey);
+    }
+    fallbackCache.set(ip, { count, expires: Date.now() + FALLBACK_TTL });
+}
 
 export async function POST(request: NextRequest) {
+    let user = null;
+    let isVIP = false;
+    let customerProfile: any = null;
+    let clientIP = "127.0.0.1";
+
     try {
         const supabase = await createClient();
-        let user = null;
 
         // 0. Check for Authorization Header (Bearer Token) override or Session
         const authHeader = request.headers.get('Authorization');
@@ -33,46 +58,53 @@ export async function POST(request: NextRequest) {
             user = sessionUser;
         }
 
-        const clientIP = getClientIP(request) || "127.0.0.1";
+        clientIP = getClientIP(request) || "127.0.0.1";
 
         // Quota Logic Breakdown
-        let isVIP = false;
         let remainingQuota = 0;
         let limitQuota = 0;
         let usedQuota = 0;
-        let customerProfile: any = null;
 
         // --- BRANCH: ANONYMOUS vs LOGGED IN ---
 
         if (!user) {
-            // ANONYMOUS Logic: Check IP Rate Limit via Redis
-            if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-                console.warn("Redis not configured, denying anonymous access.");
-                return NextResponse.json({ error: "Anonymous generation temporarily unavailable." }, { status: 503 });
+            // ANONYMOUS Logic: Check IP Rate Limit via Redis (with memory fallback)
+
+            // Burst protection: 3 requests per minute per IP
+            try {
+                const ipCheck = await checkIPRateLimit(clientIP);
+                if (!ipCheck.allowed) {
+                    return NextResponse.json({
+                        error: "Too many requests. Please wait a moment before trying again.",
+                        isLimitReached: true,
+                        reason: "burst",
+                    }, { status: 429 });
+                }
+            } catch (ipErr) {
+                console.warn("IP rate limit check failed, continuing:", ipErr);
             }
 
             let usage = 1;
 
             try {
+                if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+                    throw new Error("Redis not configured");
+                }
+
                 const { Redis } = await import('@upstash/redis');
                 const redis = Redis.fromEnv();
                 const ratelimitKey = `fusion:anonymous:${clientIP}`;
 
-                // Check usage
                 usage = await redis.incr(ratelimitKey);
 
-                // Set expiry if new key (e.g., 30 days)
                 if (usage === 1) {
-                    // Non-blocking expire
-                    redis.expire(ratelimitKey, 60 * 60 * 24 * 30).catch(e => console.warn("Redis expire failed", e));
+                    redis.expire(ratelimitKey, 60 * 60 * 24).catch(e => console.warn("Redis expire failed", e));
                 }
             } catch (redisErr) {
-                console.warn("[RateLimit] Redis failed, switching to Memory Fallback:", redisErr);
-                // Fallback: Use memory cache
-                const current = fallbackCache.get(clientIP) || 0;
+                console.warn("[RateLimit] Redis unavailable, switching to Memory Fallback:", redisErr instanceof Error ? redisErr.message : redisErr);
+                const current = fallbackGet(clientIP);
                 usage = current + 1;
-                fallbackCache.set(clientIP, usage);
-                console.log(`[RateLimit] Memory Fallback: IP ${clientIP} usage ${usage}`);
+                fallbackSet(clientIP, usage);
             }
 
             if (usage > 2) {
@@ -82,7 +114,6 @@ export async function POST(request: NextRequest) {
                 }, { status: 429 }); // Using 429 for Rate Limit
             }
 
-            console.log(`Anonymous user (IP: ${clientIP}) used 1 free credit.`);
             remainingQuota = Math.max(0, 2 - usage);
 
         } else {
@@ -98,43 +129,110 @@ export async function POST(request: NextRequest) {
             isVIP = !!subscription;
 
             if (isVIP) {
-                const quota = await checkVIPUserDailyQuota(user.id);
+                const quota = await checkProUserMonthlyQuota(user.id);
                 if (!quota.allowed) {
-                    return NextResponse.json({
-                        error: 'Daily limit reached for VIP plan (10 generations/day).',
-                        used: quota.used,
-                        limit: 10,
-                        upgradeUrl: '/pricing',
-                    }, { status: 429 });
+                    // VIP monthly quota exhausted — fallback to DB credits (refill packs)
+                    const { createServiceRoleClient } = await import('@/utils/supabase/service-role');
+                    const adminClient = createServiceRoleClient();
+
+                    const { data: customer } = await adminClient
+                        .from("customers")
+                        .select("id, credits")
+                        .eq("user_id", user.id)
+                        .single();
+
+                    if (!customer || customer.credits < 1) {
+                        return NextResponse.json({
+                            error: 'Monthly limit reached for Pro plan (300 fusions/month). Purchase a Refill pack for more.',
+                            used: quota.used,
+                            limit: 300,
+                            upgradeUrl: '/pricing',
+                        }, { status: 429 });
+                    }
+
+                    // Atomic CAS deduction from DB credits
+                    const { data: deducted, error: deductErr } = await adminClient
+                        .from("customers")
+                        .update({ credits: customer.credits - 1 })
+                        .eq("id", customer.id)
+                        .eq("credits", customer.credits)
+                        .select("id, credits")
+                        .single();
+
+                    if (deductErr || !deducted) {
+                        return NextResponse.json({
+                            error: 'Monthly limit reached for Pro plan (300 fusions/month). Purchase a Refill pack for more.',
+                            used: quota.used,
+                            limit: 300,
+                            upgradeUrl: '/pricing',
+                        }, { status: 429 });
+                    }
+
+                    // VIP using refill credits — track for refund on failure
+                    customerProfile = deducted;
+                    usedQuota = quota.used;
+                    remainingQuota = deducted.credits; // remaining refill credits
+                    limitQuota = 300;
+                } else {
+                    usedQuota = quota.used;
+                    remainingQuota = quota.remaining;
+                    limitQuota = 300;
                 }
-                usedQuota = quota.used;
-                remainingQuota = quota.remaining;
-                limitQuota = 10;
             } else {
                 // Free User Logic (Credits)
                 const COST_PER_GEN = 1;
-                const { data: customer, error: custError } = await supabase
+
+                // Use Service Role Client for atomic deduction
+                const { createServiceRoleClient } = await import('@/utils/supabase/service-role');
+                const adminClient = createServiceRoleClient();
+
+                // Read-then-CAS: prevents TOCTOU race conditions
+                const { data: customer } = await adminClient
                     .from("customers")
-                    .select("credits, id")
+                    .select("id, credits")
                     .eq("user_id", user.id)
                     .single();
 
-                if (customer) {
-                    customerProfile = customer;
-                } else {
-                    // Auto-create with 1 Credit
-                    const { data: newCustomer, error: createError } = await supabase
+                if (!customer) {
+                    // Auto-create: INSERT only (not upsert) to avoid overwriting webhook-granted credits
+                    const { error: insertErr } = await adminClient
                         .from("customers")
-                        .insert([{ user_id: user.id, credits: 1 }])  // ✅ 统一为 1 次免费额度
-                        .select("credits, id")
+                        .insert({ user_id: user.id, credits: 2 });
+                    if (insertErr) {
+                        // Row likely created by webhook race — re-read
+                        console.warn("Auto-create insert failed (race with webhook):", insertErr.message);
+                    }
+
+                    // Re-read after insert
+                    const { data: fresh } = await adminClient
+                        .from("customers")
+                        .select("id, credits")
+                        .eq("user_id", user.id)
                         .single();
-                    if (!createError && newCustomer) customerProfile = newCustomer;
+                    if (fresh) customerProfile = fresh;
+                } else {
+                    customerProfile = customer;
                 }
 
-                if ((customerProfile?.credits || 0) < COST_PER_GEN) {
+                if (!customerProfile || customerProfile.credits < COST_PER_GEN) {
                     return NextResponse.json({ error: 'Insufficient credits. Please upgrade or top up.', upgradeUrl: '/pricing' }, { status: 402 });
                 }
-                remainingQuota = customerProfile?.credits || 0;
+
+                // Atomic CAS deduction — .eq("credits", customerProfile.credits) acts as version guard
+                const { data: deducted, error: deductErr } = await adminClient
+                    .from("customers")
+                    .update({ credits: customerProfile.credits - COST_PER_GEN })
+                    .eq("id", customerProfile.id)
+                    .eq("credits", customerProfile.credits)
+                    .select("id, credits")
+                    .single();
+
+                if (deductErr || !deducted) {
+                    return NextResponse.json({ error: 'Insufficient credits. Please upgrade or top up.', upgradeUrl: '/pricing' }, { status: 402 });
+                }
+
+                customerProfile = deducted;
+                remainingQuota = deducted.credits;
             }
         }
 
@@ -206,10 +304,7 @@ export async function POST(request: NextRequest) {
 
 ${finalPrompt} ${watermarkInstruction}`;
 
-        console.log('=== Fusion Generation Request ===');
-        console.log('User:', user ? user.email : 'Anonymous');
-        console.log('IP:', clientIP);
-        console.log('Final Prompt:', fullPrompt);
+        // Debug logging removed for PII compliance
 
         // ============================================================================
         // Fal.ai API 调用
@@ -243,28 +338,12 @@ ${finalPrompt} ${watermarkInstruction}`;
         if (!imageUrl) throw new Error('No image URL in response');
 
         // ============================================================================
-        // 5️⃣ 扣费逻辑 (仅限登录的免费用户或 VIP 记录)
+        // 5️⃣ 扣费逻辑 — Credits already deducted BEFORE generation (Fix #1)
         // ============================================================================
-        if (user) {
-            if (isVIP) {
-                // VIP Quota handled by check function limit in this simplified version
-            } else if (customerProfile) {
-                const COST_PER_GEN = 1;
-                // Use Service Role Client for deduction to bypass RLS policies
-                const { createServiceRoleClient } = await import('@/utils/supabase/service-role');
-                const adminClient = createServiceRoleClient();
-
-                const { error: updateError } = await adminClient
-                    .from("customers")
-                    .update({ credits: customerProfile.credits - COST_PER_GEN })
-                    .eq("id", customerProfile.id); // Securely target by ID we verified earlier
-
-                if (updateError) {
-                    console.error("CRITICAL: Failed to deduct credit for user", user.id, updateError);
-                } else {
-                    remainingQuota = customerProfile.credits - COST_PER_GEN;
-                }
-            }
+        // If we reach here, generation succeeded and credits were already consumed.
+        // No additional deduction needed. The remainingQuota was set during pre-deduction.
+        if (user && !isVIP && customerProfile) {
+            remainingQuota = customerProfile.credits; // Already updated in step 3
         }
 
         return NextResponse.json({
@@ -275,12 +354,60 @@ ${finalPrompt} ${watermarkInstruction}`;
                 remaining: remainingQuota,
                 limit: limitQuota,
                 isVIP: isVIP,
-                type: isVIP ? 'daily_limit' : 'credits'
+                type: isVIP ? 'monthly_limit' : 'credits'
             }
         });
 
     } catch (error: any) {
         console.error('=== Generation Error ===', error);
+
+        // Refund credits if they were pre-deducted but generation failed
+        // Applies to: free users (always pre-deduct) + VIP fallback (pre-deducted from refill credits)
+        if (user && customerProfile) {
+            try {
+                const { createServiceRoleClient } = await import('@/utils/supabase/service-role');
+                const adminClient = createServiceRoleClient();
+                // CAS refund: read current credits, only refund if unchanged
+                const { data: current } = await adminClient
+                    .from("customers")
+                    .select("credits")
+                    .eq("id", customerProfile.id)
+                    .single();
+                if (current && current.credits === customerProfile.credits) {
+                    const { data: refunded } = await adminClient
+                        .from("customers")
+                        .update({ credits: current.credits + 1 })
+                        .eq("id", customerProfile.id)
+                        .eq("credits", current.credits)
+                        .select("id");
+                    if (refunded && refunded.length > 0) {
+                        console.log(`💰 Refunded 1 credit to user ${user.id} (generation failed)`);
+                    } else {
+                        console.log(`⏭️ Refund race lost for user ${user.id} — concurrent refund won`);
+                    }
+                } else {
+                    console.log(`⏭️ Refund skipped for user ${user.id} — credits changed since deduction`);
+                }
+            } catch (refundErr) {
+                console.error("CRITICAL: Failed to refund credit:", refundErr);
+            }
+        } else if (!user) {
+            // Anonymous: decrement Redis counter so failure doesn't consume a free use
+            try {
+                if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+                    const { Redis } = await import('@upstash/redis');
+                    const redis = Redis.fromEnv();
+                    const ratelimitKey = `fusion:anonymous:${clientIP}`;
+                    const current = await redis.get<number>(ratelimitKey);
+                    if (current && current > 0) {
+                        await redis.set(ratelimitKey, current - 1, { ex: 60 * 60 * 24 });
+                    }
+                }
+            } catch (decrErr) {
+                console.warn("Failed to refund anonymous quota on failure:", decrErr);
+            }
+        }
+
         return NextResponse.json(
             { error: `[API Error] ${error.message || 'Generation failed'}` },
             { status: 500 }

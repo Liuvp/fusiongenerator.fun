@@ -16,7 +16,12 @@ export async function GET(request: Request) {
   }
 
   if (redirectTo) {
-    return NextResponse.redirect(`${origin}${redirectTo}`);
+    // Prevent open redirect: only allow relative paths on same origin
+    if (redirectTo.startsWith("/") && !redirectTo.startsWith("//") && !redirectTo.includes("://")) {
+      return NextResponse.redirect(`${origin}${redirectTo}`);
+    }
+    // Invalid redirect target — fallback to home
+    console.warn(`⚠️ Blocked open redirect: ${redirectTo}`);
   }
 
   // URL to redirect to after sign up process completes

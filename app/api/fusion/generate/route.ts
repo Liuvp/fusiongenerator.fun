@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { createClient as createJsClient } from "@supabase/supabase-js";
 import * as fal from "@fal-ai/serverless-client";
 import { getUserSubscription } from "@/utils/supabase/subscriptions";
+import { checkProUserMonthlyQuota, getClientIP } from "@/lib/rate-limit";
 
 // Configure Fal.ai
 fal.config({
@@ -12,7 +13,11 @@ fal.config({
 export const maxDuration = 60; // Allow 60s for execution
 
 export async function POST(req: NextRequest) {
-    console.log("[API] Fusion Generate request received");
+    let user = null;
+    let activeCustomer: any = null;
+    let isVIP = false;
+    const COST = 1;
+
     try {
         // [DEBUG] Check Environment Config
         if (!process.env.FAL_KEY) {
@@ -27,8 +32,6 @@ export async function POST(req: NextRequest) {
             console.error("Supabase Client Init Error:", e);
             throw new Error(`[Auth Init Error] ${e.message}`);
         }
-
-        let user = null;
 
         // 0. Check for Authorization Header (Bearer Token) override
         const authHeader = req.headers.get('Authorization');
@@ -64,14 +67,11 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        let activeCustomer: any = null;
-        const COST = 1;
-
         // --- BRANCH: ANONYMOUS vs LOGGED IN ---
 
         if (!user) {
             // ANONYMOUS Logic: Check IP Rate Limit
-            const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+            const ip = getClientIP(req);
             const ratelimitKey = `fusion:anonymous:${ip}`;
             let usage = 1;
 
@@ -81,15 +81,14 @@ export async function POST(req: NextRequest) {
                     const redis = Redis.fromEnv();
                     usage = await redis.incr(ratelimitKey);
                     if (usage === 1) {
-                        await redis.expire(ratelimitKey, 60 * 60 * 24 * 30);
+                        await redis.expire(ratelimitKey, 60 * 60 * 24); // 24h TTL (synced with generate-fusion)
                     }
                 } catch (redisError: any) {
                     console.error("[RateLimit] Redis failed, using memory fallback:", redisError.message);
-                    // Fallback to memory or just allow if redis fails to prevent crashing
                     usage = 1;
                 }
             } else {
-                console.warn("[RateLimit] Redis not configured, allowing single guest access.");
+                console.warn("[RateLimit] ⚠️ Redis not configured — AI page has NO rate limiting in production!");
                 usage = 1;
             }
 
@@ -100,41 +99,125 @@ export async function POST(req: NextRequest) {
                 }, { status: 402 });
             }
 
-            console.log(`Anonymous user (IP: ${ip}) used 1 free credit.`);
-
         } else {
-            // LOGGED IN Logic: Check Credits
+            // LOGGED IN Logic: Check Subscription first, then Credits
             try {
-                const { data: customer, error: custError } = await supabase
-                    .from("customers")
-                    .select("credits, id")
-                    .eq("user_id", user.id)
-                    .single();
-
-                if (customer) {
-                    activeCustomer = customer;
-                } else if (custError && custError.code !== 'PGRST116') {
-                    throw custError;
-                } else {
-                    const { data: newCustomer, error: createError } = await supabase
-                        .from("customers")
-                        .insert([{ user_id: user.id, credits: 1 }])
-                        .select("credits, id")
-                        .single();
-
-                    if (createError) throw createError;
-                    activeCustomer = newCustomer;
-                }
-            } catch (dbError: any) {
-                console.error(">> DATABASE ERROR:", dbError.message);
-                return NextResponse.json(
-                    { error: "Service temporarily unavailable. Please try again later." },
-                    { status: 503 }
-                );
+                const subscription = await getUserSubscription(user.id);
+                isVIP = !!subscription;
+            } catch (e) {
+                console.warn("Failed to check subscription:", e);
             }
 
-            if (activeCustomer.credits < 1) {
-                return NextResponse.json({ error: "Insufficient credits. Please top up." }, { status: 402 });
+            if (!isVIP) {
+                // Free user: atomic credit deduction BEFORE generation (prevents TOCTOU)
+                try {
+                    // Use service role for atomic CAS deduction
+                    const { createServiceRoleClient } = await import('@/utils/supabase/service-role');
+                    const adminClient = createServiceRoleClient();
+
+                    // Read current credits
+                    const { data: customer } = await adminClient
+                        .from("customers")
+                        .select("id, credits")
+                        .eq("user_id", user.id)
+                        .single();
+
+                    if (!customer) {
+                        // Auto-create: INSERT only (not upsert) to avoid overwriting webhook-granted credits
+                        const { error: insertErr } = await adminClient
+                            .from("customers")
+                            .insert({ user_id: user.id, credits: 2 });
+                        if (insertErr) {
+                            // Row likely created by webhook race — re-read
+                            console.warn("Auto-create insert failed (race with webhook):", insertErr.message);
+                        }
+
+                        // Re-read after insert
+                        const { data: fresh } = await adminClient
+                            .from("customers")
+                            .select("id, credits")
+                            .eq("user_id", user.id)
+                            .single();
+                        if (fresh) activeCustomer = fresh;
+                    } else {
+                        activeCustomer = customer;
+                    }
+
+                    if (!activeCustomer || activeCustomer.credits < COST) {
+                        return NextResponse.json({ error: "Insufficient credits. Please top up.", upgradeUrl: '/pricing' }, { status: 402 });
+                    }
+
+                    // Atomic CAS deduction
+                    const { data: deducted, error: deductErr } = await adminClient
+                        .from("customers")
+                        .update({ credits: activeCustomer.credits - COST })
+                        .eq("id", activeCustomer.id)
+                        .eq("credits", activeCustomer.credits)
+                        .select("id, credits")
+                        .single();
+
+                    if (deductErr || !deducted) {
+                        return NextResponse.json({ error: "Insufficient credits. Please top up.", upgradeUrl: '/pricing' }, { status: 402 });
+                    }
+
+                    activeCustomer = deducted;
+                } catch (dbError: any) {
+                    console.error(">> DATABASE ERROR:", dbError.message);
+                    return NextResponse.json(
+                        { error: "Service temporarily unavailable. Please try again later." },
+                        { status: 503 }
+                    );
+                }
+            } else {
+                // Pro user: check monthly quota
+                const quota = await checkProUserMonthlyQuota(user.id);
+                if (!quota.allowed) {
+                    // VIP monthly quota exhausted — fallback to DB credits (refill packs)
+                    try {
+                        const { createServiceRoleClient } = await import('@/utils/supabase/service-role');
+                        const adminClient = createServiceRoleClient();
+
+                        const { data: customer } = await adminClient
+                            .from("customers")
+                            .select("id, credits")
+                            .eq("user_id", user.id)
+                            .single();
+
+                        if (!customer || customer.credits < COST) {
+                            return NextResponse.json({
+                                error: "Monthly limit reached for Pro plan (300 fusions/month). Purchase a Refill pack for more.",
+                                used: quota.used,
+                                limit: 300,
+                                type: "monthly_limit",
+                                upgradeUrl: '/pricing',
+                            }, { status: 429 });
+                        }
+
+                        // Atomic CAS deduction from refill credits
+                        const { data: deducted, error: deductErr } = await adminClient
+                            .from("customers")
+                            .update({ credits: customer.credits - COST })
+                            .eq("id", customer.id)
+                            .eq("credits", customer.credits)
+                            .select("id, credits")
+                            .single();
+
+                        if (deductErr || !deducted) {
+                            return NextResponse.json({
+                                error: "Monthly limit reached for Pro plan (300 fusions/month). Purchase a Refill pack for more.",
+                                used: quota.used,
+                                limit: 300,
+                                type: "monthly_limit",
+                                upgradeUrl: '/pricing',
+                            }, { status: 429 });
+                        }
+
+                        activeCustomer = deducted;
+                    } catch (dbError: any) {
+                        console.error("VIP fallback DB error:", dbError.message);
+                        return NextResponse.json({ error: "Service temporarily unavailable." }, { status: 503 });
+                    }
+                }
             }
         }
 
@@ -157,12 +240,10 @@ export async function POST(req: NextRequest) {
         // 3. Upload Images to Storage
         let url1, url2;
         try {
-            console.log("Uploading images to Fal Storage...");
             [url1, url2] = await Promise.all([
                 fal.storage.upload(image1),
                 fal.storage.upload(image2)
             ]);
-            console.log("Upload successful:", url1, url2);
         } catch (uploadError: any) {
             console.error("Fal Storage Upload Failed:", uploadError);
             throw new Error(`[Upload Error] ${uploadError.message || "Network error during image transfer"}`);
@@ -171,7 +252,6 @@ export async function POST(req: NextRequest) {
         // 4. Generate Fusion (Vision + Flux)
         let image2Description = "";
         try {
-            console.log("Analyzing Image 2 for fusion traits...");
             const descriptionResult: any = await fal.subscribe("fal-ai/llava-next", {
                 input: {
                     image_url: url2,
@@ -180,7 +260,6 @@ export async function POST(req: NextRequest) {
                 logs: false,
             });
             image2Description = descriptionResult.output;
-            console.log("Vision Analysis Result:", image2Description);
         } catch (e) {
             console.warn("Vision analysis failed, falling back to default prompt:", e);
             image2Description = "a distinct character";
@@ -204,26 +283,13 @@ export async function POST(req: NextRequest) {
 
             // Generate Final Image
             try {
-                console.log("Generating fusion with Flux...");
             const result: any = await fal.subscribe("fal-ai/flux/dev", {
                 input: { prompt: finalPrompt, image_url: url1, strength: 0.85 },
                 logs: true
             });
 
-            // 5. Deduct Credit
+            // 5. Credits already deducted before generation — no additional deduction needed
             let remainingCredits = activeCustomer ? activeCustomer.credits : 0;
-
-                if (user && activeCustomer) {
-                    try {
-                        const { error: updateError } = await supabase
-                            .from("customers")
-                            .update({ credits: activeCustomer.credits - COST })
-                        .eq("id", activeCustomer.id);
-
-                    if (!updateError) remainingCredits = activeCustomer.credits - COST;
-                    else console.error("Failed to deduct credit:", updateError);
-                } catch (e) { console.error("Deduction Error:", e); }
-            }
 
             const imageUrl =
                 Array.isArray(result?.images) && typeof result.images[0]?.url === "string"
@@ -247,6 +313,39 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("API Error Trace:", error);
+
+        // Refund credits if pre-deducted but generation failed
+        // Applies to: free users + VIP fallback (refill credits)
+        if (user && activeCustomer) {
+            try {
+                const { createServiceRoleClient } = await import('@/utils/supabase/service-role');
+                const adminClient = createServiceRoleClient();
+                // CAS refund: read current credits, only refund if unchanged
+                const { data: current } = await adminClient
+                    .from("customers")
+                    .select("credits")
+                    .eq("id", activeCustomer.id)
+                    .single();
+                if (current && current.credits === activeCustomer.credits) {
+                    const { data: refunded } = await adminClient
+                        .from("customers")
+                        .update({ credits: current.credits + COST })
+                        .eq("id", activeCustomer.id)
+                        .eq("credits", current.credits)
+                        .select("id");
+                    if (refunded && refunded.length > 0) {
+                        console.log(`💰 Refunded ${COST} credits to user ${user.id} (generation failed)`);
+                    } else {
+                        console.log(`⏭️ Refund race lost for user ${user.id} — concurrent refund won`);
+                    }
+                } else {
+                    console.log(`⏭️ Refund skipped for user ${user.id} — credits changed since deduction`);
+                }
+            } catch (refundErr) {
+                console.error("CRITICAL: Failed to refund credits:", refundErr);
+            }
+        }
+
         const rawMessage = typeof error?.message === "string" ? error.message : "Unknown server error";
         const normalized = rawMessage.toLowerCase();
 

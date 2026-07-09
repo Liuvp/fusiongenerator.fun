@@ -16,7 +16,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { plan } = await request.json();
+        const { plan, redirect_path } = await request.json();
         let productId;
 
         if (plan === "monthly") {
@@ -33,15 +33,6 @@ export async function POST(request: Request) {
         if (!process.env.CREEM_API_KEY) missingVars.push("CREEM_API_KEY");
         if (!process.env.CREEM_PRODUCT_ID_MONTHLY) missingVars.push("CREEM_PRODUCT_ID_MONTHLY (Raw Check)");
 
-        // Debugging: Log available env keys (don't log values for security)
-        // V3 Debugging - Checking for Systemic Env Var Failure
-        console.log("DEBUG V3: NODE_ENV =", process.env.NODE_ENV);
-        // Check if ANY secret var exists (e.g. Supabase Secret)
-        console.log("DEBUG V3: HAS_SUPABASE_SECRET =", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-        console.log("DEBUG V3: Available Env Keys =", Object.keys(process.env).filter(k => !k.startsWith("npm_") && !k.startsWith("v_")).join(", "));
-        console.log("DEBUG V3: Plan =", plan);
-        console.log("DEBUG: productId resolved to:", productId);
-
         if (!productId) missingVars.push(`Product ID for ${plan} (CREEM_PRODUCT_ID_${plan.toUpperCase()})`);
 
         if (missingVars.length > 0) {
@@ -56,12 +47,15 @@ export async function POST(request: Request) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get("origin") || "http://localhost:3000";
         const creemApiUrl = getCreemApiUrl("/checkouts");
 
-        console.log(`Checking out with API URL: ${creemApiUrl}`);
-
         // Construct request body for Creem
+        const successPath = redirect_path || '/dragon-ball';
+        const successUrl = new URL(successPath, appUrl);
+        successUrl.searchParams.set("payment", "success");
+        successUrl.hash = "fusion-studio";
+
         const requestBody = {
             product_id: productId,
-            success_url: `${appUrl}/dashboard?payment=success`,
+            success_url: successUrl.toString(),
             customer: {
                 email: user.email
             },
@@ -70,12 +64,6 @@ export async function POST(request: Request) {
                 plan: plan
             }
         };
-
-        console.log("Creating Creem checkout session:", {
-            url: creemApiUrl,
-            productId,
-            userId: user.id
-        });
 
         const response = await fetch(creemApiUrl, {
             method: "POST",

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { createServiceRoleClient } from '@/utils/supabase/service-role';
+import { getClientIP } from '@/lib/rate-limit';
 
 // POST - Grant +1 credit for sharing (anonymous users only)
 export async function POST(request: NextRequest) {
@@ -20,39 +20,57 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid platform' }, { status: 400 });
     }
 
-    // Rate limit: check if this IP already claimed share reward today
-    const forwarded = request.headers.get('x-forwarded-for');
-    const clientIP = forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+    const clientIP = getClientIP(request);
 
-    const { Redis } = await import('@upstash/redis');
-    const redis = Redis.fromEnv();
+    // Rate limit: 1 share reward per day per IP (Redis-backed, gracefully degrade if unavailable)
+    let shareKey = '';
+    let skipRedis = false;
+    try {
+      const { Redis } = await import('@upstash/redis');
+      const redis = Redis.fromEnv();
 
-    const today = new Date().toISOString().split('T')[0];
-    const shareKey = `share_reward:${clientIP}:${today}`;
-    const shareCount = await redis.incr(shareKey);
+      const today = new Date().toISOString().split('T')[0];
+      shareKey = `share_reward:${clientIP}:${today}`;
+      const shareCount = await redis.incr(shareKey);
 
-    if (shareCount === 1) {
-      await redis.expire(shareKey, 60 * 60 * 24);
+      if (shareCount === 1) {
+        await redis.expire(shareKey, 60 * 60 * 24);
+      }
+
+      if (shareCount > 1) {
+        return NextResponse.json({
+          success: true,
+          message: 'Share reward already claimed today'
+        });
+      }
+
+      // Grant +1 anonymous credit (check current value first to prevent negative)
+      const anonKey = `fusion:anonymous:${clientIP}`;
+      const current = await redis.get<number>(anonKey);
+      const currentVal = current ? parseInt(String(current)) : 0;
+
+      if (currentVal <= 0) {
+        await redis.set(anonKey, 1, { ex: 60 * 60 * 24 * 30 });
+      } else {
+        await redis.incr(anonKey);
+      }
+    } catch (redisError) {
+      console.warn('⚠️ Redis unavailable for share-reward, skipping:', redisError);
+      skipRedis = true;
     }
 
-    // Limit: 1 share reward per day per IP
-    if (shareCount > 1) {
+    if (!skipRedis) {
       return NextResponse.json({
         success: true,
-        message: 'Share reward already claimed today'
+        message: '+1 free fusion credit unlocked!',
+        platform
       });
     }
 
-    // Grant +1 anonymous credit
-    const anonKey = `fusion:anonymous:${clientIP}`;
-    await redis.decr(anonKey).catch(() => {
-      // If key doesn't exist, set it to 1 (they have 1 free use)
-      redis.set(anonKey, 1, { ex: 60 * 60 * 24 * 30 });
-    });
-
+    // Redis unavailable — still allow the share, just can't track/grant
     return NextResponse.json({
       success: true,
-      message: '+1 free fusion credit unlocked!',
+      message: 'Thanks for sharing!',
       platform
     });
   } catch (error) {

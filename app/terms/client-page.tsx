@@ -103,8 +103,6 @@ export default function TermsPage() {
                                     <p>Fusion Generator provides creation tools and preview experiences to craft fan-made character fusions with coherent rules across universes.</p>
                                     <ul className="space-y-2">
                                         <li>• <Link href="/dragon-ball" className="text-primary hover:underline">Dragon Ball Fusion</Link> tools and presets</li>
-                                        <li>• <Link href="/pokemon" className="text-primary hover:underline">Pokémon Fusion</Link> tools and presets</li>
-                                        <li>• <Link href="/ai" className="text-primary hover:underline">AI Custom Fusion</Link> workflow</li>
                                         <li>• <Link href="/gallery" className="text-primary hover:underline">Community Gallery</Link> and sharing</li>
                                         <li>• We are not affiliated with or endorsed by Toei Animation, Shueisha, Nintendo, Game Freak, or The Pokémon Company.</li>
                                     </ul>
@@ -295,7 +293,7 @@ export default function TermsPage() {
                                     </Link>
                                 </Button>
                                 <Button asChild>
-                                    <Link href="/ai">
+                                    <Link href="/dragon-ball">
                                         Start Creating
                                     </Link>
                                 </Button>

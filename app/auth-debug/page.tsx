@@ -6,10 +6,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
+function isLocalhost(): boolean {
+    if (typeof window === "undefined") return false;
+    const { hostname } = window.location;
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
 export default function AuthDebugPage() {
     const [authState, setAuthState] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [blocked, setBlocked] = useState(false);
     const supabase = createClient();
+
+    useEffect(() => {
+        if (!isLocalhost()) {
+            setBlocked(true);
+            setLoading(false);
+            return;
+        }
+    }, []);
 
     const checkAuth = async () => {
         setLoading(true);
@@ -54,18 +69,29 @@ export default function AuthDebugPage() {
     };
 
     useEffect(() => {
-        checkAuth();
+        if (isLocalhost()) {
+            checkAuth();
+        }
 
         // 监听认证状态变化
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             console.log('Auth state changed:', event, session);
-            checkAuth();
+            if (isLocalhost()) checkAuth();
         });
 
         return () => {
             subscription.unsubscribe();
         };
     }, []);
+
+    if (blocked) {
+        return (
+            <div className="container mx-auto p-8 max-w-4xl">
+                <h1 className="text-3xl font-bold mb-6">Access Denied</h1>
+                <p className="text-muted-foreground">This debug page is only available on localhost.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto p-8 max-w-4xl">

@@ -1,9 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 
-function getEnSeoImageName(series: 'dragon-ball' | 'pokemon', left: string, right: string) {
-    const s = series === 'dragon-ball' ? 'Dragon Ball fusion' : 'Pokemon fusion'
-    return `${s} ${left} and ${right} AI generated image`
+function getEnSeoImageName(left: string, right: string) {
+    return `Dragon Ball fusion ${left} and ${right} AI generated image`
 }
 
 export function GalleryPreview() {
@@ -12,15 +11,15 @@ export function GalleryPreview() {
             <div className="container mx-auto max-w-6xl">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Endless Fusion Gallery</h2>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">Explore AI-generated character fusions inspired by anime, games, and fantasy worlds.</p>
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">Explore AI-generated Dragon Ball character fusions.</p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto">
                     {/* 融合作品1 */}
                     <div className="relative group overflow-hidden rounded-lg shadow-md">
                         <Image
                             src="/gallery/Dragon-Ball-Character-Fusion-Goku-Vegeta-HD-Preview.webp"
-                            alt={getEnSeoImageName('dragon-ball', 'Goku', 'Vegeta')}
+                            alt={getEnSeoImageName('Goku', 'Vegeta')}
                             width={300}
                             height={256}
                             className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
@@ -38,27 +37,8 @@ export function GalleryPreview() {
                     {/* 融合作品2 */}
                     <div className="relative group overflow-hidden rounded-lg shadow-md">
                         <Image
-                            src="/gallery/Pokemon-Character-Fusion-Pikachu-Charizard-HD-Preview.webp"
-                            alt={getEnSeoImageName('pokemon', 'Pikachu', 'Charizard')}
-                            width={300}
-                            height={256}
-                            className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
-                            loading="lazy"
-                            decoding="async"
-                            fetchPriority="low"
-                            quality={65}
-                            sizes="(max-width: 768px) 50vw, 25vw"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                            <p className="text-white p-4 text-sm">Pokemon Fusion: Pikachu + Charizard</p>
-                        </div>
-                    </div>
-
-                    {/* 融合作品3 */}
-                    <div className="relative group overflow-hidden rounded-lg shadow-md">
-                        <Image
                             src="/gallery/Dragon-Ball-Character-Fusion-Gohan-Piccolo-HD-Preview.webp"
-                            alt={getEnSeoImageName('dragon-ball', 'Gohan', 'Piccolo')}
+                            alt={getEnSeoImageName('Gohan', 'Piccolo')}
                             width={300}
                             height={256}
                             className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
@@ -70,25 +50,6 @@ export function GalleryPreview() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                             <p className="text-white p-4 text-sm">Dragon Ball Fusion: Gohan + Piccolo</p>
-                        </div>
-                    </div>
-
-                    {/* 融合作品4 */}
-                    <div className="relative group overflow-hidden rounded-lg shadow-md">
-                        <Image
-                            src="/gallery/Pokemon-Character-Fusion-Mewtwo-Lucario-HD-Preview.webp"
-                            alt={getEnSeoImageName('pokemon', 'Mewtwo', 'Lucario')}
-                            width={300}
-                            height={256}
-                            className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
-                            loading="lazy"
-                            decoding="async"
-                            fetchPriority="low"
-                            quality={65}
-                            sizes="(max-width: 768px) 50vw, 25vw"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                            <p className="text-white p-4 text-sm">Pokemon Fusion: Mewtwo + Lucario</p>
                         </div>
                     </div>
                 </div>

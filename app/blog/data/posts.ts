@@ -85,13 +85,13 @@ export const blogPosts: BlogPost[] = [
           <h3 class="text-2xl font-bold mb-2">Ready to Try It Yourself?</h3>
           <p class="mb-4 text-muted-foreground">Experience a streamlined and user-friendly fusion generator right here. Our tool is perfect for quick creativity and sharing.</p>
           <a
-              href="/pokemon?ref=blog_guide"
+              href="/dragon-ball?ref=blog_guide"
               class="inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-full text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg transition-all"
           >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 2v20M2 12h20" />
               </svg>
-              Launch Our Pokemon Fusion Generator
+              Launch Our Dragon Ball Fusion Generator
           </a>
           <p class="text-sm text-muted-foreground mt-3">No download required. Fuse any Pokemon in seconds.</p>
       </div>
@@ -109,7 +109,7 @@ export const blogPosts: BlogPost[] = [
       <p>There are two main ways to engage:</p>
       <ol>
           <li><strong>The Full Game (Download):</strong> Search for "Pokemon Infinite Fusion download" to find the official fan game. It is free and offers a 50+ hour adventure.</li>
-          <li><strong>Online Generators & Calculators:</strong> Websites like <strong>FusionGenerator.fun</strong> offer instant, browser-based fusion creation perfect for quick fun. <a href="/pokemon" class="text-primary font-semibold hover:underline">Try our online generator here</a>.</li>
+          <li><strong>Online Generators & Calculators:</strong> Websites like <strong>FusionGenerator.fun</strong> offer instant, browser-based fusion creation perfect for quick fun. <a href="/dragon-ball" class="text-primary font-semibold hover:underline">Try our online generator here</a>.</li>
       </ol>
 
       <h2 id="vs-other">Infinite Fusion vs. Other Pokemon Fusion Generators</h2>
@@ -206,8 +206,8 @@ export const blogPosts: BlogPost[] = [
       </p>
 
       <div class="mt-8 flex gap-4">
-          <a href="/pokemon?ref=blog_tech" class="inline-flex items-center justify-center h-11 rounded-md px-8 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 transition-colors">
-              Start Pokemon Fusion
+          <a href="/dragon-ball?ref=blog_tech" class="inline-flex items-center justify-center h-11 rounded-md px-8 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 transition-colors">
+              Start Dragon Ball Fusion
           </a>
       </div>
     `,
@@ -284,8 +284,8 @@ export const blogPosts: BlogPost[] = [
       </p>
 
       <div class="mt-8 flex gap-4">
-          <a href="/ai?ref=blog_design" class="inline-flex items-center justify-center h-11 rounded-md px-8 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors">
-              Create AI Fusion
+          <a href="/dragon-ball?ref=blog_design" class="inline-flex items-center justify-center h-11 rounded-md px-8 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors">
+              Create Dragon Ball Fusion
           </a>
       </div>
     `,

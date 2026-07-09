@@ -10,7 +10,7 @@ export const HOW_TO_DATA = {
       "@type": "HowToStep",
       position: 1,
       name: "Choose Fusion Type",
-      text: "Select Dragon Ball, Pokemon, or Custom AI Fusion from the dashboard.",
+      text: "Select Dragon Ball Fusion from the dashboard.",
     },
     {
       "@type": "HowToStep",
@@ -57,7 +57,7 @@ export function HowItWorks() {
             <div className="text-center">
               <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Choose Fusion Type</h3>
-              <p className="text-gray-600">Select Dragon Ball, Pokemon, or Custom AI Fusion</p>
+              <p className="text-gray-600">Select Dragon Ball Fusion</p>
             </div>
 
             <div className="text-center">
@@ -81,7 +81,7 @@ export function HowItWorks() {
 
           <div className="flex flex-col sm:flex-row justify-center gap-4 mt-12">
             <Link
-              href="/ai"
+              href="/dragon-ball"
               className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md text-center"
             >
               Start Creating Now

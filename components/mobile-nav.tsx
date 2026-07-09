@@ -91,7 +91,7 @@ export function MobileNav({ items, user, isDashboard }: MobileNavProps) {
                     {!isDashboard && (
                       <>
                         <Button asChild variant="default" className="w-full justify-start">
-                          <Link href="/profile">Profile</Link>
+                          <Link href="/dashboard">Profile</Link>
                         </Button>
                         <Button asChild variant="outline" className="w-full justify-start">
                           <Link href="/dashboard">Dashboard</Link>

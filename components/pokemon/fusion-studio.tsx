@@ -189,13 +189,12 @@ export function PokeFusionStudio() {
         }
 
         // 未登录用户：检查是否还有免费额度
-        // 如果 quota 已加载且 remaining = 0，说明用完了
         if (!user && quota) {
             return quota.remaining > 0;
         }
 
-        // 未登录且配额未加载：允许尝试（会在 API 层面检查）
-        return true;
+        // 未登录且配额未加载：禁止尝试（API 层面也会检查，但前端不应放行）
+        return false;
     };
     const isSelectionComplete = !!(pokemon1 && pokemon2);
     const selectedCount = Number(Boolean(pokemon1)) + Number(Boolean(pokemon2));
@@ -248,7 +247,7 @@ export function PokeFusionStudio() {
     const quotaStatusCopy = useMemo(() => {
         if (quota?.isVIP) {
             return {
-                title: "VIP access unlocked",
+                title: "Pro access unlocked",
                 description: "You can generate unlimited Pokemon fusions."
             };
         }
@@ -269,7 +268,7 @@ export function PokeFusionStudio() {
         return user
             ? {
                 title: "No credits left",
-                description: "Upgrade to VIP for unlimited Pokemon fusions."
+                description: "Upgrade to Pro for unlimited Pokemon fusions."
             }
             : {
                 title: "Keep generating with a free account",
@@ -432,7 +431,7 @@ export function PokeFusionStudio() {
             } else {
                 toast({
                     title: "Quota Exceeded",
-                    description: "Upgrade to VIP for unlimited fusions!",
+                    description: "Upgrade to Pro for unlimited fusions!",
                     variant: "destructive",
                 });
                 openAuthGate("member_quota_exceeded");
@@ -536,7 +535,7 @@ export function PokeFusionStudio() {
                     <p className="text-sm text-gray-500 mt-1">Combine Iconic Pokemon with AI</p>
                 </div>
                 <Badge variant={hasQuotaAccess() ? "default" : "destructive"} className="px-3 py-1.5 min-w-[80px] justify-center self-start sm:self-auto">
-                    {quota?.isVIP ? "VIP" : `${getRemainingDisplay()} Left`}
+                    {quota?.isVIP ? "Pro" : `${getRemainingDisplay()} Left`}
                 </Badge>
             </header>
 
@@ -618,9 +617,9 @@ export function PokeFusionStudio() {
                     {shouldShowAuthOptions && !user && !hasQuotaAccessValue && (
                         <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">You've used your 2 free fusions</h4>
+                                <h4 className="font-bold text-gray-800">You&apos;ve used your 2 free fusions</h4>
                                 <p className="text-xs text-gray-600">
-                                    Create a free account to save your fusions and unlock more generations.
+                                    Create a free account to get 2 more credits, or upgrade to Pro for unlimited fusions.
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
@@ -643,38 +642,38 @@ export function PokeFusionStudio() {
                                         trackStudioEvent("pokemon_auth_gate_click", { cta: "sign_up_dialog", reason: authGateReason ?? "quota_limit" });
                                     }}
                                 >
-                                    Save My Fusions (Free)
+                                    Sign Up Free
                                 </Button>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setShowAuthOptions(false);
-                                    setDismissedAuthOptions(true);
-                                }}
-                                className="mt-3 w-full text-center text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                No thanks, I'll keep browsing
-                            </button>
+                            <Button asChild variant="ghost" className="w-full mt-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 text-xs">
+                                <Link href="/pricing?source=pokemon_quota_anon" onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "pricing_skip", reason: "quota_limit" })}>
+                                    Skip - Upgrade to Pro directly 🚀
+                                </Link>
+                            </Button>
                         </div>
                     )}
 
                     {shouldShowAuthOptions && user && !hasQuotaAccessValue && (
                         <div className="mt-6 p-4 bg-purple-50 border border-purple-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">Need more fusion credits?</h4>
+                                <h4 className="font-bold text-gray-800">Fusion Energy Depleted!</h4>
                                 <p className="text-xs text-gray-600">
-                                    Upgrade to VIP to remove limits and generate unlimited Pokemon fusions.
+                                    You&apos;ve used all free credits. Upgrade to keep fusing without limits.
                                 </p>
                             </div>
-                            <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-indigo-700 border-0">
-                                <Link
-                                    href="/pricing?source=pokemon_fusion_quota"
-                                    onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "pricing", reason: "member_quota_exceeded" })}
-                                >
-                                    Upgrade to VIP
-                                </Link>
-                            </Button>
+                            <div className="space-y-2">
+                                <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-blue-700 border-0">
+                                    <Link
+                                        href="/pricing?source=pokemon_fusion_quota"
+                                        onClick={() => trackStudioEvent("pokemon_auth_gate_click", { cta: "pricing", reason: "member_quota_exceeded" })}
+                                    >
+                                        Upgrade to Pro - 300 Fusions/month 🚀
+                                    </Link>
+                                </Button>
+                                <p className="text-[10px] text-center text-gray-500">
+                                    300 fusions/month · No watermark · HD download · Commercial license
+                                </p>
+                            </div>
                         </div>
                     )}
                 </CardContent>

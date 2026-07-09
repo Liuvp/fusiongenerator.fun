@@ -39,20 +39,20 @@ export async function GET() {
       );
     }
 
-    // 如果用户没有customer记录，创建一个默认记录
+    // 如果用户没有customer记录，创建一个默认记录（INSERT防重复）
     if (!customer) {
       const { data: newCustomer, error: createError } = await supabase
         .from('customers')
         .insert({
           user_id: user.id,
           email: user.email || 'unknown@example.com',
-          credits: 1, // 新用户赠送1积分
+          credits: 2, // 新用户赠送2积分（与全站文案对齐）
           creem_customer_id: `new_user_${user.id}`,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           metadata: {
             source: 'fusion_generator',
-            initial_credits: 1
+            initial_credits: 2
           }
         })
         .select(`
@@ -79,7 +79,7 @@ export async function GET() {
         .from('credits_history')
         .insert({
           customer_id: newCustomer.id,
-          amount: 1,
+          amount: 2,
           type: 'add',
           description: 'Welcome bonus for new user',
           metadata: { source: 'welcome_bonus' }
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 更新积分
+    // 更新积分 (使用 CAS 并发控制)
     const newCredits = customer.credits - amount;
     const { data: updatedCustomer, error: updateError } = await supabase
       .from('customers')
@@ -173,14 +173,15 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString()
       })
       .eq('user_id', user.id)
+      .eq('credits', customer.credits) // 乐观锁
       .select()
       .single();
 
-    if (updateError) {
-      console.error('Error updating credits:', updateError);
+    if (updateError || !updatedCustomer) {
+      console.error('Error updating credits (possible race condition):', updateError);
       return NextResponse.json(
-        { error: 'Failed to update credits' },
-        { status: 500 }
+        { error: 'Failed to update credits due to concurrent request' },
+        { status: 409 }
       );
     }
 

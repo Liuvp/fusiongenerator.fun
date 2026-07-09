@@ -8,22 +8,6 @@ export const FAQ_DATA = {
   mainEntity: [
     {
       "@type": "Question",
-      name: "Can I create custom character fusions with my own images?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Yes. You can upload any two images and generate a custom fusion using our AI-powered fusion tools.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What's the difference between Dragon Ball Fusion and AI Fusion?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Dragon Ball Fusion is designed for Dragon Ball characters, while AI Fusion allows you to combine any images for more flexible creations.",
-      },
-    },
-    {
-      "@type": "Question",
       name: "How long does it take to generate a fusion image?",
       acceptedAnswer: {
         "@type": "Answer",

@@ -265,15 +265,9 @@ export default function ClientPage({
 
                 <div className="pt-4 border-t">
                     <p className="text-xs text-muted-foreground text-center mb-2">Start creating without an account:</p>
-                    <div className="grid grid-cols-3 gap-2">
-                        <Link href="/pokemon" className="text-xs text-center p-2 rounded-md border hover:bg-muted/50 transition-colors">
-                            Pokemon
-                        </Link>
+                    <div className="flex justify-center">
                         <Link href="/dragon-ball" className="text-xs text-center p-2 rounded-md border hover:bg-muted/50 transition-colors">
                             Dragon Ball
-                        </Link>
-                        <Link href="/ai" className="text-xs text-center p-2 rounded-md border hover:bg-muted/50 transition-colors">
-                            AI Fusion
                         </Link>
                     </div>
                 </div>

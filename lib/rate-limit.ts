@@ -104,18 +104,24 @@ export async function checkUserDailyQuota(userId: string): Promise<{ allowed: bo
 }
 
 /**
- * VIP用户每日配额 - 每天10次
+ * Pro 用户每月配额 - 每月300次
+ * 按自然月计数，key 在月底自动过期。
  */
-export async function checkVIPUserDailyQuota(userId: string): Promise<{ allowed: boolean; remaining: number; used: number }> {
-    const today = new Date().toISOString().split('T')[0];
-    const key = `quota:vip:${userId}:${today}`;
-    const limit = 10;
+export async function checkProUserMonthlyQuota(userId: string): Promise<{ allowed: boolean; remaining: number; used: number }> {
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const key = `quota:pro:${userId}:${ym}`;
+    const limit = 300;
+
+    // 计算到月底的剩余秒数，作为 Redis key 的过期时间（自然月滚动）
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const ttlSeconds = Math.ceil((endOfMonth.getTime() - now.getTime()) / 1000);
 
     if (!redis) {
         // 开发环境：使用内存缓存
         const cached = memoryCache.get(key);
         const current = cached ? cached.value + 1 : 1;
-        memoryCache.set(key, { value: current, expires: Date.now() + 86400000 });
+        memoryCache.set(key, { value: current, expires: Date.now() + ttlSeconds * 1000 });
 
         return {
             allowed: current <= limit,
@@ -128,7 +134,7 @@ export async function checkVIPUserDailyQuota(userId: string): Promise<{ allowed:
     const current = await redis!.incr(key);
 
     if (current === 1) {
-        await redis!.expire(key, 86400);
+        await redis!.expire(key, ttlSeconds);
     }
 
     return {
@@ -139,21 +145,48 @@ export async function checkVIPUserDailyQuota(userId: string): Promise<{ allowed:
 }
 
 /**
- * 获取客户端IP地址
+ * 获取客户端IP地址 (防伪造)
+ *
+ * Priority:
+ * 1. x-vercel-forwarded-for  — Vercel 专用头，不可伪造
+ * 2. x-real-ip               — 反向代理设置（nginx等），可信
+ * 3. x-forwarded-for         — 取最后一个（链尾 = 真实客户端IP）
+ * 4. Hash fallback           — 无法获取IP时，基于 UA+Accept 生成稳定指纹
  */
 export function getClientIP(request: Request): string {
-    const forwarded = request.headers.get('x-forwarded-for');
+    // 1. Vercel 专用安全头（不可伪造）
+    const vercelForwarded = request.headers.get('x-vercel-forwarded-for');
+    if (vercelForwarded) {
+        return `v:${vercelForwarded.split(',')[0].trim()}`;
+    }
+
+    // 2. 反向代理设置的真实IP
     const realIP = request.headers.get('x-real-ip');
+    if (realIP && realIP.trim()) {
+        return `r:${realIP.trim()}`;
+    }
 
+    // 3. x-forwarded-for — 取链尾（最右侧 = 客户端原始IP）
+    //    客户端可伪造第一个条目，但 Vercel/代理会在末尾追加真实IP
+    const forwarded = request.headers.get('x-forwarded-for');
     if (forwarded) {
-        return forwarded.split(',')[0].trim();
+        const parts = forwarded.split(',').map(p => p.trim()).filter(Boolean);
+        if (parts.length > 0) {
+            return `f:${parts[parts.length - 1]}`;
+        }
     }
 
-    if (realIP) {
-        return realIP;
+    // 4. Hash fallback: 基于 UA + Accept 生成稳定指纹，防止完全绕过
+    const ua = request.headers.get('user-agent') || '';
+    const accept = request.headers.get('accept') || '';
+    const raw = `${ua}|${accept}`;
+    let hash = 0;
+    for (let i = 0; i < raw.length; i++) {
+        const chr = raw.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0;
     }
-
-    return 'unknown';
+    return `h:${Math.abs(hash).toString(36)}`;
 }
 
 /**
@@ -204,12 +237,13 @@ export async function getAnonymousRateLimit(ip: string): Promise<{ value: number
 }
 
 /**
- * 只读检查：VIP 用户 (不扣减)
+ * 只读检查：Pro 用户 (不扣减)，按自然月计数
  */
-export async function getVIPQuotaReadOnly(userId: string): Promise<{ value: number; limit: number; remaining: number }> {
-    const today = new Date().toISOString().split('T')[0];
-    const key = `quota:vip:${userId}:${today}`;
-    const limit = 10;
+export async function getProQuotaReadOnly(userId: string): Promise<{ value: number; limit: number; remaining: number }> {
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const key = `quota:pro:${userId}:${ym}`;
+    const limit = 300;
 
     let current = 0;
     if (!redis) {
