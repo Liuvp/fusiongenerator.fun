@@ -420,8 +420,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                         prompt: fullPrompt,
                         image_urls: dbImageUrls,
                         image_size: "square_hd",
-                        enable_safety_checker: true,
-                        safety_tolerance: "4",
+                        enable_safety_checker: false,
                         output_format: "png",
                     });
                 } catch (editErr: any) {
@@ -429,8 +428,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                     result = await callFalAPI("fal-ai/flux-2-pro", {
                         prompt: fullPrompt,
                         image_size: "square_hd",
-                        enable_safety_checker: true,
-                        safety_tolerance: "4",
+                        enable_safety_checker: false,
                         output_format: "png",
                     });
                 }
@@ -439,8 +437,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                 result = await callFalAPI("fal-ai/flux-2-pro", {
                     prompt: fullPrompt,
                     image_size: "square_hd",
-                    enable_safety_checker: true,
-                    safety_tolerance: "4",
+                    enable_safety_checker: false,
                     output_format: "png",
                 });
             }
