@@ -263,9 +263,10 @@ export async function POST(request: NextRequest) {
                 `${imageBaseUrl}${char1.imageUrl}`,
                 `${imageBaseUrl}${char2.imageUrl}`,
             ];
-            finalPrompt = `Dragon Ball fusion of ${char1.name} and ${char2.name}, combining their hair, outfit, and colors into one character.
+            finalPrompt = `Fuse the two Dragon Ball characters shown in the reference images into a single coherent fusion character.
+Combine ${char1.name} and ${char2.name} - blend their hair, facial features, clothing, colors, and distinctive traits into one unified character.
 ${style?.prompt || ''}.
-Akira Toriyama anime art style, cel shaded, high quality, dynamic pose.
+Akira Toriyama art style, anime cel shading, masterpiece, high quality, dynamic pose, energetic aura background.
 ${customPromptRaw || ''}`;
             console.log(`[DB Fusion] Generating with reference images: ${char1.name} + ${char2.name} (${style?.name || 'default'})`);
             console.log(`[DB Fusion] Image URLs:`, dbImageUrls);
@@ -416,31 +417,26 @@ ${finalPrompt} ${watermarkInstruction}`;
             };
 
             if (dbImageUrls.length > 0) {
-                // DB 融合：传入角色参考图
+                // DB 融合：传入角色参考图（flux/dev 支持 image_url，用第一个角色图做图生图）
                 try {
-                    result = await callFalAPI("fal-ai/flux-2-pro/edit", {
+                    result = await callFalAPI("fal-ai/flux/dev", {
                         prompt: fullPrompt,
-                        image_urls: dbImageUrls,
+                        image_url: dbImageUrls[0],
                         image_size: "square_hd",
-                        enable_safety_checker: false,
-                        output_format: "png",
+                        strength: 0.75,
                     });
                 } catch (editErr: any) {
-                    console.warn("[DB Fusion] Edit endpoint failed, falling back to text-to-image:", editErr.message);
-                    result = await callFalAPI("fal-ai/flux-2-pro", {
+                    console.warn("[DB Fusion] Image-to-image failed, falling back to text-to-image:", editErr.message);
+                    result = await callFalAPI("fal-ai/flux/dev", {
                         prompt: fullPrompt,
                         image_size: "square_hd",
-                        enable_safety_checker: false,
-                        output_format: "png",
                     });
                 }
             } else {
                 // 其他模式：纯文生图
-                result = await callFalAPI("fal-ai/flux-2-pro", {
+                result = await callFalAPI("fal-ai/flux/dev", {
                     prompt: fullPrompt,
                     image_size: "square_hd",
-                    enable_safety_checker: false,
-                    output_format: "png",
                 });
             }
         } catch (falErr: any) {
