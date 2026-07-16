@@ -421,7 +421,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                         image_urls: dbImageUrls,
                         image_size: "square_hd",
                         enable_safety_checker: true,
-                        safety_tolerance: "2",
+                        safety_tolerance: "4",
                         output_format: "png",
                     });
                 } catch (editErr: any) {
@@ -430,7 +430,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                         prompt: fullPrompt,
                         image_size: "square_hd",
                         enable_safety_checker: true,
-                        safety_tolerance: "2",
+                        safety_tolerance: "4",
                         output_format: "png",
                     });
                 }
@@ -440,7 +440,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                     prompt: fullPrompt,
                     image_size: "square_hd",
                     enable_safety_checker: true,
-                    safety_tolerance: "2",
+                    safety_tolerance: "4",
                     output_format: "png",
                 });
             }
