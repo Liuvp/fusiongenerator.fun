@@ -327,46 +327,91 @@ ${finalPrompt} ${watermarkInstruction}`;
         // ============================================================================
         let result: any;
         try {
+            // 直接使用 fetch 调用 fal.ai Queue API（绕过旧 SDK v0.14.3 兼容性问题）
+            const callFalAPI = async (endpoint: string, input: Record<string, unknown>) => {
+                const apiKey = process.env.FAL_KEY;
+                if (!apiKey) throw new Error("FAL_KEY not configured");
+
+                const submitUrl = `https://queue.fal.run/${endpoint}`;
+
+                // 1. 提交请求
+                console.log(`[Fal API] POST ${submitUrl}`);
+                const submitRes = await fetch(submitUrl, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Key ${apiKey}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(input),
+                });
+
+                if (!submitRes.ok) {
+                    const errorBody = await submitRes.text();
+                    console.error(`[Fal API] Submit failed: ${submitRes.status}`, errorBody);
+                    throw new Error(`Fal API submit failed (${submitRes.status}): ${errorBody}`);
+                }
+
+                const { request_id } = await submitRes.json();
+                console.log(`[Fal API] Request submitted: ${request_id}`);
+
+                // 2. 轮询状态
+                const statusUrl = `https://queue.fal.run/${endpoint}/requests/${request_id}/status`;
+                let status = "IN_QUEUE";
+                let attempts = 0;
+                const maxAttempts = 120; // 最多等待 120 秒
+                while (status === "IN_QUEUE" || status === "IN_PROGRESS") {
+                    if (attempts++ >= maxAttempts) {
+                        throw new Error(`Fal API timeout after ${maxAttempts}s`);
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    const statusRes = await fetch(statusUrl, {
+                        headers: { "Authorization": `Key ${apiKey}` },
+                    });
+                    const statusData = await statusRes.json();
+                    status = statusData.status;
+                    if (status === "COMPLETED") break;
+                    if (status === "FAILED" || status === "ERROR") {
+                        throw new Error(`Fal API request failed: ${JSON.stringify(statusData)}`);
+                    }
+                }
+
+                // 3. 获取结果
+                const resultUrl = `https://queue.fal.run/${endpoint}/requests/${request_id}`;
+                const resultRes = await fetch(resultUrl, {
+                    headers: { "Authorization": `Key ${apiKey}` },
+                });
+                return resultRes.json();
+            };
+
             if (dbImageUrls.length > 0) {
                 // DB 融合：传入角色参考图
                 try {
-                    result = await fal.subscribe("fal-ai/flux-2-pro/edit", {
-                        input: {
-                            prompt: fullPrompt,
-                            image_urls: dbImageUrls,
-                            image_size: "square_hd",
-                            enable_safety_checker: true,
-                            safety_tolerance: "2",
-                            output_format: "png",
-                        },
+                    result = await callFalAPI("fal-ai/flux-2-pro/edit", {
+                        prompt: fullPrompt,
+                        image_urls: dbImageUrls,
+                        image_size: "square_hd",
+                        enable_safety_checker: true,
+                        safety_tolerance: "2",
+                        output_format: "png",
                     });
                 } catch (editErr: any) {
-                    // 回退到纯文生图（可能因图片格式、网络等导致 edit 端点失败）
-                    console.warn("[DB Fusion] Edit endpoint failed, falling back to text-to-image. Error:", {
-                        status: editErr.status,
-                        message: editErr.message,
-                        body: editErr.body ? JSON.stringify(editErr.body) : undefined,
-                    });
-                    result = await fal.subscribe("fal-ai/flux-2-pro", {
-                        input: {
-                            prompt: fullPrompt,
-                            image_size: "square_hd",
-                            enable_safety_checker: true,
-                            safety_tolerance: "2",
-                            output_format: "png",
-                        },
-                    });
-                }
-            } else {
-                // 其他模式：纯文生图
-                result = await fal.subscribe("fal-ai/flux-2-pro", {
-                    input: {
+                    console.warn("[DB Fusion] Edit endpoint failed, falling back to text-to-image:", editErr.message);
+                    result = await callFalAPI("fal-ai/flux-2-pro", {
                         prompt: fullPrompt,
                         image_size: "square_hd",
                         enable_safety_checker: true,
                         safety_tolerance: "2",
                         output_format: "png",
-                    },
+                    });
+                }
+            } else {
+                // 其他模式：纯文生图
+                result = await callFalAPI("fal-ai/flux-2-pro", {
+                    prompt: fullPrompt,
+                    image_size: "square_hd",
+                    enable_safety_checker: true,
+                    safety_tolerance: "2",
+                    output_format: "png",
                 });
             }
         } catch (falErr: any) {
