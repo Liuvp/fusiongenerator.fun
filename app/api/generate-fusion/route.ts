@@ -336,6 +336,7 @@ ${finalPrompt} ${watermarkInstruction}`;
 
                 // 1. 提交请求
                 console.log(`[Fal API] POST ${submitUrl}`);
+                console.log(`[Fal API] Input:`, JSON.stringify(input).substring(0, 300));
                 const submitRes = await fetch(submitUrl, {
                     method: "POST",
                     headers: {
@@ -345,20 +346,30 @@ ${finalPrompt} ${watermarkInstruction}`;
                     body: JSON.stringify(input),
                 });
 
+                const submitBody = await submitRes.text();
+                console.log(`[Fal API] Submit response: ${submitRes.status}`, submitBody.substring(0, 500));
+
                 if (!submitRes.ok) {
-                    const errorBody = await submitRes.text();
-                    console.error(`[Fal API] Submit failed: ${submitRes.status}`, errorBody);
-                    throw new Error(`Fal API submit failed (${submitRes.status}): ${errorBody}`);
+                    throw new Error(`Fal API submit failed (${submitRes.status}): ${submitBody}`);
                 }
 
-                const { request_id } = await submitRes.json();
-                console.log(`[Fal API] Request submitted: ${request_id}`);
+                let requestId: string;
+                try {
+                    const parsed = JSON.parse(submitBody);
+                    requestId = parsed.request_id;
+                    if (!requestId) {
+                        throw new Error(`No request_id in response: ${submitBody.substring(0, 300)}`);
+                    }
+                } catch (parseErr: any) {
+                    throw new Error(`Failed to parse submit response: ${parseErr.message}. Body: ${submitBody.substring(0, 300)}`);
+                }
+                console.log(`[Fal API] Request submitted: ${requestId}`);
 
                 // 2. 轮询状态
-                const statusUrl = `https://queue.fal.run/${endpoint}/requests/${request_id}/status`;
+                const statusUrl = `https://queue.fal.run/${endpoint}/requests/${requestId}/status`;
                 let status = "IN_QUEUE";
                 let attempts = 0;
-                const maxAttempts = 120; // 最多等待 120 秒
+                const maxAttempts = 120;
                 while (status === "IN_QUEUE" || status === "IN_PROGRESS") {
                     if (attempts++ >= maxAttempts) {
                         throw new Error(`Fal API timeout after ${maxAttempts}s`);
@@ -369,6 +380,9 @@ ${finalPrompt} ${watermarkInstruction}`;
                     });
                     const statusData = await statusRes.json();
                     status = statusData.status;
+                    if (attempts <= 3 || status === "COMPLETED") {
+                        console.log(`[Fal API] Status (attempt ${attempts}):`, status);
+                    }
                     if (status === "COMPLETED") break;
                     if (status === "FAILED" || status === "ERROR") {
                         throw new Error(`Fal API request failed: ${JSON.stringify(statusData)}`);
@@ -376,11 +390,13 @@ ${finalPrompt} ${watermarkInstruction}`;
                 }
 
                 // 3. 获取结果
-                const resultUrl = `https://queue.fal.run/${endpoint}/requests/${request_id}`;
+                const resultUrl = `https://queue.fal.run/${endpoint}/requests/${requestId}`;
                 const resultRes = await fetch(resultUrl, {
                     headers: { "Authorization": `Key ${apiKey}` },
                 });
-                return resultRes.json();
+                const resultBody = await resultRes.text();
+                console.log(`[Fal API] Result response: ${resultRes.status}`, resultBody.substring(0, 500));
+                return JSON.parse(resultBody);
             };
 
             if (dbImageUrls.length > 0) {
