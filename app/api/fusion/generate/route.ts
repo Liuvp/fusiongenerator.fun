@@ -281,10 +281,16 @@ export async function POST(req: NextRequest) {
 
             const finalPrompt = `(Masterpiece). Fusion of character in image AND character looking like: ${image2Description || "the second uploaded image"}. ${prompt}.${watermarkInstruction} Detailed.`;
 
-            // Generate Final Image
+            // Generate Final Image - FLUX 2 Pro Edit (image-to-image)
             try {
-            const result: any = await fal.subscribe("fal-ai/flux/dev", {
-                input: { prompt: finalPrompt, image_url: url1, strength: 0.85 },
+            const result: any = await fal.subscribe("fal-ai/flux-2-pro/edit", {
+                input: {
+                    prompt: finalPrompt,
+                    image_urls: [url1],
+                    output_format: "png",
+                    safety_tolerance: "2",
+                    enable_safety_checker: true,
+                },
                 logs: true
             });
 

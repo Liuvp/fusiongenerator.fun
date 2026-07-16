@@ -5,11 +5,11 @@ import crypto from 'crypto';
 // Layer 1: 系统固定Prompt（写死，不暴露给用户）
 // ============================================================================
 
-// Pokemon 专用 System Prompt
-export const SYSTEM_PROMPT = `masterpiece, best quality, ultra-detailed, official pokemon-style character design, single fused creature, clean silhouette, no text, no watermark, no logo, white or simple background, anime illustration, high consistency`;
+// Pokemon 专用 System Prompt（含原 negative prompt 关键约束，因 FLUX 2 Pro 不支持 negative_prompt）
+export const SYSTEM_PROMPT = `masterpiece, best quality, ultra-detailed, official pokemon-style character design, single fused creature, clean silhouette, no text, no watermark, no logo, white or simple background, anime illustration, high consistency, anatomically correct, proportional body, clear features, single unified creature`;
 
-// 龙珠专用 System Prompt
-export const DRAGON_BALL_SYSTEM_PROMPT = `masterpiece, best quality, ultra-detailed, official Dragon Ball character design by Akira Toriyama, single character, clean silhouette, no text, no watermark, no logo, white or simple gradient background, anime illustration, high consistency, cel-shaded anime art style`;
+// 龙珠专用 System Prompt（含原 negative prompt 关键约束，因 FLUX 2 Pro 不支持 negative_prompt）
+export const DRAGON_BALL_SYSTEM_PROMPT = `masterpiece, best quality, ultra-detailed, official Dragon Ball character design by Akira Toriyama, single character, clean silhouette, no text, no watermark, no logo, white or simple gradient background, anime illustration, high consistency, cel-shaded anime art style, anatomically correct body, proportional limbs, clear facial features, single unified figure`;
 
 export const NEGATIVE_PROMPT = `low quality, blurry, extra limbs, deformed, multiple characters, split body, text, watermark, logo, cropped, duplicate, mutation, unclear face, unclear body, poorly drawn anatomy, deformed body, extra limbs`;
 

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as fal from "@fal-ai/serverless-client";
-import { SYSTEM_PROMPT, NEGATIVE_PROMPT, DRAGON_BALL_SYSTEM_PROMPT, DRAGON_BALL_NEGATIVE_PROMPT } from '@/lib/prompt-builder';
+import { SYSTEM_PROMPT, DRAGON_BALL_SYSTEM_PROMPT } from '@/lib/prompt-builder';
 import { checkIPRateLimit, checkUserDailyQuota, checkProUserMonthlyQuota, getClientIP } from '@/lib/rate-limit';
 import { createClient } from '@/utils/supabase/server';
-import { DB_CHARACTERS, DB_FUSION_STYLES, buildDBPrompt } from '@/lib/dragon-ball-data';
+import { DB_CHARACTERS, DB_FUSION_STYLES } from '@/lib/dragon-ball-data';
 import { POKEMON_DATABASE, buildPokemonPrompt } from '@/lib/pokemon-data';
+import { getSiteUrl } from '@/lib/site-url';
 
 // 配置 Fal.ai
 fal.config({
@@ -244,6 +245,7 @@ export async function POST(request: NextRequest) {
 
         let finalPrompt = "";
         let isPokemon = false;
+        let dbImageUrls: string[] = []; // 角色参考图 URL（DB 融合用）
 
         // Mode A: Dragon Ball Fusion (via char IDs)
         if (char1Id && char2Id) {
@@ -255,8 +257,18 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ error: 'Invalid DB characters selected' }, { status: 400 });
             }
 
-            finalPrompt = buildDBPrompt(char1, char2, style, customPromptRaw);
-            console.log(`[DB Fusion] Generating: ${char1.name} + ${char2.name} (${style?.name || 'default'})`);
+            // 构建基于参考图的融合 prompt（模型直接"看到"角色外观）
+            const siteUrl = getSiteUrl();
+            dbImageUrls = [
+                `${siteUrl}${char1.imageUrl}`,
+                `${siteUrl}${char2.imageUrl}`,
+            ];
+            finalPrompt = `Fuse the two Dragon Ball characters shown in the reference images into a single coherent fusion fighter.
+Combine ${char1.name} and ${char2.name} - blend their hair, facial features, clothing, armor, colors, and distinctive traits into one unified character.
+${style?.prompt || ''}.
+Akira Toriyama art style, anime cel shading, masterpiece, high quality, dynamic pose, energetic aura background.
+${customPromptRaw || ''}`;
+            console.log(`[DB Fusion] Generating with reference images: ${char1.name} + ${char2.name} (${style?.name || 'default'})`);
 
             // Mode B: Pokemon Fusion (via p1/p2 IDs)
         } else if (p1Id && p2Id) {
@@ -295,7 +307,8 @@ export async function POST(request: NextRequest) {
         }
 
         const selectedSystemPrompt = isDragonBall ? DRAGON_BALL_SYSTEM_PROMPT : SYSTEM_PROMPT;
-        const selectedNegativePrompt = isDragonBall ? DRAGON_BALL_NEGATIVE_PROMPT : NEGATIVE_PROMPT;
+        // Negative prompts kept for reference but not used - FLUX 2 Pro doesn't support them
+        // Key constraints have been merged into system prompts instead
 
         const watermarkInstruction = !isVIP ? " Add subtle watermark text 'FusionGenerator.fun' in bottom right corner." : "";
 
@@ -308,21 +321,33 @@ ${finalPrompt} ${watermarkInstruction}`;
 
         // ============================================================================
         // Fal.ai API 调用
+        // DB 融合: FLUX 2 Pro Edit（传入角色参考图，模型直接"看到"角色）
+        // 其他模式: FLUX 2 Pro（纯文生图）
         // ============================================================================
         let result: any;
         try {
-            result = await fal.run("fal-ai/flux/dev", {
-                input: {
-                    prompt: fullPrompt,
-                    negative_prompt: selectedNegativePrompt,
-                    image_size: "square_hd",
-                    num_inference_steps: 38,
-                    guidance_scale: 7.5,
-                    num_images: 1,
-                    enable_safety_checker: true,
-                    output_format: "png",
-                },
-            });
+            if (dbImageUrls.length > 0) {
+                result = await fal.run("fal-ai/flux-2-pro/edit", {
+                    input: {
+                        prompt: fullPrompt,
+                        image_urls: dbImageUrls,
+                        image_size: "square_hd",
+                        enable_safety_checker: true,
+                        safety_tolerance: "2",
+                        output_format: "png",
+                    },
+                });
+            } else {
+                result = await fal.run("fal-ai/flux-2-pro", {
+                    input: {
+                        prompt: fullPrompt,
+                        image_size: "square_hd",
+                        enable_safety_checker: true,
+                        safety_tolerance: "2",
+                        output_format: "png",
+                    },
+                });
+            }
         } catch (falErr: any) {
             console.error("Fal Execution Error:", falErr);
             throw new Error(`[Fal Error] ${falErr.message || "Fal API failed"}`);

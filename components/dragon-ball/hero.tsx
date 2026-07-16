@@ -1,9 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import { useCallback } from "react";
 
 export function DBHero() {
+    const handleStartFusion = useCallback(() => {
+        const el = document.getElementById("fusion-studio");
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }, []);
+
     return (
         <section
             className="grid gap-8 md:grid-cols-2 items-center"
@@ -27,10 +37,12 @@ export function DBHero() {
                     Use our Dragon Ball Fusion Generator to combine Goku, Vegeta, and all DBZ characters. Create Super Saiyan fusions instantly.
                 </p>
                 <div className="flex flex-wrap gap-3">
-                    <Button asChild className="h-10 px-4 py-2">
-                        <Link href="#fusion-studio" aria-label="Start Dragon Ball fusion generator">
-                            Start Free Fusion
-                        </Link>
+                    <Button
+                        onClick={handleStartFusion}
+                        className="h-10 px-4 py-2"
+                        aria-label="Start Dragon Ball fusion generator"
+                    >
+                        Start Free Fusion
                     </Button>
                     <Button asChild variant="outline" className="h-10 px-4 py-2">
                         <Link href="/gallery" aria-label="View Dragon Ball fusion gallery">

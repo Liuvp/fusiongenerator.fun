@@ -191,6 +191,8 @@ export function DBFusionStudio() {
     const { toast } = useToast();
     const resultRef = useRef<HTMLDivElement>(null);
     const selectionCardRef = useRef<HTMLDivElement>(null);
+    const char1Ref = useRef<DBCharacter | undefined>(undefined);
+    const char2Ref = useRef<DBCharacter | undefined>(undefined);
 
     // ✅ 使用 useRef 管理订阅，避免重复创建
     const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
@@ -438,6 +440,10 @@ export function DBFusionStudio() {
         loadFromLocalStorage();
     }, [loadFromLocalStorage]);
 
+    // Keep char refs in sync for use in rapid click handlers (#6)
+    useEffect(() => { char1Ref.current = char1; }, [char1]);
+    useEffect(() => { char2Ref.current = char2; }, [char2]);
+
     // ===============================
     // 自动保存 - 优化：只在选择完成时保存
     // ===============================
@@ -554,10 +560,12 @@ export function DBFusionStudio() {
     // 交互函数
     // ===============================
     const selectCharacter = useCallback((char: DBCharacter): void => {
-        const selectedBefore = Number(Boolean(char1)) + Number(Boolean(char2));
+        const c1 = char1Ref.current;
+        const c2 = char2Ref.current;
+        const selectedBefore = Number(Boolean(c1)) + Number(Boolean(c2));
 
         // 允许反选：点击已选中的角色取消选中
-        if (char1?.id === char.id) {
+        if (c1?.id === char.id) {
             trackStudioEvent("db_select_char", {
                 action: "deselect",
                 slot: 1,
@@ -568,7 +576,7 @@ export function DBFusionStudio() {
             setResult(null);
             return;
         }
-        if (char2?.id === char.id) {
+        if (c2?.id === char.id) {
             trackStudioEvent("db_select_char", {
                 action: "deselect",
                 slot: 2,
@@ -586,22 +594,22 @@ export function DBFusionStudio() {
             selected_count_before: selectedBefore,
         });
 
-        if (!char1) {
+        if (!c1) {
             setChar1(char);
-        } else if (!char2) {
+        } else if (!c2) {
             setChar2(char);
         } else {
             // 队列逻辑：旧的 char1 移到 char2，新角色占据 char1
             toast({
                 title: "Lead fighter updated",
-                description: `${char.name} moved into slot 1. ${char1.name} shifted to slot 2.`,
+                description: `${char.name} moved into slot 1. ${c1.name} shifted to slot 2.`,
                 duration: 1600
             });
-            setChar2(char1);
+            setChar2(c1);
             setChar1(char);
         }
         setResult(null);
-    }, [char1, char2, toast]);
+    }, [toast]);
 
     const randomize = useCallback((): void => {
         const [c1, c2] = getRandomCharacters(2, false);
@@ -1234,7 +1242,7 @@ export function DBFusionStudio() {
                         </Button>
                     </div>
                     <div
-                        className={`grid grid-cols-4 gap-3 overflow-y-auto pr-1 custom-scrollbar transition-all duration-300 max-h-[320px]`}
+                        className={`grid grid-cols-4 gap-3 pr-1 custom-scrollbar transition-all duration-300 md:overflow-y-auto md:max-h-[320px]`}
                         aria-live="polite"
                     >
                         {characterGrid}
@@ -1270,21 +1278,36 @@ export function DBFusionStudio() {
                     </div>
 
                     <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6">
-                        <CharacterSlot char={char1} position={1} onClear={clearSelection} onSlotClick={() => { setChar1(undefined); setResult(null); }} priority={true} />
+                        <CharacterSlot char={char1} position={1} onClear={() => { setChar1(undefined); setResult(null); }} onSlotClick={() => { setChar1(undefined); setResult(null); }} priority={true} />
                         <button
                             type="button"
                             onClick={() => {
-                                if (char1 && char2) {
-                                    setChar1(char2);
-                                    setChar2(char1);
+                                const c1 = char1Ref.current;
+                                const c2 = char2Ref.current;
+                                if (c1 && c2) {
+                                    setChar1(c2);
+                                    setChar2(c1);
                                     setResult(null);
-                                } else if (!char1 && !char2) {
+                                } else if (!c1 && !c2) {
                                     randomize();
+                                } else {
+                                    // Only one fighter selected: pick a random partner (#1)
+                                    const selectedId = c1?.id ?? c2?.id;
+                                    const options = DB_CHARACTERS.filter(f => f.id !== selectedId);
+                                    const next = options[Math.floor(Math.random() * options.length)];
+                                    if (!c1) setChar1(next);
+                                    else setChar2(next);
+                                    setResult(null);
+                                    toast({
+                                        title: "Partner found",
+                                        description: `${next.name} joined the fusion.`,
+                                        duration: 1600
+                                    });
                                 }
                             }}
                             className="flex flex-col items-center gap-1 group/plus"
-                            aria-label={char1 && char2 ? "Swap fighters" : "Random fighter pair"}
-                            title={char1 && char2 ? "Swap fighters" : "Pick random pair"}
+                            aria-label={char1 && char2 ? "Swap fighters" : "Pick random fighter"}
+                            title={char1 && char2 ? "Swap fighters" : "Pick a random fighter"}
                         >
                             <div
                                 className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center shadow-sm group-hover/plus:from-orange-200 group-hover/plus:to-yellow-200 group-hover/plus:scale-110 transition-all active:scale-95"
@@ -1295,7 +1318,7 @@ export function DBFusionStudio() {
                                 {char1 && char2 ? 'SWAP' : 'RANDOM'}
                             </span>
                         </button>
-                        <CharacterSlot char={char2} position={2} onClear={clearSelection} onSlotClick={() => { setChar2(undefined); setResult(null); }} priority={true} />
+                        <CharacterSlot char={char2} position={2} onClear={() => { setChar2(undefined); setResult(null); }} onSlotClick={() => { setChar2(undefined); setResult(null); }} priority={true} />
                     </div>
 
                     <div
@@ -1351,7 +1374,7 @@ export function DBFusionStudio() {
                             ${isGenerating
                                 ? 'bg-gray-200 text-gray-500'
                                 : !isSelectionComplete
-                                    ? 'bg-gray-300 text-gray-500 cursor-help hover:bg-gray-400' // Visual indication of inactive state
+                                    ? 'bg-gray-300 text-gray-500 cursor-pointer hover:bg-gray-400' // Clickable even when inactive — shows shake feedback
                                     : !hasQuotaAccessValue
                                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                                         : 'bg-gradient-to-r from-orange-600 via-orange-500 to-yellow-500 text-white hover:shadow-2xl'
@@ -1899,17 +1922,18 @@ const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false 
 
     return (
         <div className="flex flex-col items-center group">
-            <button
-                type="button"
-                onClick={() => { if (char && onSlotClick) onSlotClick(); }}
-                className={`
-                    relative w-24 h-24 rounded-xl overflow-hidden border-4 shadow-lg
-                    ${char ? color.border : 'border-gray-200'} bg-gray-100
-                    ${char && onSlotClick ? 'cursor-pointer hover:brightness-95 active:scale-95 transition-all' : 'cursor-default'}
-                `}
-                aria-label={char ? `${char.name} character — tap to remove` : `Empty slot ${position}`}
-                disabled={!char || !onSlotClick}
-            >
+            <div className="relative">
+                <button
+                    type="button"
+                    onClick={() => { if (char && onSlotClick) onSlotClick(); }}
+                    className={`
+                        relative w-24 h-24 rounded-xl overflow-hidden border-4 shadow-lg
+                        ${char ? color.border : 'border-gray-200'} bg-gray-100
+                        ${char && onSlotClick ? 'cursor-pointer hover:brightness-95 active:scale-95 transition-all' : 'cursor-default'}
+                    `}
+                    aria-label={char ? `${char.name} character — tap to remove` : `Empty slot ${position}`}
+                    disabled={!char || !onSlotClick}
+                >
                 {char ? (
                     <Image
                         src={char.imageUrl}
@@ -1926,20 +1950,19 @@ const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false 
                         <span className="text-2xl font-black text-gray-300">?</span>
                     </div>
                 )}
+                </button>
                 {char && onClear && (
-                    <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); handleClear(); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); handleClear(); } }}
+                    <button
+                        type="button"
+                        onClick={handleClear}
                         className="absolute top-1 left-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-100 shadow-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
-                        aria-label="Clear selection and start over"
-                        title="Clear selection and start over"
+                        aria-label="Remove this fighter"
+                        title="Remove this fighter"
                     >
                         x
-                    </span>
+                    </button>
                 )}
-            </button>
+            </div>
             <div
                 className={`
                     mt-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase
