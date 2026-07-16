@@ -263,10 +263,9 @@ export async function POST(request: NextRequest) {
                 `${imageBaseUrl}${char1.imageUrl}`,
                 `${imageBaseUrl}${char2.imageUrl}`,
             ];
-            finalPrompt = `Fuse the two Dragon Ball characters shown in the reference images into a single coherent fusion fighter.
-Combine ${char1.name} and ${char2.name} - blend their hair, facial features, clothing, armor, colors, and distinctive traits into one unified character.
+            finalPrompt = `Dragon Ball fusion of ${char1.name} and ${char2.name}, combining their hair, outfit, and colors into one character.
 ${style?.prompt || ''}.
-Akira Toriyama art style, anime cel shading, masterpiece, high quality, dynamic pose, energetic aura background.
+Akira Toriyama anime art style, cel shaded, high quality, dynamic pose.
 ${customPromptRaw || ''}`;
             console.log(`[DB Fusion] Generating with reference images: ${char1.name} + ${char2.name} (${style?.name || 'default'})`);
             console.log(`[DB Fusion] Image URLs:`, dbImageUrls);
@@ -354,6 +353,8 @@ ${finalPrompt} ${watermarkInstruction}`;
                 }
 
                 let requestId: string;
+                let statusUrl: string;
+                let resultUrl: string;
                 try {
                     const parsed = JSON.parse(submitBody);
                     if (parsed.detail) {
@@ -363,6 +364,9 @@ ${finalPrompt} ${watermarkInstruction}`;
                     if (!requestId) {
                         throw new Error(`No request_id in response: ${submitBody.substring(0, 300)}`);
                     }
+                    // 使用响应返回的 URL（edit 端点的 URL 路径与 endpoint ID 不同）
+                    statusUrl = parsed.status_url || `https://queue.fal.run/${endpoint}/requests/${requestId}/status`;
+                    resultUrl = parsed.response_url || `https://queue.fal.run/${endpoint}/requests/${requestId}`;
                 } catch (parseErr: any) {
                     if (parseErr.message?.includes("Fal API error")) throw parseErr;
                     throw new Error(`Failed to parse submit response: ${parseErr.message}. Body: ${submitBody.substring(0, 300)}`);
@@ -370,7 +374,6 @@ ${finalPrompt} ${watermarkInstruction}`;
                 console.error(`[Fal API] Request submitted: ${requestId}`);
 
                 // 2. 轮询状态
-                const statusUrl = `https://queue.fal.run/${endpoint}/requests/${requestId}/status`;
                 let status = "IN_QUEUE";
                 let attempts = 0;
                 const maxAttempts = 120;
@@ -399,8 +402,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                     }
                 }
 
-                // 3. 获取结果
-                const resultUrl = `https://queue.fal.run/${endpoint}/requests/${requestId}`;
+                // 3. 获取结果（使用 submit 响应返回的 response_url）
                 const resultRes = await fetch(resultUrl, {
                     headers: { "Authorization": `Key ${apiKey}` },
                 });
