@@ -419,14 +419,22 @@ ${finalPrompt} ${watermarkInstruction}`;
             throw new Error(`[Fal Error] ${falErr.message || "Fal API failed"}`);
         }
 
-        // 提取图片URL
+        // 提取图片URL - 记录响应结构以便调试
+        console.log("[Fal API] Response keys:", Object.keys(result));
+        console.log("[Fal API] Response preview:", JSON.stringify(result, null, 2).substring(0, 800));
+
         let imageUrl: string | undefined;
         if (result.data?.images?.[0]?.url) imageUrl = result.data.images[0].url;
         else if (result.images?.[0]?.url) imageUrl = result.images[0].url;
         else if (result.data?.image_url) imageUrl = result.data.image_url;
         else if (result.image_url) imageUrl = result.image_url;
+        else if (result.response?.images?.[0]?.url) imageUrl = result.response.images[0].url;
+        else if (result.output?.images?.[0]?.url) imageUrl = result.output.images[0].url;
+        else if (result.result?.images?.[0]?.url) imageUrl = result.result.images[0].url;
+        else if (result.response?.image_url) imageUrl = result.response.image_url;
+        else if (result.output?.image_url) imageUrl = result.output.image_url;
 
-        if (!imageUrl) throw new Error('No image URL in response');
+        if (!imageUrl) throw new Error(`No image URL in response. Keys: ${Object.keys(result).join(', ')}`);
 
         // ============================================================================
         // 5️⃣ 扣费逻辑 — Credits already deducted BEFORE generation (Fix #1)
