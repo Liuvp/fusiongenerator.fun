@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as fal from "@fal-ai/serverless-client";
-import { SYSTEM_PROMPT, DRAGON_BALL_SYSTEM_PROMPT } from '@/lib/prompt-builder';
+import { SYSTEM_PROMPT, DRAGON_BALL_SYSTEM_PROMPT, NEGATIVE_PROMPT } from '@/lib/prompt-builder';
 import { checkIPRateLimit, checkUserDailyQuota, checkProUserMonthlyQuota, getClientIP } from '@/lib/rate-limit';
 import { createClient } from '@/utils/supabase/server';
 import { DB_CHARACTERS, DB_FUSION_STYLES } from '@/lib/dragon-ball-data';
@@ -421,6 +421,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                 try {
                     result = await callFalAPI("fal-ai/flux/dev", {
                         prompt: fullPrompt,
+                        negative_prompt: NEGATIVE_PROMPT,
                         image_url: dbImageUrls[0],
                         image_size: "square_hd",
                         strength: 0.75,
@@ -429,6 +430,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                     console.warn("[DB Fusion] Image-to-image failed, falling back to text-to-image:", editErr.message);
                     result = await callFalAPI("fal-ai/flux/dev", {
                         prompt: fullPrompt,
+                        negative_prompt: NEGATIVE_PROMPT,
                         image_size: "square_hd",
                     });
                 }
@@ -436,6 +438,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                 // 其他模式：纯文生图
                 result = await callFalAPI("fal-ai/flux/dev", {
                     prompt: fullPrompt,
+                    negative_prompt: NEGATIVE_PROMPT,
                     image_size: "square_hd",
                 });
             }
