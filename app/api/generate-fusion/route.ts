@@ -335,8 +335,8 @@ ${finalPrompt} ${watermarkInstruction}`;
                 const submitUrl = `https://queue.fal.run/${endpoint}`;
 
                 // 1. 提交请求
-                console.log(`[Fal API] POST ${submitUrl}`);
-                console.log(`[Fal API] Input:`, JSON.stringify(input).substring(0, 300));
+                console.error(`[Fal API] POST ${submitUrl}`);
+                console.error(`[Fal API] Input:`, JSON.stringify(input).substring(0, 300));
                 const submitRes = await fetch(submitUrl, {
                     method: "POST",
                     headers: {
@@ -347,7 +347,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                 });
 
                 const submitBody = await submitRes.text();
-                console.log(`[Fal API] Submit response: ${submitRes.status}`, submitBody.substring(0, 500));
+                console.error(`[Fal API] Submit response: ${submitRes.status}`, submitBody.substring(0, 500));
 
                 if (!submitRes.ok) {
                     throw new Error(`Fal API submit failed (${submitRes.status}): ${submitBody}`);
@@ -356,14 +356,18 @@ ${finalPrompt} ${watermarkInstruction}`;
                 let requestId: string;
                 try {
                     const parsed = JSON.parse(submitBody);
+                    if (parsed.detail) {
+                        throw new Error(`Fal API error: ${JSON.stringify(parsed.detail)}`);
+                    }
                     requestId = parsed.request_id;
                     if (!requestId) {
                         throw new Error(`No request_id in response: ${submitBody.substring(0, 300)}`);
                     }
                 } catch (parseErr: any) {
+                    if (parseErr.message?.includes("Fal API error")) throw parseErr;
                     throw new Error(`Failed to parse submit response: ${parseErr.message}. Body: ${submitBody.substring(0, 300)}`);
                 }
-                console.log(`[Fal API] Request submitted: ${requestId}`);
+                console.error(`[Fal API] Request submitted: ${requestId}`);
 
                 // 2. 轮询状态
                 const statusUrl = `https://queue.fal.run/${endpoint}/requests/${requestId}/status`;
@@ -378,10 +382,16 @@ ${finalPrompt} ${watermarkInstruction}`;
                     const statusRes = await fetch(statusUrl, {
                         headers: { "Authorization": `Key ${apiKey}` },
                     });
-                    const statusData = await statusRes.json();
+                    const statusText = await statusRes.text();
+                    let statusData: any;
+                    try {
+                        statusData = JSON.parse(statusText);
+                    } catch {
+                        throw new Error(`Failed to parse status response: ${statusText.substring(0, 300)}`);
+                    }
                     status = statusData.status;
                     if (attempts <= 3 || status === "COMPLETED") {
-                        console.log(`[Fal API] Status (attempt ${attempts}):`, status);
+                        console.error(`[Fal API] Status (attempt ${attempts}):`, status);
                     }
                     if (status === "COMPLETED") break;
                     if (status === "FAILED" || status === "ERROR") {
@@ -395,8 +405,12 @@ ${finalPrompt} ${watermarkInstruction}`;
                     headers: { "Authorization": `Key ${apiKey}` },
                 });
                 const resultBody = await resultRes.text();
-                console.log(`[Fal API] Result response: ${resultRes.status}`, resultBody.substring(0, 500));
-                return JSON.parse(resultBody);
+                console.error(`[Fal API] Result response: ${resultRes.status}`, resultBody.substring(0, 500));
+                try {
+                    return JSON.parse(resultBody);
+                } catch {
+                    throw new Error(`Failed to parse result response: ${resultBody.substring(0, 300)}`);
+                }
             };
 
             if (dbImageUrls.length > 0) {
