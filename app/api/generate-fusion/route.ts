@@ -5,7 +5,6 @@ import { checkIPRateLimit, checkUserDailyQuota, checkProUserMonthlyQuota, getCli
 import { createClient } from '@/utils/supabase/server';
 import { DB_CHARACTERS, DB_FUSION_STYLES } from '@/lib/dragon-ball-data';
 import { POKEMON_DATABASE, buildPokemonPrompt } from '@/lib/pokemon-data';
-import { getSiteUrl } from '@/lib/site-url';
 
 // 配置 Fal.ai
 fal.config({
@@ -258,10 +257,11 @@ export async function POST(request: NextRequest) {
             }
 
             // 构建基于参考图的融合 prompt（模型直接"看到"角色外观）
-            const siteUrl = getSiteUrl();
+            // 必须使用生产环境 URL，fal.ai 服务器需要能公开访问图片
+            const imageBaseUrl = "https://fusiongenerator.fun";
             dbImageUrls = [
-                `${siteUrl}${char1.imageUrl}`,
-                `${siteUrl}${char2.imageUrl}`,
+                `${imageBaseUrl}${char1.imageUrl}`,
+                `${imageBaseUrl}${char2.imageUrl}`,
             ];
             finalPrompt = `Fuse the two Dragon Ball characters shown in the reference images into a single coherent fusion fighter.
 Combine ${char1.name} and ${char2.name} - blend their hair, facial features, clothing, armor, colors, and distinctive traits into one unified character.
@@ -269,6 +269,7 @@ ${style?.prompt || ''}.
 Akira Toriyama art style, anime cel shading, masterpiece, high quality, dynamic pose, energetic aura background.
 ${customPromptRaw || ''}`;
             console.log(`[DB Fusion] Generating with reference images: ${char1.name} + ${char2.name} (${style?.name || 'default'})`);
+            console.log(`[DB Fusion] Image URLs:`, dbImageUrls);
 
             // Mode B: Pokemon Fusion (via p1/p2 IDs)
         } else if (p1Id && p2Id) {
@@ -327,18 +328,38 @@ ${finalPrompt} ${watermarkInstruction}`;
         let result: any;
         try {
             if (dbImageUrls.length > 0) {
-                result = await fal.run("fal-ai/flux-2-pro/edit", {
-                    input: {
-                        prompt: fullPrompt,
-                        image_urls: dbImageUrls,
-                        image_size: "square_hd",
-                        enable_safety_checker: true,
-                        safety_tolerance: "2",
-                        output_format: "png",
-                    },
-                });
+                // DB 融合：传入角色参考图
+                try {
+                    result = await fal.subscribe("fal-ai/flux-2-pro/edit", {
+                        input: {
+                            prompt: fullPrompt,
+                            image_urls: dbImageUrls,
+                            image_size: "square_hd",
+                            enable_safety_checker: true,
+                            safety_tolerance: "2",
+                            output_format: "png",
+                        },
+                    });
+                } catch (editErr: any) {
+                    // 回退到纯文生图（可能因图片格式、网络等导致 edit 端点失败）
+                    console.warn("[DB Fusion] Edit endpoint failed, falling back to text-to-image. Error:", {
+                        status: editErr.status,
+                        message: editErr.message,
+                        body: editErr.body ? JSON.stringify(editErr.body) : undefined,
+                    });
+                    result = await fal.subscribe("fal-ai/flux-2-pro", {
+                        input: {
+                            prompt: fullPrompt,
+                            image_size: "square_hd",
+                            enable_safety_checker: true,
+                            safety_tolerance: "2",
+                            output_format: "png",
+                        },
+                    });
+                }
             } else {
-                result = await fal.run("fal-ai/flux-2-pro", {
+                // 其他模式：纯文生图
+                result = await fal.subscribe("fal-ai/flux-2-pro", {
                     input: {
                         prompt: fullPrompt,
                         image_size: "square_hd",
