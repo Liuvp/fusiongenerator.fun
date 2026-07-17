@@ -54,6 +54,19 @@ interface LocalStorageState {
     timestamp: number;
 }
 
+// Survives the full-page reload triggered by login/OAuth redirect so the
+// generated fusion is not lost after a guest signs in to save it.
+const PENDING_RESULT_KEY = "db_fusion_pending_result";
+
+interface PendingResultState {
+    imageUrl: string;
+    char1Id: string;
+    char2Id: string;
+    styleId: string;
+    pendingSave: boolean;
+    timestamp: number;
+}
+
 type AuthGateReason = "guest_quota_used" | "member_quota_exceeded" | "api_limit_reached";
 
 type StudioEventPayload = Record<string, string | number | boolean | null | undefined>;
@@ -433,6 +446,24 @@ export function DBFusionStudio() {
         }
     }, []);
 
+    // Persist the current result (and whether the user asked to save it) so it
+    // can be restored after the login redirect reloads the whole page.
+    const persistPendingResult = useCallback((res: FusionResult, pendingSave: boolean): void => {
+        try {
+            const payload: PendingResultState = {
+                imageUrl: res.imageUrl,
+                char1Id: res.char1.id,
+                char2Id: res.char2.id,
+                styleId: selectedStyleId,
+                pendingSave,
+                timestamp: Date.now(),
+            };
+            localStorage.setItem(PENDING_RESULT_KEY, JSON.stringify(payload));
+        } catch {
+            // ignore storage errors
+        }
+    }, [selectedStyleId]);
+
     // ===============================
     // 初始化加载
     // ===============================
@@ -555,6 +586,98 @@ export function DBFusionStudio() {
             }
         };
     }, [supabase]);
+
+    // ===============================
+    // 登录跳转返回后：恢复被整页重载清掉的结果，并在有保存意图时自动保存
+    // ===============================
+    const pendingRestoreHandledRef = useRef(false);
+
+    useEffect(() => {
+        if (isLoadingAuth) return;                 // wait until auth state is known
+        if (pendingRestoreHandledRef.current) return;
+        pendingRestoreHandledRef.current = true;
+
+        let raw: string | null = null;
+        try {
+            raw = localStorage.getItem(PENDING_RESULT_KEY);
+        } catch {
+            return;
+        }
+        if (!raw) return;
+
+        const clearPending = () => {
+            try { localStorage.removeItem(PENDING_RESULT_KEY); } catch { /* ignore */ }
+        };
+
+        let parsed: PendingResultState | null = null;
+        try {
+            parsed = JSON.parse(raw) as PendingResultState;
+        } catch {
+            parsed = null;
+        }
+
+        if (!parsed || !parsed.imageUrl || Date.now() - parsed.timestamp > STORAGE_EXPIRY) {
+            clearPending();
+            return;
+        }
+
+        const c1 = DB_CHARACTERS.find(c => c.id === parsed!.char1Id);
+        const c2 = DB_CHARACTERS.find(c => c.id === parsed!.char2Id);
+        if (!c1 || !c2) {
+            clearPending();
+            return;
+        }
+
+        // Restore the fusion so the image doesn't vanish after the login redirect
+        const restored: FusionResult = { imageUrl: parsed.imageUrl, char1: c1, char2: c2 };
+        setChar1(prev => prev ?? c1);
+        setChar2(prev => prev ?? c2);
+        setSelectedStyleId(prev => (prev === 'potara' && parsed!.styleId) ? parsed!.styleId : prev);
+        setResult(prev => prev ?? restored);
+
+        // If the visitor logged in specifically to save it, complete the save now
+        if (user && parsed.pendingSave) {
+            const styleId = parsed.styleId;
+            (async () => {
+                try {
+                    const styleName = DB_FUSION_STYLES.find(s => s.id === styleId)?.name || 'Potara Fusion';
+                    const response = await fetch('/api/save-fusion', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            fusionType: 'dragon_ball',
+                            char1Id: c1.id,
+                            char1Name: c1.name,
+                            char2Id: c2.id,
+                            char2Name: c2.name,
+                            styleId,
+                            styleName,
+                            imageUrl: restored.imageUrl,
+                        }),
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setResult(prev => prev ? { ...prev, savedId: data.id } : prev);
+                        setIsSaved(true);
+                        toast({
+                            title: "Fusion saved! 🎉",
+                            description: "Your creation is now in your Dashboard collection.",
+                            duration: 4000,
+                        });
+                        trackStudioEvent("db_result_autosaved_after_signup", { char1_id: c1.id, char2_id: c2.id });
+                    }
+                } catch {
+                    // ignore — the image is still restored so the user can save manually
+                } finally {
+                    clearPending();
+                }
+            })();
+        } else if (user) {
+            // Logged in without an explicit save intent — nothing left to persist
+            clearPending();
+        }
+        // else: still a guest — keep the key so a later login can still restore & save
+    }, [isLoadingAuth, user, toast]);
 
     // ===============================
     // 交互函数
@@ -737,6 +860,8 @@ export function DBFusionStudio() {
 
         setIsGenerating(true);
         setResult(null);
+        // A fresh generation invalidates any previously persisted result
+        try { localStorage.removeItem(PENDING_RESULT_KEY); } catch { /* ignore */ }
 
         try {
             const response = await fetch('/api/generate-fusion', {
@@ -1545,6 +1670,7 @@ export function DBFusionStudio() {
                                             size="sm"
                                             className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs h-8 px-4 shadow-lg"
                                             onClick={() => {
+                                                if (result) persistPendingResult(result, true);
                                                 setAuthMode("sign_up");
                                                 setAuthDialogOpen(true);
                                                 trackStudioEvent("db_result_banner_click", { cta: "sign_up" });
@@ -1599,6 +1725,7 @@ export function DBFusionStudio() {
                                     <Button
                                         type="button"
                                         onClick={() => {
+                                            if (result) persistPendingResult(result, true);
                                             setAuthMode("sign_up");
                                             setAuthDialogOpen(true);
                                             trackStudioEvent("db_result_primary_click", { cta: "save_signup" });
