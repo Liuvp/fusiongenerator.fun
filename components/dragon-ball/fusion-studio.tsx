@@ -28,7 +28,7 @@ import { signInAction, signUpAction, signInWithGoogleAction, signUpWithGoogleAct
 // ===============================
 const LOCAL_STORAGE_KEY = "db_fusion_studio_state";
 const STORAGE_EXPIRY = 24 * 60 * 60 * 1000; // 24小时
-const DEFAULT_QUOTA = { used: 0, remaining: 2, limit: 2, isVIP: false }; // 免费额度 2 次
+const DEFAULT_QUOTA = { used: 0, remaining: 3, limit: 3, isVIP: false }; // 免费额度 3 次
 
 // ===============================
 // 类型定义
@@ -362,7 +362,7 @@ export function DBFusionStudio() {
                 }
                 : {
                 title: "Keep generating with a free account",
-                description: "Guest access includes 2 free fusions. Sign in or create a free account before your next generation."
+                description: "Guest access includes 3 free fusions. Sign in or create a free account before your next generation."
             };
     }, [hasQuotaAccessValue, isLoadingAuth, quota.isVIP, quota.remaining, user]);
 
@@ -1175,9 +1175,9 @@ export function DBFusionStudio() {
 
             {showGuestStartBanner && (
                 <div className="mb-6 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
-                    <p className="font-semibold">No account required for your first 2 Dragon Ball fusions</p>
+                    <p className="font-semibold">No account required for your first 3 Dragon Ball fusions</p>
                     <p className="mt-1 text-xs text-orange-800">
-                        You can try 2 guest fusions right now. We only ask you to sign in after that if you want more generations or saved history.
+                        You can try 3 guest fusions right now. We only ask you to sign in after that if you want more generations or saved history.
                     </p>
                 </div>
             )}
@@ -1211,7 +1211,7 @@ export function DBFusionStudio() {
                 <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-900">
                     <p className="font-semibold">Welcome from ChatGPT! 👋</p>
                     <p className="mt-1 text-xs text-purple-800">
-                        Pick any two Dragon Ball characters below, then tap "FUU-SION-HA!" to create your fusion. No account needed for your first 2 tries.
+                        Pick any two Dragon Ball characters below, then tap "FUU-SION-HA!" to create your fusion. No account needed for your first 3 tries.
                     </p>
                 </div>
             )}
@@ -1418,7 +1418,7 @@ export function DBFusionStudio() {
                     {showAuthOptions && !user && (
                         <div className="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">You&apos;ve used your 2 free fusions</h4>
+                                <h4 className="font-bold text-gray-800">You&apos;ve used your 3 free fusions</h4>
                                 <p className="text-xs text-gray-600">
                                     Create a free account to save your fusions and get 2 starter credits, or upgrade to Pro for 300 fusions/month.
                                 </p>
@@ -1594,82 +1594,49 @@ export function DBFusionStudio() {
                                 ) : (
                                     <p className="text-center text-sm text-green-600 py-2">Thanks for your feedback!</p>
                                 )}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {/* Primary action — guests: Save (registration hook); members: Download */}
+                                {!user ? (
+                                    <Button
+                                        type="button"
+                                        onClick={() => {
+                                            setAuthMode("sign_up");
+                                            setAuthDialogOpen(true);
+                                            trackStudioEvent("db_result_primary_click", { cta: "save_signup" });
+                                        }}
+                                        size="lg"
+                                        aria-label="Save this fusion by creating a free account"
+                                        className="w-full py-6 text-base font-bold bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white shadow-lg hover:shadow-xl"
+                                    >
+                                        💾 Save My Fusion — Free
+                                    </Button>
+                                ) : (
                                     <Button
                                         type="button"
                                         onClick={downloadImage}
-                                        variant="default"
-                                        aria-label="Download fusion results as an image"
-                                        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                                        size="lg"
+                                        aria-label="Download fusion image"
+                                        className="w-full py-6 text-base font-bold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
                                         title="Download fusion image"
                                     >
-                                        <Download className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
+                                        <Download className="w-5 h-5 mr-2" aria-hidden="true" focusable="false" />
                                         {quota.isVIP ? "Download HD" : "Download (Watermarked)"}
                                     </Button>
-                                    {!quota.isVIP && (
+                                )}
+
+                                {/* Secondary actions */}
+                                <div className="grid grid-cols-2 gap-2">
+                                    {!user ? (
                                         <Button
                                             type="button"
-                                            asChild
-                                            variant="default"
-                                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                                            title="Download HD Pro without watermark"
+                                            onClick={downloadImage}
+                                            variant="outline"
+                                            aria-label="Download fusion image"
+                                            title="Download watermarked image"
                                         >
-                                            <Link href="/pricing?source=dragon_ball_hd_download">
-                                                <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                                HD Pro 👑
-                                            </Link>
+                                            <Download className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
+                                            Download
                                         </Button>
-                                    )}
-                                    <Button
-                                        type="button"
-                                        aria-label="Continue generating another Dragon Ball fusion"
-                                        onClick={clearSelection}
-                                        variant="outline"
-                                        title="Continue with a new fusion"
-                                    >
-                                        <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                        Start New Pair
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        onClick={swapLeftFighter}
-                                        variant="outline"
-                                        title="Keep the right fighter and swap the left one"
-                                    >
-                                        Swap Left Fighter
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        onClick={swapRightFighter}
-                                        variant="outline"
-                                        title="Keep the left fighter and swap the right one"
-                                    >
-                                        Swap Right Fighter
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        aria-label="Share this fusion with friends"
-                                        onClick={shareResult}
-                                        variant="outline"
-                                        title="Share fusion result"
-                                    >
-                                        <Share2 className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
-                                        Share Result
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        asChild
-                                        variant="outline"
-                                        title="View example fusion results"
-                                    >
-                                        <Link href="/gallery?source=dragon_ball_result">
-                                            View Example Results
-                                        </Link>
-                                    </Button>
-                                </div>
-                                {/* Save button for logged-in users */}
-                                {user && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    ) : (
                                         <Button
                                             type="button"
                                             onClick={toggleFavorite}
@@ -1680,18 +1647,58 @@ export function DBFusionStudio() {
                                         >
                                             {isSaved ? "★ Saved to History" : "☆ Save to History"}
                                         </Button>
-                                    </div>
-                                )}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    <Button type="button" onClick={randomize} variant="outline">
-                                        Try Another Popular Pair
-                                    </Button>
-                                    <Button type="button" asChild className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 border-0">
-                                        <Link href="/pricing?source=dragon_ball_result_next_step">
-                                            Unlock Pro
-                                        </Link>
+                                    )}
+                                    <Button
+                                        type="button"
+                                        aria-label="Share this fusion with friends"
+                                        onClick={shareResult}
+                                        variant="outline"
+                                        title="Share fusion result"
+                                    >
+                                        <Share2 className="w-4 h-4 mr-2" aria-hidden="true" focusable="false" />
+                                        Share
                                     </Button>
                                 </div>
+
+                                {/* Regenerate the same pair — key satisfaction lever (AI output varies each run) */}
+                                <Button
+                                    type="button"
+                                    onClick={generateFusion}
+                                    disabled={isGenerating}
+                                    variant="outline"
+                                    aria-label="Regenerate a new version of the same two fighters"
+                                    className="w-full border-orange-300 text-orange-700 font-semibold hover:bg-orange-50"
+                                    title="Not quite right? Generate another version of the same pair"
+                                >
+                                    <Sparkles className={`w-4 h-4 mr-2 ${isGenerating ? "animate-spin" : ""}`} aria-hidden="true" focusable="false" />
+                                    {isGenerating ? "Generating…" : "🎲 Regenerate This Pair"}
+                                </Button>
+
+                                {/* Remix / explore — compact, low-emphasis */}
+                                <div className="grid grid-cols-3 gap-1">
+                                    <Button type="button" onClick={clearSelection} variant="ghost" className="text-xs text-gray-500 hover:text-orange-600" title="Start a brand new pair">
+                                        <RefreshCw className="w-3.5 h-3.5 mr-1" aria-hidden="true" focusable="false" />
+                                        New Pair
+                                    </Button>
+                                    <Button type="button" onClick={swapLeftFighter} variant="ghost" className="text-xs text-gray-500 hover:text-orange-600" title="Keep the right fighter, swap the left">
+                                        Swap Left
+                                    </Button>
+                                    <Button type="button" onClick={swapRightFighter} variant="ghost" className="text-xs text-gray-500 hover:text-orange-600" title="Keep the left fighter, swap the right">
+                                        Swap Right
+                                    </Button>
+                                </div>
+
+                                {/* Upgrade nudge — non-VIP only (single, consolidated CTA) */}
+                                {!quota.isVIP && (
+                                    <Link
+                                        href="/pricing?source=dragon_ball_result_upgrade"
+                                        onClick={() => trackStudioEvent("db_result_upgrade_click", { is_logged_in: Boolean(user) })}
+                                        className="flex items-center justify-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-2.5 text-sm font-semibold text-purple-700 hover:bg-purple-100 transition-colors"
+                                    >
+                                        <Sparkles className="w-4 h-4" aria-hidden="true" focusable="false" />
+                                        Upgrade to Pro — HD, no watermark, 300/mo
+                                    </Link>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

@@ -11,6 +11,8 @@ fal.config({
     credentials: process.env.FAL_KEY,
 });
 
+export const maxDuration = 60; // Allow time for generation + watermark processing
+
 // In-memory fallback for rate limiting (when Redis fails)
 // TTL: 30 minutes, Max entries: 10,000
 const fallbackCache = new Map<string, { count: number; expires: number }>();
@@ -33,6 +35,52 @@ function fallbackSet(ip: string, count: number): void {
         if (oldestKey) fallbackCache.delete(oldestKey);
     }
     fallbackCache.set(ip, { count, expires: Date.now() + FALLBACK_TTL });
+}
+
+/**
+ * Overlay a semi-transparent "FusionGenerator.fun" watermark on the bottom-right
+ * of a generated image, then re-host it on fal storage and return the new URL.
+ *
+ * Used only for non-VIP users. Paid users receive the clean HD image directly.
+ * On any failure we fall back to the original URL so generation never breaks.
+ */
+async function addWatermark(imageUrl: string): Promise<string> {
+    try {
+        const sharp = (await import("sharp")).default;
+
+        const res = await fetch(imageUrl);
+        if (!res.ok) throw new Error(`Failed to fetch image for watermark: ${res.status}`);
+        const inputBuffer = Buffer.from(await res.arrayBuffer());
+
+        const base = sharp(inputBuffer);
+        const meta = await base.metadata();
+        const width = meta.width ?? 1024;
+        const height = meta.height ?? 1024;
+
+        const fontSize = Math.max(16, Math.round(width * 0.032));
+        const pad = Math.round(width * 0.025);
+        const strokeWidth = Math.max(1, Math.round(fontSize * 0.07));
+
+        const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+            <text x="${width - pad}" y="${height - pad}" text-anchor="end"
+                font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="${fontSize}"
+                fill="#ffffff" fill-opacity="0.55"
+                stroke="#000000" stroke-opacity="0.35" stroke-width="${strokeWidth}"
+                style="paint-order: stroke;">FusionGenerator.fun</text>
+        </svg>`;
+
+        const watermarked = await base
+            .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
+            .png()
+            .toBuffer();
+
+        const file = new File([watermarked], `fusion-${Date.now()}.png`, { type: "image/png" });
+        const hostedUrl = await fal.storage.upload(file);
+        return hostedUrl || imageUrl;
+    } catch (err) {
+        console.warn("[Watermark] Failed, returning original image:", err instanceof Error ? err.message : err);
+        return imageUrl;
+    }
 }
 
 export async function POST(request: NextRequest) {
@@ -107,14 +155,14 @@ export async function POST(request: NextRequest) {
                 fallbackSet(clientIP, usage);
             }
 
-            if (usage > 2) {
+            if (usage > 3) {
                 return NextResponse.json({
                     error: "Free trial limit reached. Please login to get more credits!",
                     isLimitReached: true // Signal for frontend
                 }, { status: 429 }); // Using 429 for Rate Limit
             }
 
-            remainingQuota = Math.max(0, 2 - usage);
+            remainingQuota = Math.max(0, 3 - usage);
 
         } else {
             // LOGGED IN Logic
@@ -311,12 +359,13 @@ ${customPromptRaw || ''}`;
         // Negative prompts kept for reference but not used - FLUX 2 Pro doesn't support them
         // Key constraints have been merged into system prompts instead
 
-        const watermarkInstruction = !isVIP ? " Add subtle watermark text 'FusionGenerator.fun' in bottom right corner." : "";
+        // NOTE: Watermark is applied server-side (sharp overlay) after generation for
+        // non-VIP users — never via prompt text, which garbles the image.
 
         // 三层Prompt拼接
         const fullPrompt = `${selectedSystemPrompt}
 
-${finalPrompt} ${watermarkInstruction}`;
+${finalPrompt}`;
 
         // Debug logging removed for PII compliance
 
@@ -417,17 +466,22 @@ ${finalPrompt} ${watermarkInstruction}`;
             };
 
             if (dbImageUrls.length > 0) {
-                // DB 融合：传入角色参考图（flux/dev 支持 image_url，用第一个角色图做图生图）
+                // DB 融合：Nano-Banana (Gemini 2.5 Flash Image) “多图合成”——
+                // 同时传入两个角色参考图，模型同时“看到”两个角色。
+                // 会员用 Pro 模型（更高画质/一致性），非会员用标准模型。
+                const editModel = isVIP
+                    ? "fal-ai/nano-banana-pro/edit"
+                    : "fal-ai/gemini-25-flash-image/edit";
                 try {
-                    result = await callFalAPI("fal-ai/flux/dev", {
+                    result = await callFalAPI(editModel, {
                         prompt: fullPrompt,
-                        negative_prompt: NEGATIVE_PROMPT,
-                        image_url: dbImageUrls[0],
-                        image_size: "square_hd",
-                        strength: 0.75,
+                        image_urls: dbImageUrls,
+                        num_images: 1,
+                        aspect_ratio: "1:1",
+                        output_format: "png",
                     });
                 } catch (editErr: any) {
-                    console.warn("[DB Fusion] Image-to-image failed, falling back to text-to-image:", editErr.message);
+                    console.warn(`[DB Fusion] ${editModel} failed, falling back to text-to-image:`, editErr.message);
                     result = await callFalAPI("fal-ai/flux/dev", {
                         prompt: fullPrompt,
                         negative_prompt: NEGATIVE_PROMPT,
@@ -435,7 +489,7 @@ ${finalPrompt} ${watermarkInstruction}`;
                     });
                 }
             } else {
-                // 其他模式：纯文生图
+                // 其他模式（Pokemon / 直接 prompt，无参考图）：纯文生图
                 result = await callFalAPI("fal-ai/flux/dev", {
                     prompt: fullPrompt,
                     negative_prompt: NEGATIVE_PROMPT,
@@ -463,6 +517,12 @@ ${finalPrompt} ${watermarkInstruction}`;
         else if (result.output?.image_url) imageUrl = result.output.image_url;
 
         if (!imageUrl) throw new Error(`No image URL in response. Keys: ${Object.keys(result).join(', ')}`);
+
+        // Apply a semi-transparent watermark for non-VIP users (server-side overlay,
+        // then re-hosted on fal storage). VIP users get the clean HD image.
+        if (!isVIP) {
+            imageUrl = await addWatermark(imageUrl);
+        }
 
         // ============================================================================
         // 5️⃣ 扣费逻辑 — Credits already deducted BEFORE generation (Fix #1)

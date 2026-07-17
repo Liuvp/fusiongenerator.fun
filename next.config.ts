@@ -4,11 +4,19 @@ const nextConfig: NextConfig = {
   // Performance optimizations
   compress: true, // Enable gzip compression
 
+  // sharp is a native module used in the fusion API for server-side watermarking;
+  // keep it external so it is not bundled by the server compiler.
+  serverExternalPackages: ['sharp'],
+
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "v3b.fal.media",
+      },
+      {
+        protocol: "https",
+        hostname: "v3.fal.media",
       },
       {
         protocol: "https",
