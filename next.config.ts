@@ -81,29 +81,6 @@ const nextConfig: NextConfig = {
       config.optimization = {
         ...config.optimization,
         moduleIds: 'deterministic',
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            // Vendor chunk
-            vendor: {
-              name: 'vendor',
-              chunks: 'all',
-              test: /node_modules/,
-              priority: 20
-            },
-            // Common chunk
-            common: {
-              name: 'common',
-              minChunks: 2,
-              chunks: 'all',
-              priority: 10,
-              reuseExistingChunk: true,
-              enforce: true
-            }
-          }
-        }
       };
     }
 
@@ -117,7 +94,6 @@ const nextConfig: NextConfig = {
 
   // Experimental features for performance
   experimental: {
-    optimizeCss: true, // Re-enabled for performance optimization
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js', 'date-fns'],
   },
 

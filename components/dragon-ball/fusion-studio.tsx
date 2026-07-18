@@ -217,6 +217,7 @@ export function DBFusionStudio() {
     const [char1, setChar1] = useState<DBCharacter | undefined>(DB_CHARACTERS.find(c => c.id === 'goku'));
     const [char2, setChar2] = useState<DBCharacter | undefined>(DB_CHARACTERS.find(c => c.id === 'vegeta'));
     const [isGenerating, setIsGenerating] = useState(false);
+    const [fusionProgress, setFusionProgress] = useState(0);
     const [result, setResult] = useState<FusionResult | null>(null);
     const [quota, setQuota] = useState<Quota>(DEFAULT_QUOTA);
     const [user, setUser] = useState<User | null>(null);
@@ -497,6 +498,18 @@ export function DBFusionStudio() {
             return () => clearTimeout(scrollTimeout);
         }
     }, [result, isGenerating]);
+
+    // 融合进度动画 - 15秒内从0到95%，完成后等API返回再到100%
+    useEffect(() => {
+        if (!isGenerating) {
+            setFusionProgress(0);
+            return;
+        }
+        const interval = setInterval(() => {
+            setFusionProgress(prev => Math.min(prev + 100 / 75, 95)); // ~15秒到95%
+        }, 200);
+        return () => clearInterval(interval);
+    }, [isGenerating]);
 
     useEffect(() => {
         const handleVisibilityChange = (): void => {
@@ -1367,7 +1380,7 @@ export function DBFusionStudio() {
                         </Button>
                     </div>
                     <div
-                        className={`grid grid-cols-4 gap-3 pr-1 custom-scrollbar transition-all duration-300 md:overflow-y-auto md:max-h-[320px]`}
+                        className={`grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 pr-1 custom-scrollbar transition-all duration-300 md:overflow-y-auto md:max-h-[320px]`}
                         aria-live="polite"
                     >
                         {characterGrid}
@@ -1403,7 +1416,7 @@ export function DBFusionStudio() {
                     </div>
 
                     <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6">
-                        <CharacterSlot char={char1} position={1} onClear={() => { setChar1(undefined); setResult(null); }} onSlotClick={() => { setChar1(undefined); setResult(null); }} priority={true} />
+                        <CharacterSlot char={char1} position={1} onClear={() => { setChar1(undefined); setResult(null); }} onSlotClick={() => { setChar1(undefined); setResult(null); }} priority={true} highlight={!char1 && !!char2} />
                         <button
                             type="button"
                             onClick={() => {
@@ -1443,7 +1456,7 @@ export function DBFusionStudio() {
                                 {char1 && char2 ? 'SWAP' : 'RANDOM'}
                             </span>
                         </button>
-                        <CharacterSlot char={char2} position={2} onClear={() => { setChar2(undefined); setResult(null); }} onSlotClick={() => { setChar2(undefined); setResult(null); }} priority={true} />
+                        <CharacterSlot char={char2} position={2} onClear={() => { setChar2(undefined); setResult(null); }} onSlotClick={() => { setChar2(undefined); setResult(null); }} priority={true} highlight={!!char1 && !char2} />
                     </div>
 
                     <div
@@ -1623,30 +1636,94 @@ export function DBFusionStudio() {
                 </CardContent>
             </Card>
 
-            {/* 加载状态 */}
+            {/* 加载状态 - Dragon Ball 主题融合动画 */}
             {
-                isGenerating && (
-                    <Card
-                        className="border-0 shadow-md mb-6 animate-pulse"
-                        aria-live="polite"
-                        aria-busy="true"
-                        role="status"
-                    >
-                        <CardContent className="h-[300px] flex flex-col items-center justify-center p-5 space-y-4 bg-gray-50/50 rounded-xl">
-                            <Sparkles
-                                className="w-12 h-12 text-orange-400 animate-spin"
-                                aria-hidden="true"
-                                focusable="false"
-                            />
-                            <p className="text-gray-600 font-semibold">Channeling Ki for {char1?.name} x {char2?.name}...</p>
-                            <p className="text-sm text-gray-500 font-medium">You can switch tabs while we keep generating.</p>
-                            <p className="text-xs text-gray-400">If the image finishes while you are away, we will surface it when you come back.</p>
-                            <div className="sr-only">
-                                Generating fusion between {char1?.name} and {char2?.name}. Please wait.
-                            </div>
-                        </CardContent>
-                    </Card>
-                )
+                isGenerating && (() => {
+                    const phase = fusionProgress < 25 ? "Gathering Ki..."
+                        : fusionProgress < 50 ? "Aligning DNA..."
+                        : fusionProgress < 75 ? "Fusion in progress..."
+                        : fusionProgress < 95 ? "Stabilizing form..."
+                        : "Almost there...";
+                    return (
+                        <Card
+                            className="border-0 shadow-xl mb-6 overflow-hidden"
+                            aria-live="polite"
+                            aria-busy="true"
+                            role="status"
+                        >
+                            <CardContent className="p-0">
+                                <div className="relative h-[300px] bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 overflow-hidden">
+                                    {/* 速度线背景 */}
+                                    <div
+                                        className="absolute inset-0 opacity-20 animate-fusion-speed"
+                                        style={{
+                                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.15) 10px, rgba(255,255,255,0.15) 20px)',
+                                            backgroundSize: '100px 100px',
+                                        }}
+                                    />
+
+                                    {/* 角色缩略图 - 左右向中间靠拢 */}
+                                    <div className="absolute inset-0 flex items-center justify-between px-6 sm:px-12">
+                                        <div className="animate-fusion-left">
+                                            <Image
+                                                src={char1?.thumbnailUrl || char1?.imageUrl || ''}
+                                                alt={char1?.name || 'Character 1'}
+                                                width={72} height={72}
+                                                className="rounded-full border-2 border-yellow-400 shadow-lg shadow-yellow-400/50 object-cover"
+                                            />
+                                        </div>
+                                        <div className="animate-fusion-right">
+                                            <Image
+                                                src={char2?.thumbnailUrl || char2?.imageUrl || ''}
+                                                alt={char2?.name || 'Character 2'}
+                                                width={72} height={72}
+                                                className="rounded-full border-2 border-yellow-400 shadow-lg shadow-yellow-400/50 object-cover"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* 中心能量球 */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 -m-4 rounded-full bg-yellow-400/30 blur-xl animate-fusion-energy" />
+                                            <div className="absolute inset-0 -m-2 rounded-full bg-orange-400/40 blur-md animate-fusion-aura" />
+                                            <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-yellow-300 to-orange-500 animate-fusion-energy shadow-2xl shadow-yellow-400/80" />
+                                        </div>
+                                    </div>
+
+                                    {/* FUU-SION-HA 文字 */}
+                                    <div className="absolute top-8 left-0 right-0 text-center">
+                                        <p className="text-xl sm:text-2xl font-black text-white tracking-wider animate-fusion-text" style={{ textShadow: '0 0 20px rgba(255,200,0,0.8), 0 0 40px rgba(255,100,0,0.5)' }}>
+                                            FUU-SION-HA!
+                                        </p>
+                                        <p className="text-sm text-yellow-200/80 mt-1 font-semibold">
+                                            {char1?.name} × {char2?.name}
+                                        </p>
+                                    </div>
+
+                                    {/* 进度条 */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-sm text-white/90 font-semibold">{phase}</p>
+                                            <p className="text-xs text-white/60">~{Math.max(1, Math.ceil((95 - fusionProgress) / 100 * 15))}s</p>
+                                        </div>
+                                        <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 rounded-full transition-all duration-200 ease-out"
+                                                style={{ width: `${fusionProgress}%` }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* 无障碍 */}
+                                    <div className="sr-only">
+                                        Generating fusion between {char1?.name} and {char2?.name}. {phase} Please wait.
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })()
             }
 
             {/* 结果显示 */}
@@ -2038,12 +2115,13 @@ interface CharacterSlotProps {
     onClear?: () => void;
     onSlotClick?: () => void;
     priority?: boolean;
+    highlight?: boolean;
 }
 
-const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false }: CharacterSlotProps) => {
+const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false, highlight = false }: CharacterSlotProps) => {
     const color = position === 1
-        ? { border: 'border-orange-500', bg: 'bg-orange-500' }
-        : { border: 'border-blue-500', bg: 'bg-blue-500' };
+        ? { border: 'border-orange-500', bg: 'bg-orange-500', highlightBorder: 'border-orange-400', highlightShadow: 'shadow-orange-200', highlightText: 'text-orange-400' }
+        : { border: 'border-blue-500', bg: 'bg-blue-500', highlightBorder: 'border-blue-400', highlightShadow: 'shadow-blue-200', highlightText: 'text-blue-400' };
 
     // ✅ 改进：屏幕阅读器提示
     const [isCleared, setIsCleared] = useState(false);
@@ -2062,10 +2140,10 @@ const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false 
                     onClick={() => { if (char && onSlotClick) onSlotClick(); }}
                     className={`
                         relative w-24 h-24 rounded-xl overflow-hidden border-4 shadow-lg
-                        ${char ? color.border : 'border-gray-200'} bg-gray-100
+                        ${char ? color.border : (highlight ? `${color.highlightBorder} animate-pulse shadow-lg ${color.highlightShadow}` : 'border-gray-200')} bg-gray-100
                         ${char && onSlotClick ? 'cursor-pointer hover:brightness-95 active:scale-95 transition-all' : 'cursor-default'}
                     `}
-                    aria-label={char ? `${char.name} character — tap to remove` : `Empty slot ${position}`}
+                    aria-label={char ? `${char.name} character - tap to remove` : `Empty slot ${position}${highlight ? ' - pick a character' : ''}`}
                     disabled={!char || !onSlotClick}
                 >
                 {char ? (
@@ -2081,7 +2159,7 @@ const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false 
                     />
                 ) : (
                     <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <span className="text-2xl font-black text-gray-300">?</span>
+                        <span className={`font-black ${highlight ? `text-sm ${color.highlightText}` : 'text-2xl text-gray-300'}`}>{highlight ? 'PICK!' : '?'}</span>
                     </div>
                 )}
                 </button>
