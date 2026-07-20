@@ -1270,7 +1270,7 @@ export function DBFusionStudio() {
     return (
         <div
             id="fusion-studio"
-            className="bg-gradient-to-b from-orange-50/30 to-white p-4 pb-8 rounded-3xl"
+            className="scroll-mt-20 bg-gradient-to-b from-orange-50/30 to-white p-4 pb-8 rounded-3xl"
             role="region"
             aria-label="Dragon Ball Fusion Studio"
         >

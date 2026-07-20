@@ -4,16 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
-import { useCallback } from "react";
 
 export function DBHero() {
-    const handleStartFusion = useCallback(() => {
-        const el = document.getElementById("fusion-studio");
-        if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-    }, []);
-
     return (
         <section
             className="grid gap-8 md:grid-cols-2 items-center"
@@ -38,11 +30,14 @@ export function DBHero() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                     <Button
-                        onClick={handleStartFusion}
+                        asChild
                         className="h-10 px-4 py-2"
-                        aria-label="Start Dragon Ball fusion generator"
                     >
-                        Start Free Fusion
+                        {/* Native anchor: works even before React hydrates, so mobile
+                            taps never turn into dead clicks while the JS chunk loads. */}
+                        <a href="#fusion-studio" aria-label="Start Dragon Ball fusion generator">
+                            Start Free Fusion
+                        </a>
                     </Button>
                     <Button asChild variant="outline" className="h-10 px-4 py-2">
                         <Link href="/gallery" aria-label="View Dragon Ball fusion gallery">
