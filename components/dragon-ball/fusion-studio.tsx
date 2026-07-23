@@ -231,6 +231,8 @@ export function DBFusionStudio() {
     const [showAuthOptions, setShowAuthOptions] = useState(false);
     const [authDialogOpen, setAuthDialogOpen] = useState(false);
     const [authMode, setAuthMode] = useState<"sign_up" | "sign_in">("sign_up");
+    // Optional context-specific copy for the auth dialog (e.g. the post-download prompt)
+    const [authHeadline, setAuthHeadline] = useState<{ title: string; description: string } | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
     const [resultBannerDismissed, setResultBannerDismissed] = useState(false);
@@ -1061,7 +1063,25 @@ export function DBFusionStudio() {
                 duration: 2000
             });
         }
-    }, [result, toast]);
+
+        // Post-download conversion (option B): a guest just got the image they
+        // like — capture that high-intent moment with a sign-up prompt, and stash
+        // the result so signing up auto-saves it into their new collection.
+        if (!user) {
+            trackStudioEvent("db_post_download_prompt", {
+                char1_id: result.char1.id,
+                char2_id: result.char2.id,
+            });
+            persistPendingResult(result, true);
+            setAuthHeadline({
+                title: "Love your fusion? Keep it forever",
+                description: "Create a free account to save this to your collection and get 2 starter credits. Upgrade to Pro anytime for HD downloads with no watermark.",
+            });
+            setAuthMode("sign_up");
+            // Delay so the browser download starts before the dialog appears
+            window.setTimeout(() => setAuthDialogOpen(true), 900);
+        }
+    }, [result, toast, user, persistPendingResult]);
 
     const shareResult = useCallback(async (): Promise<void> => {
         if (!result) return;
@@ -1917,16 +1937,18 @@ export function DBFusionStudio() {
             </div>
 
             {/* 内联注册/登录对话框 */}
-            <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
+            <Dialog open={authDialogOpen} onOpenChange={(open) => { setAuthDialogOpen(open); if (!open) setAuthHeadline(null); }}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {authMode === "sign_up" ? "Save My Fusions (Free)" : "Welcome Back"}
+                            {authHeadline ? authHeadline.title : (authMode === "sign_up" ? "Save My Fusions (Free)" : "Welcome Back")}
                         </DialogTitle>
                         <DialogDescription>
-                            {authMode === "sign_up"
-                                ? "Create an account to save your fusion history and get 2 starter credits."
-                                : "Sign in to continue your fusion session and access your saved creations."}
+                            {authHeadline
+                                ? authHeadline.description
+                                : authMode === "sign_up"
+                                    ? "Create an account to save your fusion history and get 2 starter credits."
+                                    : "Sign in to continue your fusion session and access your saved creations."}
                         </DialogDescription>
                     </DialogHeader>
 
