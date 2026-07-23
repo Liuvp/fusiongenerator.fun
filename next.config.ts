@@ -115,6 +115,12 @@ const nextConfig: NextConfig = {
         destination: '/site-map',
         permanent: true,
       },
+      // Collapse the duplicate homepage phantom path (/index -> /) for SEO
+      {
+        source: '/index',
+        destination: '/',
+        permanent: true,
+      },
     ];
   },
 
