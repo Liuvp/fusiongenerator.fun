@@ -127,7 +127,7 @@ export default function ContactPage() {
                                 <div>
                                     <h3 className="font-semibold mb-2">Is Fusion Generator free?</h3>
                                     <p className="text-muted-foreground text-sm">
-                                        Yes! We offer 2 free fusions to start. For 300 fusions/month and HD quality, check out our <Link href="/pricing" className="text-primary hover:underline">pricing plans</Link>.
+                                        Yes! We offer 3 free fusions to start. For 300 fusions/month and HD quality, check out our <Link href="/pricing" className="text-primary hover:underline">pricing plans</Link>.
                                     </p>
                                 </div>
                                 <div>

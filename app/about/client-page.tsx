@@ -163,7 +163,7 @@ export default function AboutPage() {
                                     <div>
                                         <h3 className="font-semibold mb-2">Free to Start</h3>
                                         <p className="text-muted-foreground">
-                                            Everyone gets 2 free fusions to start. No credit card required. Upgrade anytime for 300 fusions/month and HD quality.
+                                            Everyone gets 3 free fusions to start. No credit card required. Upgrade anytime for 300 fusions/month and HD quality.
                                         </p>
                                     </div>
                                 </div>

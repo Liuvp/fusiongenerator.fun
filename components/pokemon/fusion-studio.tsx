@@ -272,7 +272,7 @@ export function PokeFusionStudio() {
             }
             : {
                 title: "Keep generating with a free account",
-                description: "Guest access includes 2 free fusions. Sign in or create a free account before your next generation."
+                description: "Guest access includes 3 free fusions. Sign in or create a free account before your next generation."
             };
     }, [hasQuotaAccessValue, quota?.isVIP, quota?.remaining, user]);
 
@@ -617,7 +617,7 @@ export function PokeFusionStudio() {
                     {shouldShowAuthOptions && !user && !hasQuotaAccessValue && (
                         <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">You&apos;ve used your 2 free fusions</h4>
+                                <h4 className="font-bold text-gray-800">You&apos;ve used your 3 free fusions</h4>
                                 <p className="text-xs text-gray-600">
                                     Create a free account to get 2 more credits, or upgrade to Pro for unlimited fusions.
                                 </p>
