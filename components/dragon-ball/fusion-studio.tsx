@@ -969,6 +969,8 @@ export function DBFusionStudio() {
                 char2: char2!
             };
             setResult(newResult);
+            // #3: Reset the signup banner so it reappears on each new result
+            setResultBannerDismissed(false);
 
             // 自动保存到历史记录（已登录用户）
             if (user) {
@@ -993,6 +995,26 @@ export function DBFusionStudio() {
                     ? Number((data.quota as Quota).remaining)
                     : Math.max(0, quota.remaining - 1),
             });
+
+            // #1+#4: Mid-funnel nudge - guest just used their 2nd of 3 free fusions
+            const newRemaining = data.quota && typeof data.quota === "object" && "remaining" in data.quota
+                ? Number((data.quota as Quota).remaining)
+                : Math.max(0, quota.remaining - 1);
+            if (!user && !quota.isVIP && newRemaining === 1) {
+                trackStudioEvent("db_midfunnel_nudge", {
+                    remaining: newRemaining,
+                    char1_id: char1!.id,
+                    char2_id: char2!.id,
+                });
+                // Delay so it doesn't overlap with the "Fusion Complete!" toast
+                window.setTimeout(() => {
+                    toast({
+                        title: "🔥 Only 1 free fusion left!",
+                        description: "Sign up to save your fusions and get 2 more credits.",
+                        duration: 5000,
+                    });
+                }, 3500);
+            }
 
         } catch (error: unknown) {
             console.error("Fusion error:", error);
@@ -1759,7 +1781,9 @@ export function DBFusionStudio() {
                             {!user && !resultBannerDismissed && (
                                 <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 px-4 py-3 text-center">
                                     <p className="text-white font-bold text-sm sm:text-base">
-                                        🔥 Love this fusion? Create a free account to save it and get 2 starter credits!
+                                        {quota.remaining === 1
+                                            ? "🔥 Only 1 free fusion left! Sign up to save your fusions + get 2 more credits!"
+                                            : "🔥 Love this fusion? Create a free account to save it and get 2 starter credits!"}
                                     </p>
                                     <div className="mt-2 flex items-center justify-center gap-2">
                                         <Button

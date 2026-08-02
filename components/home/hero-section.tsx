@@ -1,7 +1,25 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
+const SUGGESTIONS = [
+  "Try: Goku + Vegeta",
+  "Try: Broly + Gogeta",
+  "Try: Whis + Beerus",
+];
+
 export function HeroSection() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % SUGGESTIONS.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-700">
       <div className="container mx-auto max-w-6xl">
@@ -16,11 +34,16 @@ export function HeroSection() {
             </p>
 
             <div className="relative max-w-lg mt-8">
-              <Link href="/dragon-ball" className="group block cursor-pointer" aria-label="Try Dragon Ball Fusion Generator — no account needed">
+              <Link href="/dragon-ball" className="group block cursor-pointer" aria-label="Try Dragon Ball Fusion Generator - no account needed">
                 <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-25 group-hover:opacity-100 transition duration-1000"></div>
                 <div className="relative flex items-center bg-white rounded-full p-2 shadow-xl border border-purple-200">
                   <div className="flex-1 px-4 text-gray-500 font-medium truncate">
-                    Try: Goku + Vegeta
+                    <span
+                      key={index}
+                      className="inline-block animate-in fade-in slide-in-from-left-2 duration-500"
+                    >
+                      {SUGGESTIONS[index]}
+                    </span>
                   </div>
                   <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition transform group-hover:scale-105">
                     Try Dragon Ball Fusion Free!
