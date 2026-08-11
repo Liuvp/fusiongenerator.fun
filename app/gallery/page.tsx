@@ -46,13 +46,22 @@ export default function Page() {
         <p className="mt-2 text-muted-foreground">
           Browse our collection of amazing Dragon Ball and Pokemon character fusions. Get inspired by community creations and start your own fusion journey.
         </p>
-        <div className="mt-4 flex items-center justify-center gap-3">
-          <Button asChild variant="default">
-            <Link href="/dragon-ball">Try the Generator</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/pricing">View Pricing</Link>
-          </Button>
+      </div>
+
+      {/* Sticky return-to-generator banner — stays visible while scrolling gallery (#10) */}
+      <div className="sticky top-16 z-40 mb-8 -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-b">
+        <div className="flex items-center justify-between gap-3 max-w-4xl mx-auto">
+          <p className="text-sm font-medium text-muted-foreground hidden sm:block">
+            Want to make your own fusion?
+          </p>
+          <div className="flex items-center gap-2 ml-auto">
+            <Button asChild variant="default" size="sm">
+              <Link href="/dragon-ball">← Back to Fusion Generator</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/pricing">View Pricing</Link>
+            </Button>
+          </div>
         </div>
       </div>
 

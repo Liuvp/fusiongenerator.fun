@@ -1549,7 +1549,7 @@ export function DBFusionStudio() {
                         className={`
                             w-full py-6 text-xl font-black uppercase tracking-wide shadow-xl
                             transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]
-                            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                            disabled:opacity-50 disabled:cursor-wait disabled:hover:scale-100
                             ${isShaking ? 'animate-shake ring-2 ring-red-500 ring-offset-2' : ''}
                             ${isGenerating
                                 ? 'bg-gray-200 text-gray-500'
@@ -1572,6 +1572,7 @@ export function DBFusionStudio() {
                             <span className="flex items-center gap-3">
                                 <Sparkles className="w-6 h-6 animate-spin" aria-hidden="true" focusable="false" />
                                 <span aria-live="polite">FUSING...</span>
+                                <span className="text-xs opacity-75 font-medium normal-case tracking-normal">~{Math.max(1, Math.ceil((95 - fusionProgress) / 100 * 15))}s left</span>
                             </span>
                         ) : !isSelectionComplete ? (
                             <span className="flex items-center gap-2">
@@ -1579,7 +1580,7 @@ export function DBFusionStudio() {
                                 <span>SELECT 2 FIGHTERS ({selectedCount}/2)</span>
                             </span>
                         ) : !hasQuotaAccessValue ? (
-                            user ? "UNLOCK MORE FUSIONS" : "SAVE MY FUSIONS (FREE)"
+                            user ? "UNLOCK MORE FUSIONS" : "SIGN UP FOR 2 MORE FREE FUSIONS"
                         ) : (
                             <span className="flex items-center gap-3">
                                 <Sparkles className="w-6 h-6" aria-hidden="true" focusable="false" />
@@ -1965,7 +1966,7 @@ export function DBFusionStudio() {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {authHeadline ? authHeadline.title : (authMode === "sign_up" ? "Save My Fusions (Free)" : "Welcome Back")}
+                            {authHeadline ? authHeadline.title : (authMode === "sign_up" ? "Get 2 More Free Fusions" : "Welcome Back")}
                         </DialogTitle>
                         <DialogDescription>
                             {authHeadline
