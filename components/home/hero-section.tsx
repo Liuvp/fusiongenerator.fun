@@ -34,7 +34,7 @@ export function HeroSection() {
             </p>
 
             <div className="relative max-w-lg mt-8">
-              <Link href="/dragon-ball" className="group block cursor-pointer" aria-label="Try Dragon Ball Fusion Generator - no account needed">
+              <Link href="/dragon-ball#fusion-studio" className="group block cursor-pointer" aria-label="Try Dragon Ball Fusion Generator - no account needed">
                 <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-25 group-hover:opacity-100 transition duration-1000"></div>
                 <div className="relative flex items-center bg-white rounded-full p-2 shadow-xl border border-purple-200">
                   <div className="flex-1 px-4 text-gray-500 font-medium truncate">
@@ -57,7 +57,7 @@ export function HeroSection() {
           </div>
 
           <div className="w-full md:w-1/2">
-            <Link href="/dragon-ball" className="relative block cursor-pointer" aria-label="Start creating an AI fusion now">
+            <Link href="/dragon-ball#fusion-studio" className="relative block cursor-pointer" aria-label="Start creating an AI fusion now">
               <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg blur-lg opacity-75 animate-pulse"></div>
               <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
                 <Image

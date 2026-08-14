@@ -14,7 +14,7 @@ export function CTA() {
 
                 <div className="flex flex-col justify-center gap-4 sm:flex-row">
                     <Link
-                        href="/dragon-ball"
+                        href="/dragon-ball#fusion-studio"
                         className="rounded-full bg-gradient-to-r from-orange-500 to-pink-500 px-8 py-4 text-lg font-medium shadow-lg transition-all hover:from-orange-600 hover:to-pink-600 hover:shadow-xl"
                     >
                         Create Free Fusion Now

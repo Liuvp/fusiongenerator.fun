@@ -1448,8 +1448,9 @@ export function DBFusionStudio() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={clearSelection}
+                                disabled={isGenerating}
                                 aria-label="Clear current fighter selection"
-                                className="h-7 px-2 text-xs text-gray-500 hover:text-destructive"
+                                className="h-7 px-2 text-xs text-gray-500 hover:text-destructive disabled:cursor-wait"
                                 title="Clear current selection"
                             >
                                 Clear
@@ -1458,9 +1459,10 @@ export function DBFusionStudio() {
                     </div>
 
                     <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6">
-                        <CharacterSlot char={char1} position={1} onClear={() => { setChar1(undefined); setResult(null); }} onSlotClick={() => { setChar1(undefined); setResult(null); }} priority={true} highlight={!char1 && !!char2} />
+                        <CharacterSlot char={char1} position={1} disabled={isGenerating} onClear={() => { setChar1(undefined); setResult(null); }} onSlotClick={() => { setChar1(undefined); setResult(null); }} priority={true} highlight={!char1 && !!char2} />
                         <button
                             type="button"
+                            disabled={isGenerating}
                             onClick={() => {
                                 const c1 = char1Ref.current;
                                 const c2 = char2Ref.current;
@@ -1485,7 +1487,7 @@ export function DBFusionStudio() {
                                     });
                                 }
                             }}
-                            className="flex flex-col items-center gap-1 group/plus"
+                            className="flex flex-col items-center gap-1 group/plus disabled:opacity-50 disabled:cursor-wait"
                             aria-label={char1 && char2 ? "Swap fighters" : "Pick random fighter"}
                             title={char1 && char2 ? "Swap fighters" : "Pick a random fighter"}
                         >
@@ -1498,7 +1500,7 @@ export function DBFusionStudio() {
                                 {char1 && char2 ? 'SWAP' : 'RANDOM'}
                             </span>
                         </button>
-                        <CharacterSlot char={char2} position={2} onClear={() => { setChar2(undefined); setResult(null); }} onSlotClick={() => { setChar2(undefined); setResult(null); }} priority={true} highlight={!!char1 && !char2} />
+                        <CharacterSlot char={char2} position={2} disabled={isGenerating} onClear={() => { setChar2(undefined); setResult(null); }} onSlotClick={() => { setChar2(undefined); setResult(null); }} priority={true} highlight={!!char1 && !char2} />
                     </div>
 
                     <div
@@ -1708,20 +1710,29 @@ export function DBFusionStudio() {
                                     {/* 角色缩略图 - 左右向中间靠拢 */}
                                     <div className="absolute inset-0 flex items-center justify-between px-6 sm:px-12">
                                         <div className="animate-fusion-left">
-                                            <Image
-                                                src={char1?.thumbnailUrl || char1?.imageUrl || ''}
-                                                alt={char1?.name || 'Character 1'}
-                                                width={72} height={72}
-                                                className="rounded-full border-2 border-yellow-400 shadow-lg shadow-yellow-400/50 object-cover"
-                                            />
+                                            {char1 ? (
+                                                <Image
+                                                    src={char1.thumbnailUrl || char1.imageUrl}
+                                                    alt={char1.name}
+                                                    width={72} height={72}
+                                                    className="rounded-full border-2 border-yellow-400 shadow-lg shadow-yellow-400/50 object-cover"
+                                                />
+                                            ) : (
+                                                // Guard: next/image throws on empty src — never render it without a fighter
+                                                <div className="w-[72px] h-[72px] rounded-full border-2 border-yellow-400/40 bg-white/10" aria-hidden="true" />
+                                            )}
                                         </div>
                                         <div className="animate-fusion-right">
-                                            <Image
-                                                src={char2?.thumbnailUrl || char2?.imageUrl || ''}
-                                                alt={char2?.name || 'Character 2'}
-                                                width={72} height={72}
-                                                className="rounded-full border-2 border-yellow-400 shadow-lg shadow-yellow-400/50 object-cover"
-                                            />
+                                            {char2 ? (
+                                                <Image
+                                                    src={char2.thumbnailUrl || char2.imageUrl}
+                                                    alt={char2.name}
+                                                    width={72} height={72}
+                                                    className="rounded-full border-2 border-yellow-400 shadow-lg shadow-yellow-400/50 object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-[72px] h-[72px] rounded-full border-2 border-yellow-400/40 bg-white/10" aria-hidden="true" />
+                                            )}
                                         </div>
                                     </div>
 
@@ -2163,9 +2174,10 @@ interface CharacterSlotProps {
     onSlotClick?: () => void;
     priority?: boolean;
     highlight?: boolean;
+    disabled?: boolean; // e.g. while generating — prevents clearing a slot mid-fusion
 }
 
-const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false, highlight = false }: CharacterSlotProps) => {
+const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false, highlight = false, disabled = false }: CharacterSlotProps) => {
     const color = position === 1
         ? { border: 'border-orange-500', bg: 'bg-orange-500', highlightBorder: 'border-orange-400', highlightShadow: 'shadow-orange-200', highlightText: 'text-orange-400' }
         : { border: 'border-blue-500', bg: 'bg-blue-500', highlightBorder: 'border-blue-400', highlightShadow: 'shadow-blue-200', highlightText: 'text-blue-400' };
@@ -2188,10 +2200,11 @@ const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false,
                     className={`
                         relative w-24 h-24 rounded-xl overflow-hidden border-4 shadow-lg
                         ${char ? color.border : (highlight ? `${color.highlightBorder} animate-pulse shadow-lg ${color.highlightShadow}` : 'border-gray-200')} bg-gray-100
-                        ${char && onSlotClick ? 'cursor-pointer hover:brightness-95 active:scale-95 transition-all' : 'cursor-default'}
+                        ${char && onSlotClick && !disabled ? 'cursor-pointer hover:brightness-95 active:scale-95 transition-all' : 'cursor-default'}
+                        ${disabled ? 'opacity-60' : ''}
                     `}
                     aria-label={char ? `${char.name} character - tap to remove` : `Empty slot ${position}${highlight ? ' - pick a character' : ''}`}
-                    disabled={!char || !onSlotClick}
+                    disabled={!char || !onSlotClick || disabled}
                 >
                 {char ? (
                     <Image
@@ -2214,7 +2227,8 @@ const CharacterSlot = ({ char, position, onClear, onSlotClick, priority = false,
                     <button
                         type="button"
                         onClick={handleClear}
-                        className="absolute top-1 left-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-100 shadow-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
+                        disabled={disabled}
+                        className="absolute top-1 left-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-100 shadow-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                         aria-label="Remove this fighter"
                         title="Remove this fighter"
                     >
