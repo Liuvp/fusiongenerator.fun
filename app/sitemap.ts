@@ -3,7 +3,10 @@ import { getAllPosts } from "@/app/blog/data/posts";
 import { getSiteUrl } from "@/lib/site-url";
 import { getLastModifiedDate } from "@/lib/sitemap-helper";
 
-export const revalidate = 86400;
+// Intentionally NO revalidate/ISR here: runtime regeneration on Vercel lambdas
+// has no git binary and no source files, so lastmod would silently fall back to
+// today's date for every URL, and crawlers hitting a cold regen can time out.
+// Fully static = regenerated on each deploy with real git dates, served from CDN.
 
 type ChangeFrequency =
   | "always"
