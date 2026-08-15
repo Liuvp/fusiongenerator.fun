@@ -245,7 +245,8 @@ export function DBFusionStudio() {
     const [isSaved, setIsSaved] = useState(false);
     const [selectedStyleId, setSelectedStyleId] = useState<string>('potara');
     const [authBannerDismissed, setAuthBannerDismissed] = useState(false);
-    const dbReturnTarget = "/dragon-ball?auth=welcome&from=dragon_ball_fusion#fusion-studio";
+    // mode param lets the return handler tell a new sign-up apart from a sign-in (funnel)
+    const dbReturnTarget = `/dragon-ball?auth=welcome&from=dragon_ball_fusion${authMode === "sign_up" ? "&mode=sign_up" : ""}#fusion-studio`;
     const showAuthReturnBanner = searchParams.get("auth") === "welcome" && !authBannerDismissed;
 
     // Auto-dismiss welcome banner when user starts selecting characters
@@ -253,12 +254,30 @@ export function DBFusionStudio() {
         if (char1 || char2) setAuthBannerDismissed(true);
     }, [char1, char2]);
 
+    // Funnel: fired once when the user lands back on the studio after a
+    // successful sign-up or sign-in (email or OAuth redirect)
+    const authSuccessTrackedRef = useRef(false);
+    useEffect(() => {
+        if (searchParams.get("auth") !== "welcome" || authSuccessTrackedRef.current) return;
+        authSuccessTrackedRef.current = true;
+        trackStudioEvent("db_auth_success_return", {
+            mode: searchParams.get("mode") === "sign_up" ? "sign_up" : "sign_in",
+            source: searchParams.get("from"),
+        });
+    }, [searchParams]);
+
     // Handle payment success: show toast + scroll to studio
     // Only fire after quota is loaded (to correctly show Pro vs Refill toast) and only once
     const paymentToastShownRef = useRef(false);
     useEffect(() => {
         if (searchParams.get("payment") !== "success" || paymentToastShownRef.current) return;
         paymentToastShownRef.current = true;
+
+        // Funnel: the paying user landed back from the Creem checkout — this is
+        // the bottom-of-funnel signal for the conversion smoke test
+        trackStudioEvent("db_payment_success_return", {
+            source: searchParams.get("source"),
+        });
 
         // Show immediate confirmation — don't wait for webhook
         toast({
@@ -1062,6 +1081,14 @@ export function DBFusionStudio() {
     const downloadImage = useCallback(async (): Promise<void> => {
         if (!result?.imageUrl) return;
 
+        // Funnel: generate → download is the key free-user engagement step
+        trackStudioEvent("db_result_download", {
+            is_logged_in: Boolean(user),
+            is_vip: quota.isVIP,
+            char1_id: result.char1.id,
+            char2_id: result.char2.id,
+        });
+
         try {
             const a = document.createElement('a');
             a.href = result.imageUrl;
@@ -1103,7 +1130,7 @@ export function DBFusionStudio() {
             // Delay so the browser download starts before the dialog appears
             window.setTimeout(() => setAuthDialogOpen(true), 900);
         }
-    }, [result, toast, user, persistPendingResult]);
+    }, [result, toast, user, persistPendingResult, quota.isVIP]);
 
     const shareResult = useCallback(async (): Promise<void> => {
         if (!result) return;
@@ -1672,7 +1699,7 @@ export function DBFusionStudio() {
                                 <p className="text-[10px] text-center text-gray-500">
                                     {quota.isVIP
                                         ? "Continue fusing with more credits · No waiting for next month"
-                                        : "300 fusions/month · No watermark · HD download · Commercial license"
+                                        : "300 fusions/month · No watermark · HD download"
                                     }
                                 </p>
                             </div>
