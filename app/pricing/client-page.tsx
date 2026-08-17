@@ -301,12 +301,12 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                                     <Sparkles className="h-6 w-6 text-orange-600 dark:text-orange-400" aria-hidden="true" />
                                                 </div>
                                             </div>
-                                            <h3 className="tracking-tight text-2xl font-bold text-foreground">Extra Credits</h3>
+                                            <h3 className="tracking-tight text-2xl font-bold text-foreground">Fusion Pack</h3>
                                             <div className="space-y-2">
                                                 <div className="flex items-baseline justify-center gap-1">
-                                                    <span className="text-4xl font-bold text-foreground">$4.99</span>
+                                                    <span className="text-4xl font-bold text-foreground">$2.99</span>
                                                 </div>
-                                                <p className="text-muted-foreground">One-time purchase</p>
+                                                <p className="text-muted-foreground">One-time purchase · No subscription</p>
                                             </div>
                                         </div>
                                         <div className="p-6 pt-0 space-y-6 flex-1 flex flex-col">
@@ -315,13 +315,13 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed font-medium text-foreground">+100 Fast Fusions</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed font-medium text-foreground">+20 Fast Fusions</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
                                                         <Check className="h-3 w-3 text-muted-foreground" />
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm leading-relaxed">Never expires</span>
+                                                    <span className="text-muted-foreground text-sm leading-relaxed">Credits never expire</span>
                                                 </div>
                                                 <div className="flex items-start gap-3">
                                                     <div className="mt-0.5 p-1 rounded-full bg-muted">
@@ -339,7 +339,7 @@ export default function PricingPage({ user: serverUser }: { user: User | null })
                                                     {isLoading ? (
                                                         <Loader2 className="h-4 w-4 animate-spin" />
                                                     ) : (
-                                                        "Buy Refill Pack"
+                                                        "Get 20 Fusions"
                                                     )}
                                                 </button>
                                             </div>

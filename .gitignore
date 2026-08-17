@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 # Clarity daily automation artifacts
 clarity-history/daily/
+
+# Local AI workbuddy memory (internal notes/analysis — never push to remote)
+.workbuddy/

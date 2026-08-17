@@ -194,7 +194,8 @@ export async function POST(req: Request) {
 
             if (customer) {
               await supabase.from('customers').update({
-                credits: current + 100,
+                // Fusion Pack: $2.99 one-time → 20 credits (was 100 for $4.99)
+                credits: current + 20,
                 creem_customer_id: creemCustId,
                 last_refill_at: now,
                 last_refill_checkout_id: checkoutId,
@@ -203,7 +204,7 @@ export async function POST(req: Request) {
               // Upsert to handle race condition with new-user webhook
               await supabase.from('customers').upsert({
                 user_id: userId,
-                credits: 100,
+                credits: 20,
                 creem_customer_id: creemCustId,
                 last_refill_at: now,
                 last_refill_checkout_id: checkoutId,

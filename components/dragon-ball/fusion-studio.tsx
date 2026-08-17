@@ -1671,36 +1671,32 @@ export function DBFusionStudio() {
                                 <h4 className="font-bold text-gray-800">Fusion Energy Depleted!</h4>
                                 <p className="text-xs text-gray-600">
                                     {quota.isVIP
-                                        ? "You've used all 300 monthly fusions. Buy a Refill Pack to keep generating."
-                                        : "You've used all free credits. Upgrade to keep fusing without limits."
+                                        ? "You've used all 300 monthly fusions. A Fusion Pack keeps you going."
+                                        : "You've used all free credits. Get 20 more fusions for $2.99 — one-time, no subscription."
                                     }
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                {quota.isVIP ? (
-                                    <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-blue-700 border-0">
-                                        <Link
-                                            href="/pricing?source=dragon_ball_fusion_refill"
-                                            onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "refill", reason: "pro_quota_exceeded" })}
-                                        >
-                                            Buy Refill Pack - 100 Fusions for $4.99 💎
-                                        </Link>
-                                    </Button>
-                                ) : (
-                                    <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-blue-700 border-0">
+                                <Button asChild className="w-full bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-pink-600 border-0">
+                                    <Link
+                                        href="/pricing?source=dragon_ball_fusion_pack"
+                                        onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "fusion_pack", reason: quota.isVIP ? "pro_quota_exceeded" : "member_quota_exceeded" })}
+                                    >
+                                        Get 20 More Fusions — $2.99 💎
+                                    </Link>
+                                </Button>
+                                {!quota.isVIP && (
+                                    <Button asChild variant="outline" className="w-full border-purple-200 text-purple-700 hover:bg-purple-50">
                                         <Link
                                             href="/pricing?source=dragon_ball_fusion_quota"
                                             onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "pricing", reason: "member_quota_exceeded" })}
                                         >
-                                            Upgrade to Pro - 300 Fusions/month 🚀
+                                            or Go Unlimited — Pro $9.99/mo
                                         </Link>
                                     </Button>
                                 )}
                                 <p className="text-[10px] text-center text-gray-500">
-                                    {quota.isVIP
-                                        ? "Continue fusing with more credits · No waiting for next month"
-                                        : "300 fusions/month · No watermark · HD download"
-                                    }
+                                    One-time purchase · No subscription · Credits never expire
                                 </p>
                             </div>
                         </div>

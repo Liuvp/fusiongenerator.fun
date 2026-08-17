@@ -96,7 +96,7 @@ export function GenerationQuotaCard() {
                 {/* Status Message */}
                 <div className={`text-sm ${isLow ? 'text-orange-600 dark:text-orange-400' : 'text-muted-foreground'}`}>
                     {quota.remaining === 0 ? (
-                        <p>❌ {quota.isVIP ? 'Monthly limit reached. Resets next month.' : isCreditsBased ? 'No credits left. Purchase a Refill Pack or upgrade to Pro.' : 'Daily limit reached. Upgrade to Pro for more!'}</p>
+                        <p>❌ {quota.isVIP ? 'Monthly limit reached. Resets next month.' : isCreditsBased ? 'No credits left. Get a Fusion Pack ($2.99) or upgrade to Pro.' : 'Daily limit reached. Upgrade to Pro for more!'}</p>
                     ) : quota.remaining === 1 ? (
                         <p>⚠️ {quota.isVIP ? 'Last generation remaining this month' : isCreditsBased ? 'Last free fusion credit' : 'Last generation remaining today'}</p>
                     ) : (
