@@ -1,8 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
 export function DBCTA() {
+    // Same-hash clicks ("Get Started" while URL already ends in #fusion-studio)
+    // are browser no-ops — force a scroll back up to the studio instead.
+    const scrollToStudio = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        const el = document.getElementById("fusion-studio");
+        if (!el) return;
+        e.preventDefault();
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
     return (
         <div className="text-center space-y-8">
             <div>
@@ -12,7 +23,7 @@ export function DBCTA() {
                 </div>
                 <div className="flex items-center justify-center gap-3">
                     <Button asChild className="h-10 px-4 py-2">
-                        <Link href="/dragon-ball#fusion-studio">Get Started</Link>
+                        <Link href="/dragon-ball#fusion-studio" onClick={scrollToStudio}>Get Started</Link>
                     </Button>
                     <Button asChild variant="outline" className="h-10 px-4 py-2">
                         <Link href="/gallery">Explore Gallery</Link>

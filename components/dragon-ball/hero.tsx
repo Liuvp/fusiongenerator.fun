@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
 export function DBHero() {
+    // Same-hash anchor clicks (already at #fusion-studio) are no-ops in browsers —
+    // force a scroll on every click instead. Falls back to native navigation if
+    // the studio element isn't mounted yet.
+    const scrollToStudio = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        const el = document.getElementById("fusion-studio");
+        if (!el) return;
+        e.preventDefault();
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
     return (
         <section
             className="grid gap-8 md:grid-cols-2 items-center"
@@ -35,7 +45,7 @@ export function DBHero() {
                     >
                         {/* Native anchor: works even before React hydrates, so mobile
                             taps never turn into dead clicks while the JS chunk loads. */}
-                        <a href="#fusion-studio" aria-label="Start Dragon Ball fusion generator">
+                        <a href="#fusion-studio" onClick={scrollToStudio} aria-label="Start Dragon Ball fusion generator">
                             Start Free Fusion
                         </a>
                     </Button>
@@ -50,16 +60,24 @@ export function DBHero() {
                 </p>
             </div>
             <div className="relative w-full flex items-center justify-center">
-                <Image
-                    src="/images/dragon-ball-fusion-preview-goku-vegeta.webp"
-                    alt="Dragon Ball Z fusion example showing combined Goku and Vegeta characters"
-                    width={665}
-                    height={499}
-                    priority
-                    fetchPriority="high"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 665px"
-                    className="w-full h-auto"
-                />
+                {/* Visitors tap the example image expecting it to start the tool — make it do exactly that */}
+                <a
+                    href="#fusion-studio"
+                    onClick={scrollToStudio}
+                    aria-label="Start Dragon Ball fusion with this example"
+                    className="relative w-full block transition-transform hover:scale-[1.02] active:scale-[0.99]"
+                >
+                    <Image
+                        src="/images/dragon-ball-fusion-preview-goku-vegeta.webp"
+                        alt="Dragon Ball Z fusion example showing combined Goku and Vegeta characters"
+                        width={665}
+                        height={499}
+                        priority
+                        fetchPriority="high"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 665px"
+                        className="w-full h-auto"
+                    />
+                </a>
             </div>
         </section>
     );
