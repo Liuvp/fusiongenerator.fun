@@ -67,6 +67,36 @@ interface PendingResultState {
     timestamp: number;
 }
 
+// Buy intent: a guest tapped the $2.99 pack on the quota wall and must sign up
+// first. Survives the full-page OAuth/email redirect; a confirm card is shown
+// after they land back (never an unprompted redirect to checkout).
+const BUY_INTENT_KEY = "db_fusion_buy_intent";
+const BUY_INTENT_EXPIRY = 24 * 60 * 60 * 1000; // 24h, matches the anonymous quota window
+
+const setBuyIntent = (): void => {
+    try {
+        localStorage.setItem(BUY_INTENT_KEY, JSON.stringify({ timestamp: Date.now() }));
+    } catch { /* ignore */ }
+};
+
+// Read without clearing — used to decide whether to show the confirm card.
+const peekBuyIntent = (): boolean => {
+    try {
+        const raw = localStorage.getItem(BUY_INTENT_KEY);
+        if (!raw) return false;
+        const parsed = JSON.parse(raw) as { timestamp: number };
+        return Date.now() - parsed.timestamp < BUY_INTENT_EXPIRY;
+    } catch {
+        return false;
+    }
+};
+
+// Clear at resolution time (before any checkout request), so refreshes or
+// repeated triggers can never create duplicate checkout sessions.
+const consumeBuyIntent = (): void => {
+    try { localStorage.removeItem(BUY_INTENT_KEY); } catch { /* ignore */ }
+};
+
 type AuthGateReason = "guest_quota_used" | "member_quota_exceeded" | "api_limit_reached";
 
 type StudioEventPayload = Record<string, string | number | boolean | null | undefined>;
@@ -245,6 +275,9 @@ export function DBFusionStudio() {
     const [isSaved, setIsSaved] = useState(false);
     const [selectedStyleId, setSelectedStyleId] = useState<string>('potara');
     const [authBannerDismissed, setAuthBannerDismissed] = useState(false);
+    // Quota-wall paywall state
+    const [showCheckoutConfirm, setShowCheckoutConfirm] = useState(false);
+    const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
     // mode param lets the return handler tell a new sign-up apart from a sign-in (funnel)
     const dbReturnTarget = `/dragon-ball?auth=welcome&from=dragon_ball_fusion${authMode === "sign_up" ? "&mode=sign_up" : ""}#fusion-studio`;
     const showAuthReturnBanner = searchParams.get("auth") === "welcome" && !authBannerDismissed;
@@ -265,6 +298,15 @@ export function DBFusionStudio() {
             source: searchParams.get("from"),
         });
     }, [searchParams]);
+
+    // Paywall exposure: quota wall became visible to this visitor
+    useEffect(() => {
+        if (!showAuthOptions) return;
+        trackStudioEvent("db_paywall_view", {
+            is_logged_in: Boolean(user),
+            is_vip: quota.isVIP,
+        });
+    }, [showAuthOptions, user, quota.isVIP]);
 
     // Handle payment success: show toast + scroll to studio
     // Only fire after quota is loaded (to correctly show Pro vs Refill toast) and only once
@@ -564,6 +606,13 @@ export function DBFusionStudio() {
                 setUser(data?.user ?? null);
                 setIsLoadingAuth(false);
 
+                // Buy-intent detection after a full-page OAuth/email redirect:
+                // the auth subscription only fires INITIAL_SESSION here (not
+                // SIGNED_IN), so this is the one reliable trigger point.
+                if (data?.user && peekBuyIntent()) {
+                    setShowCheckoutConfirm(true);
+                }
+
                 const response = await fetch('/api/get-quota');
                 if (response.ok) {
                     const quotaData = await response.json();
@@ -589,6 +638,12 @@ export function DBFusionStudio() {
 
                 if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
                     setUser(session?.user ?? null);
+
+                    // In-page email sign-up path: buy intent resolves without a
+                    // page reload, so detect it here as well.
+                    if (event === 'SIGNED_IN' && session?.user && peekBuyIntent()) {
+                        setShowCheckoutConfirm(true);
+                    }
 
                     try {
                         const response = await fetch('/api/get-quota');
@@ -716,6 +771,56 @@ export function DBFusionStudio() {
     // ===============================
     // 交互函数
     // ===============================
+    // Direct-to-Creem checkout for the $2.99 Fusion Pack (skips the pricing
+    // page). Mirrors the pricing page's flow and event names for one funnel.
+    const handlePackCheckout = useCallback(async (): Promise<void> => {
+        if (isCheckoutLoading) return;
+        setIsCheckoutLoading(true);
+        trackStudioEvent("checkout_click", { plan: "refill", source: "studio_paywall", has_user: Boolean(user) });
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan: 'refill', redirect_path: '/dragon-ball' }),
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (response.ok && data.checkout_url) {
+                trackStudioEvent("checkout_redirect", { plan: "refill", source: "studio_paywall" });
+                window.location.href = data.checkout_url as string;
+                return; // page navigates away; keep loading state on
+            }
+            throw new Error(data.error || `Checkout failed (${response.status})`);
+        } catch (error) {
+            trackStudioEvent("checkout_error", {
+                plan: "refill",
+                source: "studio_paywall",
+                error: String(error).slice(0, 100),
+            });
+            toast({
+                title: "Checkout Unavailable",
+                description: "Opening the pricing page instead.",
+                duration: 3000,
+            });
+            window.location.href = '/pricing?source=studio_paywall_fallback';
+        } finally {
+            setIsCheckoutLoading(false);
+        }
+    }, [isCheckoutLoading, toast, user]);
+
+    // Guest taps the $2.99 pack: stash buy intent, then open sign-up with a
+    // purchase-context headline (reuses the existing authHeadline mechanism).
+    const startPackPurchase = useCallback((): void => {
+        trackStudioEvent("db_paywall_click", { cta: "pack_299", is_logged_in: false });
+        setBuyIntent();
+        setAuthHeadline({
+            title: "Complete Your $2.99 Purchase",
+            description: "Create your free account first — right after, we'll take you to a secure checkout for 20 more fusions. One-time, no subscription.",
+        });
+        setAuthMode("sign_up");
+        setAuthDialogOpen(true);
+    }, []);
+
     const selectCharacter = useCallback((char: DBCharacter): void => {
         const c1 = char1Ref.current;
         const c2 = char2Ref.current;
@@ -1423,6 +1528,43 @@ export function DBFusionStudio() {
                 </div>
             )}
 
+            {/* Buy-intent confirm card: shown once after a guest who tapped the
+                $2.99 pack finishes signing in. Never auto-redirects. */}
+            {showCheckoutConfirm && user && (
+                <div className="mb-6 rounded-xl border-2 border-orange-300 bg-white p-4 shadow-lg animate-in fade-in slide-in-from-top-2">
+                    <p className="font-bold text-gray-900">Ready to unlock 20 fusions?</p>
+                    <p className="mt-1 text-xs text-gray-600">
+                        Continue to secure checkout — $2.99 one-time, 20 fusion credits, no subscription.
+                    </p>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <Button
+                            type="button"
+                            disabled={isCheckoutLoading}
+                            className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white font-bold border-0 disabled:opacity-60 disabled:cursor-wait"
+                            onClick={() => {
+                                consumeBuyIntent();
+                                setShowCheckoutConfirm(false);
+                                trackStudioEvent("db_buy_intent_card", { action: "continue" });
+                                handlePackCheckout();
+                            }}
+                        >
+                            {isCheckoutLoading ? "Opening…" : "Continue to Checkout — $2.99"}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                                consumeBuyIntent();
+                                setShowCheckoutConfirm(false);
+                                trackStudioEvent("db_buy_intent_card", { action: "dismiss" });
+                            }}
+                        >
+                            Maybe later
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {steps}
 
             {/* 角色选择区域 */}
@@ -1624,43 +1766,52 @@ export function DBFusionStudio() {
                         </p>
                     )}
 
-                    {/* 未登录用户引导：配额不足时显示 */}
+                    {/* 游客配额墙：付费 + 免费双出口（付费意图最强的一刻） */}
                     {showAuthOptions && !user && (
                         <div className="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">You&apos;ve used your 3 free fusions</h4>
+                                <h4 className="font-bold text-gray-800">You&apos;ve used your 3 free fusions for today</h4>
                                 <p className="text-xs text-gray-600">
-                                    Create a free account to save your fusions and get 2 starter credits, or upgrade to Pro for 300 fusions/month.
+                                    Keep fusing right now — grab a one-time pack, or create a free account for 2 bonus credits.
                                 </p>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
                                 <Button
+                                    type="button"
+                                    className="w-full h-14 text-base font-bold bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white shadow-lg hover:shadow-xl hover:from-orange-600 hover:to-pink-600 border-0"
+                                    onClick={startPackPurchase}
+                                >
+                                    💎 Get 20 Fusions — $2.99
+                                </Button>
+                                <p className="text-[10px] text-center text-gray-500">
+                                    One-time · No subscription · Credits never expire
+                                </p>
+                                <Button
+                                    type="button"
                                     variant="outline"
                                     className="w-full bg-white hover:bg-gray-50 text-gray-700 border-gray-200"
                                     onClick={() => {
-                                        setAuthMode("sign_in");
-                                        setAuthDialogOpen(true);
-                                        trackStudioEvent("db_auth_gate_click", { cta: "sign_in_dialog", reason: "quota_limit" });
-                                    }}
-                                >
-                                    Sign In
-                                </Button>
-                                <Button
-                                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-600 border-0"
-                                    onClick={() => {
+                                        trackStudioEvent("db_paywall_click", { cta: "sign_up_free", is_logged_in: false });
                                         setAuthMode("sign_up");
                                         setAuthDialogOpen(true);
-                                        trackStudioEvent("db_auth_gate_click", { cta: "sign_up_dialog", reason: "quota_limit" });
                                     }}
                                 >
-                                    Sign Up Free
+                                    or Sign Up Free — get 2 more credits
                                 </Button>
                             </div>
-                            <Button asChild variant="ghost" className="w-full mt-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 text-xs">
-                                <Link href="/pricing?source=dragon_ball_quota_anon" onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "pricing_skip", reason: "quota_limit" })}>
-                                    Skip - Upgrade to Pro directly 🚀
-                                </Link>
-                            </Button>
+                            <div className="mt-2 text-center">
+                                <button
+                                    type="button"
+                                    className="text-xs text-gray-500 underline hover:text-gray-700"
+                                    onClick={() => {
+                                        trackStudioEvent("db_paywall_click", { cta: "sign_in", is_logged_in: false });
+                                        setAuthMode("sign_in");
+                                        setAuthDialogOpen(true);
+                                    }}
+                                >
+                                    Already have an account? Sign In
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -1677,13 +1828,16 @@ export function DBFusionStudio() {
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <Button asChild className="w-full bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-pink-600 border-0">
-                                    <Link
-                                        href="/pricing?source=dragon_ball_fusion_pack"
-                                        onClick={() => trackStudioEvent("db_auth_gate_click", { cta: "fusion_pack", reason: quota.isVIP ? "pro_quota_exceeded" : "member_quota_exceeded" })}
-                                    >
-                                        Get 20 More Fusions — $2.99 💎
-                                    </Link>
+                                <Button
+                                    type="button"
+                                    disabled={isCheckoutLoading}
+                                    className="w-full bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-pink-600 border-0 disabled:opacity-60 disabled:cursor-wait"
+                                    onClick={() => {
+                                        trackStudioEvent("db_paywall_click", { cta: "pack_299", is_logged_in: true, is_vip: quota.isVIP });
+                                        handlePackCheckout();
+                                    }}
+                                >
+                                    {isCheckoutLoading ? "Opening secure checkout…" : "Get 20 More Fusions — $2.99 💎"}
                                 </Button>
                                 {!quota.isVIP && (
                                     <Button asChild variant="outline" className="w-full border-purple-200 text-purple-700 hover:bg-purple-50">
