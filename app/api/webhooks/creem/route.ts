@@ -222,12 +222,15 @@ export async function POST(req: Request) {
         break;
       }
 
-      /** 4️⃣ Refund / Dispute handling */
-      case "charge.refunded":
-      case "charge.dispute.created": {
-        const payload = event.object;
-        const userId = payload.metadata?.user_id || payload.customer?.metadata?.user_id;
-        const refundAmount = payload.amount_refunded || payload.amount || 0;
+      /** 4️⃣ Refund / Dispute handling — Creem event names: refund.created / dispute.created
+       *  (previous cases used Stripe-style names that never matched) */
+      case "refund.created":
+      case "dispute.created": {
+        const payload = event.object; // refund/dispute object
+        // Creem nests the original checkout (and its metadata) inside the refund payload
+        const userId = payload.metadata?.user_id
+          || payload.checkout?.metadata?.user_id
+          || payload.customer?.metadata?.user_id;
 
         if (userId) {
           const { data: customer } = await supabase
@@ -237,8 +240,8 @@ export async function POST(req: Request) {
             .single();
 
           if (customer) {
-            // Deduct refill credits if refunded (100 credits per refill pack, don't go below 0)
-            const deduction = Math.min(customer.credits, 100);
+            // Deduct pack credits on refund (Fusion Pack = 20 credits, don't go below 0)
+            const deduction = Math.min(customer.credits, 20);
             if (deduction > 0) {
               await supabase
                 .from('customers')
@@ -249,7 +252,9 @@ export async function POST(req: Request) {
           }
 
           // If subscription refunded, mark as canceled
-          const productId = payload.product?.id || payload.product_id;
+          const productId = payload.product?.id
+            || payload.product_id
+            || payload.checkout?.product?.id;
           const monthlyId = process.env.CREEM_PRODUCT_ID_MONTHLY;
           const yearlyId = process.env.CREEM_PRODUCT_ID_YEARLY;
           if (productId === monthlyId || productId === yearlyId) {
