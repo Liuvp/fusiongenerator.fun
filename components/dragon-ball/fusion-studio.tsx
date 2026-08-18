@@ -299,9 +299,14 @@ export function DBFusionStudio() {
         });
     }, [searchParams]);
 
-    // Paywall exposure: quota wall became visible to this visitor
+    // Paywall exposure: log once per wall appearance (state transition into
+    // the wall), so a guest→member flip while the wall stays open doesn't
+    // double-count the same exposure.
+    const paywallVisiblePrevRef = useRef(false);
     useEffect(() => {
-        if (!showAuthOptions) return;
+        const wasVisible = paywallVisiblePrevRef.current;
+        paywallVisiblePrevRef.current = showAuthOptions;
+        if (!showAuthOptions || wasVisible) return;
         trackStudioEvent("db_paywall_view", {
             is_logged_in: Boolean(user),
             is_vip: quota.isVIP,
@@ -1770,9 +1775,9 @@ export function DBFusionStudio() {
                     {showAuthOptions && !user && (
                         <div className="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-xl animate-in fade-in slide-in-from-top-2">
                             <div className="text-center mb-4 space-y-1">
-                                <h4 className="font-bold text-gray-800">You&apos;ve used your 3 free fusions for today</h4>
+                                <h4 className="font-bold text-gray-800">You&apos;ve used your 3 free fusions</h4>
                                 <p className="text-xs text-gray-600">
-                                    Keep fusing right now — grab a one-time pack, or create a free account for 2 bonus credits.
+                                    They refresh in about 24 hours. Keep fusing right now — grab a one-time pack, or create a free account for 2 bonus credits.
                                 </p>
                             </div>
                             <div className="space-y-2">
